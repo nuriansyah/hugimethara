@@ -1,0 +1,5 @@
+.DS_Store
+.env
+deploy/compose/.env
+backend/bin/
+*.out

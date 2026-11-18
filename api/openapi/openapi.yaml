@@ -1,0 +1,438 @@
+openapi: 3.0.3
+info:
+  title: Hugimethara API
+  version: 0.1.0
+  description: |
+    Unified Business Operations & Intelligence Platform API.
+    Conventions (errors, pagination, idempotency, auth): docs/api/conventions.md.
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: /
+security:
+  - sessionCookie: []
+tags:
+  - name: system
+    description: Deployment metadata and health.
+  - name: auth
+    description: Sign-up, sign-in and the caller's sessions.
+  - name: organization
+    description: The caller's organization and its settings.
+  - name: audit
+    description: Organization audit trail.
+paths:
+  /healthz:
+    get:
+      tags: [system]
+      operationId: getLiveness
+      summary: Liveness probe
+      security: []
+      responses:
+        "200":
+          description: Process is alive.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthReport" }
+  /readyz:
+    get:
+      tags: [system]
+      operationId: getReadiness
+      summary: Readiness probe (dependencies and migration version)
+      security: []
+      responses:
+        "200":
+          description: All dependencies ready.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthReport" }
+        "503":
+          description: At least one dependency is not ready.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HealthReport" }
+  /v1/hugimethara/system/info:
+    get:
+      tags: [system]
+      operationId: getSystemInfo
+      summary: Build and deployment information
+      security: []
+      responses:
+        "200":
+          description: Build and deployment information.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SystemInfo" }
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/hugimethara/organizations:
+    post:
+      tags: [auth]
+      operationId: createOrganization
+      summary: Sign up — create an organization and its first owner, and sign in
+      description: |
+        Public. Sets the session and CSRF cookies on success. Rate limited per client IP.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SignupRequest" }
+      responses:
+        "201":
+          description: Organization created; the caller is signed in.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        "429": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: Sign in with email and password
+      description: |
+        Public. On success sets the session cookie (HttpOnly) and the CSRF cookie (readable by the page;
+        echo it in `X-CSRF-Token` on state-changing requests). When the account belongs to several
+        organizations and none is given, responds 409 `organization_required` with an `organizations` list.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: Signed in.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "409":
+          description: The user must choose an organization.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/OrganizationChoiceProblem" }
+        "429": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      summary: Sign out (revoke the current session)
+      security: []
+      responses:
+        "204": { description: Signed out; cookies cleared. }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/me:
+    get:
+      tags: [auth]
+      operationId: getMe
+      summary: The signed-in user, their organization and session
+      responses:
+        "200":
+          description: Current identity.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Me" }
+        "401": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/me/sessions:
+    get:
+      tags: [auth]
+      operationId: listMySessions
+      summary: The caller's active sessions in this organization
+      responses:
+        "200":
+          description: Active sessions, most recently used first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/SessionInfo" }
+        "401": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/me/sessions/{session_id}:
+    delete:
+      tags: [auth]
+      operationId: revokeMySession
+      summary: Revoke one of the caller's sessions
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204": { description: Session revoked. }
+        "401": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/organizations/current:
+    get:
+      tags: [organization]
+      operationId: getCurrentOrganization
+      summary: The caller's organization
+      description: "Permission: organization:read."
+      responses:
+        "200":
+          description: The organization.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Organization" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [organization]
+      operationId: updateCurrentOrganization
+      summary: Update the caller's organization
+      description: "Permission: organization:update. Audited as organization.updated."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateOrganizationRequest" }
+      responses:
+        "200":
+          description: The updated organization.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Organization" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/audit-events:
+    get:
+      tags: [audit]
+      operationId: listAuditEvents
+      summary: The organization audit trail, newest first
+      description: "Permission: audit_event:read."
+      parameters:
+        - { name: action, in: query, schema: { type: string, maxLength: 100 }, description: "Exact action or prefix (e.g. `auth` matches `auth.*`)." }
+        - { name: actor_id, in: query, schema: { type: string, format: uuid } }
+        - { name: resource_type, in: query, schema: { type: string, maxLength: 64 } }
+        - { name: since, in: query, schema: { type: string, format: date-time } }
+        - { name: until, in: query, schema: { type: string, format: date-time } }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Cursor" }
+      responses:
+        "200":
+          description: One page of events.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuditEventPage" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: hugi_session
+      description: |
+        Session cookie set by login/signup (`__Host-hugi_session` when served over HTTPS).
+        State-changing requests must also send `X-CSRF-Token` with the value of the `hugi_csrf` cookie.
+  parameters:
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string, maxLength: 512 }
+  responses:
+    Problem:
+      description: Error (RFC 9457 problem details).
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/Problem" }
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string, description: Stable machine-readable error code. }
+        detail: { type: string }
+        request_id: { type: string }
+        errors:
+          type: array
+          items: { $ref: "#/components/schemas/FieldError" }
+    FieldError:
+      type: object
+      required: [field, code, message]
+      properties:
+        field: { type: string }
+        code: { type: string }
+        message: { type: string }
+    SignupRequest:
+      type: object
+      required: [organization_name, organization_slug, display_name, email, password]
+      properties:
+        organization_name: { type: string, minLength: 2, maxLength: 100, example: Acme Indonesia }
+        organization_slug:
+          type: string
+          pattern: "^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$"
+          example: acme-id
+        display_name: { type: string, minLength: 1, maxLength: 100 }
+        email: { type: string, format: email, maxLength: 254 }
+        password: { type: string, minLength: 12, maxLength: 128, format: password }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, maxLength: 254 }
+        password: { type: string, maxLength: 512, format: password }
+        organization_slug: { type: string, maxLength: 40 }
+    OrganizationChoice:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string }
+        name: { type: string }
+    OrganizationChoiceProblem:
+      allOf:
+        - $ref: "#/components/schemas/Problem"
+        - type: object
+          required: [organizations]
+          properties:
+            organizations:
+              type: array
+              items: { $ref: "#/components/schemas/OrganizationChoice" }
+    User:
+      type: object
+      required: [id, email, display_name, status]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        display_name: { type: string }
+        status: { type: string, enum: [active, disabled] }
+    OrganizationSummary:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+    SessionSummary:
+      type: object
+      required: [id, expires_at, idle_expires_at]
+      properties:
+        id: { type: string, format: uuid }
+        expires_at: { type: string, format: date-time }
+        idle_expires_at: { type: string, format: date-time }
+    AuthResponse:
+      type: object
+      required: [user, organization, session]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        organization: { $ref: "#/components/schemas/OrganizationSummary" }
+        session: { $ref: "#/components/schemas/SessionSummary" }
+    Me:
+      type: object
+      required: [user, organization, membership, session]
+      properties:
+        user: { $ref: "#/components/schemas/User" }
+        organization: { $ref: "#/components/schemas/OrganizationSummary" }
+        membership:
+          type: object
+          required: [is_owner, joined_at]
+          properties:
+            is_owner: { type: boolean, description: "Interim until RBAC (S3): owners hold all permissions." }
+            joined_at: { type: string, format: date-time }
+        session: { $ref: "#/components/schemas/SessionSummary" }
+    SessionInfo:
+      type: object
+      required: [id, current, created_at, last_seen_at, idle_expires_at, expires_at]
+      properties:
+        id: { type: string, format: uuid }
+        current: { type: boolean }
+        created_at: { type: string, format: date-time }
+        last_seen_at: { type: string, format: date-time }
+        idle_expires_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        ip: { type: string }
+        user_agent: { type: string }
+    OrganizationSettings:
+      type: object
+      required: [session_idle_timeout_minutes, session_absolute_timeout_hours]
+      properties:
+        session_idle_timeout_minutes: { type: integer, minimum: 5, maximum: 1440 }
+        session_absolute_timeout_hours: { type: integer, minimum: 1, maximum: 720 }
+    Organization:
+      type: object
+      required: [id, slug, name, status, settings, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        status: { type: string, enum: [active, suspended] }
+        settings: { $ref: "#/components/schemas/OrganizationSettings" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    UpdateOrganizationRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100 }
+        settings: { $ref: "#/components/schemas/OrganizationSettings" }
+    AuditEvent:
+      type: object
+      required: [id, occurred_at, actor_type, action, resource_type, outcome, details]
+      properties:
+        id: { type: string, format: uuid }
+        occurred_at: { type: string, format: date-time }
+        actor_type: { type: string, enum: [user, service_account, system, anonymous] }
+        actor_id: { type: string, format: uuid }
+        actor_email: { type: string }
+        action: { type: string, example: organization.updated }
+        resource_type: { type: string }
+        resource_id: { type: string }
+        workspace_id: { type: string, format: uuid }
+        outcome: { type: string, enum: [success, failure, denied] }
+        request_id: { type: string }
+        ip: { type: string }
+        details: { type: object, additionalProperties: true }
+    AuditEventPage:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items: { $ref: "#/components/schemas/AuditEvent" }
+        next_cursor: { type: string }
+    HealthReport:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ok, fail] }
+        checks:
+          type: object
+          additionalProperties:
+            type: object
+            required: [status]
+            properties:
+              status: { type: string, enum: [ok, fail] }
+              error: { type: string }
+    SystemInfo:
+      type: object
+      required: [name, version, commit, go_version, environment, api_version]
+      properties:
+        name: { type: string, example: Hugimethara }
+        version: { type: string, example: v0.1.0 }
+        commit: { type: string }
+        go_version: { type: string }
+        environment: { type: string, enum: [development, staging, production, test] }
+        api_version: { type: string, example: v1 }
