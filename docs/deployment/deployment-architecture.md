@@ -24,7 +24,8 @@ images in 2025, so the S3-compatible dev server is chosen when the first slice n
 Candidates: SeaweedFS, Garage, RustFS. Application code targets the S3 API only.
 
 **Database roles** (ADR-0002): `hugi_owner` (migrations, table owner), `hugi_app` (API, RLS-enforced),
-`hugi_system` (worker platform jobs, narrow cross-tenant grants). Compose creates the login roles in
+`hugi_system` (worker platform jobs, narrow cross-tenant grants), `hugi_auth` (NOLOGIN; owns the pre-tenant
+authentication functions, read-only except lockout counters; created by migration 00003). Compose creates the login roles in
 `deploy/compose/postgres-init.sh`; in other environments create them before running `hugi-migrate up`.
 
 | Variable | Used by | Purpose |
@@ -35,7 +36,9 @@ Candidates: SeaweedFS, Garage, RustFS. Application code targets the S3 API only.
 | `HUGI_MIGRATE_DATABASE_URL` | migrate | owner connection |
 | `HUGI_REDIS_URL`, `HUGI_NATS_URL` | api, worker | dependencies |
 | `HUGI_HTTP_ADDR` / `HUGI_METRICS_ADDR` | api, worker | listeners (default `:8080` / `:9090`) |
-| `HUGI_CORS_ALLOWED_ORIGINS` | api | comma-separated browser origins |
+| `HUGI_CORS_ALLOWED_ORIGINS` | api | trusted browser origins (CORS + state-changing request Origin check) |
+| `HUGI_COOKIE_SECURE` | api | default `true` (`__Host-` cookies); `false` only for plain-HTTP local dev; refused in production |
+| `HUGI_TRUSTED_PROXIES` | api | CIDRs whose `X-Forwarded-For` is trusted for client IPs (audit, rate limits) |
 | `HUGI_LOG_LEVEL`, `HUGI_LOG_FORMAT` | all | `info`/`json` by default |
 | `OTEL_EXPORTER_OTLP_ENDPOINT`, `HUGI_TRACE_SAMPLE_RATIO` | api, worker | trace export (optional) |
 | `HUGI_API_URL` | web | where `/api/*` is proxied (read at runtime) |

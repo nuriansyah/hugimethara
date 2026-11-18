@@ -7,14 +7,18 @@ TanStack Table, React Hook Form + Zod, Zustand only for local editor state (work
 React Flow (workflow designer), Monaco (JSON/CEL/SQL), ECharts (Phase 2 dashboards).
 
 ## Rendering & data model
-- Authenticated app is **client-rendered under a server layout**: the layout performs a server-side session check
-  (forwarding the cookie to `GET /me`) and redirects to login; pages fetch via TanStack Query against the Go API.
+- Authenticated pages live in the `(app)` route group under `<AuthGate>`, a client component that loads `GET /me`
+  and redirects to `/login?next=…` on 401 (only same-site relative `next` values are honoured). The gate is UX;
+  the API authorizes every call. Public pages (`/login`, `/signup`) live in `(auth)`.
   No business logic in Next.js route handlers — Next.js is not a BFF.
+- The session is bound to one organization, so URLs do not carry an org segment (`/settings/organization`,
+  `/governance/audit`); workspace-scoped pages will add `/w/[workspace]/…` in S2.
 - The browser only talks to its own origin: `src/proxy.ts` forwards `/api/*` to `HUGI_API_URL` at request time
   (next.config rewrites are frozen at build time, so they cannot be configured per environment). In production an
   ingress may route `/api` directly to hugi-api instead; the client code is the same.
 - Same-site deployment (path-routed `/api`, or `app.example.com` + `api.example.com`) so the session cookie is
-  `HttpOnly; Secure; SameSite=Lax`. Mutations send `X-CSRF-Token` (double-submit).
+  `HttpOnly; Secure; SameSite=Lax` (`__Host-` prefixed over HTTPS). Mutations send `X-CSRF-Token`, read from the
+  `hugi_csrf` cookie and checked against a hash stored with the session (synchronizer token, not plain double-submit).
 - API client generated from `api/openapi` with `openapi-typescript` + `openapi-fetch`; Zod schemas for forms live
   next to features. Contract drift fails CI.
 

@@ -14,7 +14,6 @@ import (
 // Hand-written calls to the pre-tenant SECURITY DEFINER functions from
 // migration 00003 (sqlc cannot infer their result columns).
 
-
 type loginRecord struct {
 	UserID         uuid.UUID
 	UserStatus     string

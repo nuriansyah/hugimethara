@@ -116,7 +116,10 @@ func TestCrossSiteStateChangeRejected(t *testing.T) {
 func TestRequireSessionMatchesGeneratedOperationNames(t *testing.T) {
 	mw := requireSession(map[string]bool{"login": true})
 	called := false
-	next := func(context.Context, http.ResponseWriter, *http.Request, any) (any, error) { called = true; return nil, nil }
+	next := func(context.Context, http.ResponseWriter, *http.Request, any) (any, error) {
+		called = true
+		return nil, nil
+	}
 
 	_, err := mw(next, "Login")(context.Background(), nil, nil, nil)
 	require.NoError(t, err)

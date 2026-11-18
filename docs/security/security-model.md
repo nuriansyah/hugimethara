@@ -17,6 +17,18 @@
 | OIDC | Token substitution, open redirect | PKCE, state+nonce, issuer/audience checks, exact redirect URI, email-domain allowlist |
 | Supply chain | Vulnerable deps / images | `govulncheck`, `npm audit`/osv-scanner, Trivy image scan, pinned base images, distroless non-root runtime |
 
+## Authentication (S1)
+
+| Control | Implementation |
+|---|---|
+| Passwords | argon2id PHC strings; parameters read from the hash so they can be raised without breaking old hashes; 12–128 chars, not equal to email |
+| Enumeration | Unknown email, wrong password, locked and disabled accounts all return the same 401 and spend the same hashing time. Signup necessarily reveals that an email or slug is taken (409) — mitigated by IP rate limiting; email verification in S4 |
+| Brute force | Per-account lockout after 10 consecutive failures for 15 min (Postgres, authoritative). Redis rate limits: login 30/5 min per IP and 10/5 min per email; signup 10/h per IP. Redis outage fails open (logged) because lockout still bounds guessing |
+| Sessions | 256-bit random token in `HttpOnly; SameSite=Lax` cookie (`__Host-` + `Secure` over HTTPS); only SHA-256 stored; idle + absolute expiry from org settings; new session on every login (no fixation); server-side revocation; disabled users, suspended memberships/orgs are rejected on every request |
+| CSRF | Synchronizer token: random CSRF token per session, hash stored with the session, required in `X-CSRF-Token` for every state-changing request made with a session cookie (including logout). Plus an Origin check on all state-changing requests (also blocks login CSRF) and SameSite cookies |
+| Org choice | The list of a user's organizations is returned only after the password is verified |
+| Audit | Sign-in success/failure, logout, session revocation and org changes are recorded in-transaction with request id, IP and user agent |
+
 ## SSRF
 Default-deny ranges: `0.0.0.0/8, 10/8, 100.64/10, 127/8, 169.254/16, 172.16/12, 192.168/16, ::1, fc00::/7, fe80::/10`,
 multicast, and cloud metadata hosts. Admins may allow specific CIDRs/hosts per environment (required for internal

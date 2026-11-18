@@ -104,6 +104,16 @@ Conventions ([ADR-0002](../adr/0002-postgresql-tenancy.md)):
 | webhook_subscriptions | org_id, id, workspace_id, url, event_types[], filter, secret_id, enabled, disabled_reason |
 | webhook_deliveries | org_id, id, subscription_id, event_id, replay_of?, attempt, status(`pending`/`succeeded`/`failed`/`dead_lettered`), next_attempt_at, response_status, response_excerpt, latency_ms |
 
+### S1 implementation notes
+- `users` and `user_credentials` are **global** (one person, many orgs). `hugi_app` sees a user only if they are a member
+  of the current org. Login and session resolution happen before a tenant is known, so they go through four
+  `SECURITY DEFINER` functions owned by the `hugi_auth` role: `hugi_auth_login_lookup`, `hugi_auth_user_orgs`,
+  `hugi_auth_record_attempt`, `hugi_auth_resolve_session`. They return only what authentication needs.
+- `org_memberships.is_owner` is interim until S3; S3 migrates owners to `org_owner` role bindings.
+- `sessions` stores SHA-256 of the session token and of the CSRF token, never the tokens.
+- `audit_events` is append-only for `hugi_app` (INSERT/SELECT). Partitioning by month is deferred until volume
+  justifies it (tracked in the backlog).
+
 ## 2. ERD (core relationships)
 
 ```mermaid
@@ -143,7 +153,7 @@ erDiagram
 |---|---|
 | ✅ 00001_platform_foundation (citext, pgcrypto, `hugi_app`/`hugi_system` roles + grants, `hugi_current_org()` RLS helper, `hugi_touch_updated_at()`) | S0 |
 | ✅ 00002_outbox (moved forward from S1: the relay is platform infrastructure every later slice uses) | S0 |
-| 0003_org_identity_core (organizations, users, org_memberships, user_credentials, sessions) + 0004_audit_events | S1 |
+| ✅ 00003_org_identity_audit (organizations, users, org_memberships, user_credentials, sessions, audit_events, `hugi_auth` role + pre-tenant auth functions) | S1 |
 | 0004_workspaces_envs_departments | S2 |
 | 0005_authz | S3 |
 | 0006_groups_invitations_service_accounts | S4 |

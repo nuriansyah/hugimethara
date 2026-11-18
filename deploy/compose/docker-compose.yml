@@ -65,6 +65,8 @@ services:
       <<: *backend-env
       HUGI_DATABASE_URL: postgres://hugi_app:${HUGI_APP_PASSWORD:-hugi-app-dev}@postgres:5432/hugimethara?sslmode=disable
       HUGI_CORS_ALLOWED_ORIGINS: http://localhost:3000
+      HUGI_COOKIE_SECURE: "false"           # plain HTTP on localhost only
+      HUGI_TRUSTED_PROXIES: 172.16.0.0/12   # docker network: the web container proxies /api
     ports: ["127.0.0.1:${HUGI_API_PORT:-8080}:8080", "127.0.0.1:9090:9090"]
     depends_on:
       migrate: { condition: service_completed_successfully }

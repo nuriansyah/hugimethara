@@ -73,10 +73,10 @@ func (h *Hasher) Verify(password, encoded string) (bool, error) {
 		return false, errBadHash
 	}
 	want, err := b64.DecodeString(parts[5])
-	if err != nil {
+	if err != nil || len(want) < 16 || len(want) > 128 || len(salt) < 8 {
 		return false, errBadHash
 	}
-	got := argon2.IDKey([]byte(password), salt, p.Iterations, p.MemoryKiB, p.Parallelism, uint32(len(want)))
+	got := argon2.IDKey([]byte(password), salt, p.Iterations, p.MemoryKiB, p.Parallelism, uint32(len(want))) //nolint:gosec // G115: len bounded to 128 above
 	return subtle.ConstantTimeCompare(got, want) == 1, nil
 }
 

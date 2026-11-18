@@ -55,7 +55,9 @@ type Service struct {
 	az   authz.Authorizer
 }
 
-func NewService(pool *pgxpool.Pool, az authz.Authorizer) *Service { return &Service{pool: pool, az: az} }
+func NewService(pool *pgxpool.Pool, az authz.Authorizer) *Service {
+	return &Service{pool: pool, az: az}
+}
 
 // List returns one page of the caller's organization audit trail, newest first.
 func (s *Service) List(ctx context.Context, f Filter, page httpx.Page) ([]Entry, string, error) {
@@ -66,7 +68,8 @@ func (s *Service) List(ctx context.Context, f Filter, page httpx.Page) ([]Entry,
 	if _, err := authz.Require(ctx, s.az, "read", authz.Resource{Type: ResourceType, OrgID: p}); err != nil {
 		return nil, "", err
 	}
-	params := auditdb.ListAuditEventsParams{PageLimit: int32(page.Limit + 1)}
+	limit := min(max(page.Limit, 1), httpx.MaxPageLimit)
+	params := auditdb.ListAuditEventsParams{PageLimit: int32(limit + 1)} //nolint:gosec // G115: bounded to 201
 	if f.Action != "" {
 		params.Action = pgtype.Text{String: f.Action, Valid: true}
 	}
@@ -102,8 +105,8 @@ func (s *Service) List(ctx context.Context, f Filter, page httpx.Page) ([]Entry,
 	}
 
 	var next string
-	if len(rows) > page.Limit {
-		rows = rows[:page.Limit]
+	if len(rows) > limit {
+		rows = rows[:limit]
 		last := rows[len(rows)-1]
 		next, _ = httpx.EncodeCursor(cursor{T: last.OccurredAt.Time, ID: last.ID})
 	}

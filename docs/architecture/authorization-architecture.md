@@ -50,6 +50,13 @@ type ScopeResolver interface {
 
 Repositories turn `Scopes` into a SQL predicate (`workspace_id = ANY($1) OR id = ANY($2)`).
 
+## 1a. Interim implementation (S1–S2)
+
+Until S3 lands, `authz.InterimAuthorizer` implements the same contract, deny-by-default:
+tenant mismatch → deny (rendered as 404); organization owner → allow; other members → only an explicit allowlist
+(`organization:read`); everything else denied. Every handler already calls `authz.Require`, so S3 swaps the
+implementation without touching domain code. Decision auditing to `authz_decisions` arrives with S3.
+
 ## 2. Phase 1 model — dynamic RBAC
 
 - **Resource types** are registered at boot by each domain (code declares *what exists*; upserted into

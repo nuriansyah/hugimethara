@@ -29,6 +29,11 @@ func (c Cookies) prefix() string {
 	return ""
 }
 
+// Secure is config-driven: false only for plain-HTTP local development, and
+// config.Load refuses it in production. The CSRF cookie is deliberately not
+// HttpOnly — the page must read it to echo it in X-CSRF-Token.
+//
+//nolint:gosec // G124: see above
 func (c Cookies) issue(g SessionGrant) []*http.Cookie {
 	return []*http.Cookie{
 		{Name: c.SessionName(), Value: g.Token, Path: "/", Expires: g.ExpiresAt, HttpOnly: true, Secure: c.Secure, SameSite: http.SameSiteLaxMode},
@@ -36,6 +41,7 @@ func (c Cookies) issue(g SessionGrant) []*http.Cookie {
 	}
 }
 
+//nolint:gosec // G124: same reasoning as issue
 func (c Cookies) clear() []*http.Cookie {
 	return []*http.Cookie{
 		{Name: c.SessionName(), Value: "", Path: "/", MaxAge: -1, Expires: time.Unix(0, 0), HttpOnly: true, Secure: c.Secure, SameSite: http.SameSiteLaxMode},
@@ -105,8 +111,10 @@ func (r sessionResponse) visit(w http.ResponseWriter) error {
 	return err
 }
 
-func (r sessionResponse) VisitCreateOrganizationResponse(w http.ResponseWriter) error { return r.visit(w) }
-func (r sessionResponse) VisitLoginResponse(w http.ResponseWriter) error              { return r.visit(w) }
+func (r sessionResponse) VisitCreateOrganizationResponse(w http.ResponseWriter) error {
+	return r.visit(w)
+}
+func (r sessionResponse) VisitLoginResponse(w http.ResponseWriter) error { return r.visit(w) }
 
 type logoutResponse struct{ cookies []*http.Cookie }
 

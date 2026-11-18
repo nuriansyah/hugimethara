@@ -92,7 +92,7 @@ func NewRouter(d Deps) (http.Handler, error) {
 // PublicOperations lists operation ids the spec marks `security: []`.
 // Every other operation requires an authenticated principal (deny by default).
 func PublicOperations() (map[string]bool, error) {
-	spec, err := apigen.GetSwagger()
+	spec, err := apigen.GetSpec()
 	if err != nil {
 		return nil, fmt.Errorf("api: load embedded spec: %w", err)
 	}

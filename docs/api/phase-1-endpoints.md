@@ -6,14 +6,14 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | Method | Path | Perm | Slice |
 |---|---|---|---|
 | **Health** ||||
-| GET | /healthz, /readyz (root, unversioned) | public | S0 |
+| GET | /healthz, /readyz (root, unversioned) | public | ✅ S0 |
 | **Auth & self** ||||
-| POST | /organizations (signup: org + owner) | public, rate-limited | S1 |
-| POST | /auth/login · /auth/logout | public / session | S1 |
+| POST | /organizations (signup: org + owner) | public, rate-limited | ✅ S1 |
+| POST | /auth/login · /auth/logout | public / session | ✅ S1 |
 | GET | /auth/oidc/{idp_id}/start · /auth/oidc/callback | public | S5 |
-| GET | /me · /me/permissions · /me/sessions; DELETE /me/sessions/{id} | session | S1/S3 |
+| GET | /me · /me/sessions; DELETE /me/sessions/{id} (✅ S1) · /me/permissions (S3) | session | S1/S3 |
 | **Organization** ||||
-| GET/PATCH | /organizations/current | organization:read / :update | S1 |
+| GET/PATCH | /organizations/current | organization:read / :update | ✅ S1 |
 | CRUD | /departments | department:* | S2 |
 | CRUD | /environments | environment:* | S2 |
 | CRUD | /workspaces | workspace:create/read/update/archive | S2 |
@@ -32,7 +32,7 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | POST | /authorization/evaluate (check/simulate for a principal) | authorization:simulate | S3 |
 | GET | /authorization/decisions | audit:read | S3 |
 | **Audit** ||||
-| GET | /audit-events (filters: actor, resource, action, time) | audit:read | S1 UI in S3 |
+| GET | /audit-events (filters: actor, resource, action, time) | audit_event:read | ✅ S1 (API + UI) |
 | **Secrets & connectors** ||||
 | GET | /connector-definitions, /connector-definitions/{id}/versions | connector:read | S6 |
 | POST | /connector-definitions (declarative, org-private) | connector:define | S6 (P1) |

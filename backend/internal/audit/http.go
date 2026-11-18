@@ -3,7 +3,6 @@ package audit
 import (
 	"context"
 
-
 	"github.com/nuriansyah/hugimethara/backend/internal/api/apigen"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/httpx"
 )
@@ -74,4 +73,3 @@ func opt(s string) *string {
 	}
 	return &s
 }
-

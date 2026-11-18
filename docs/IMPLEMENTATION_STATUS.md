@@ -2,16 +2,58 @@
 
 _Last updated: 2026-11-18_
 
-## Current stage: Phase 1 — S0 Foundation (code complete; compose verification pending)
+## Current stage: Phase 1 — S1 Org bootstrap, sessions, audit
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | ~5% — S0 code complete, 0 / 15 slices verified done |
+| Phase 1 | In progress | ~12% — S0 and S1 code complete; compose E2E not yet run (see below) |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-18 — S1 Org bootstrap, sessions, audit
+- **Implemented**
+  - Domains: `organization` (create, get, update name + session settings), `identity` (signup, login with
+    org choice, logout, session resolution, CSRF, list/revoke own sessions, argon2id, lockout), `audit` (in-tx
+    recording with redaction, filtered keyset listing), `principal` (request actor), `authz` (contract +
+    deny-by-default `InterimAuthorizer`: owner = all, member = `organization:read`; S3 replaces it).
+  - Platform: `ratelimit` (Redis fixed window, fails open), client IP/UA middleware honouring trusted proxies,
+    Origin guard for state-changing requests, problem extensions + `Retry-After`.
+  - Router: every operation not marked `security: []` in the spec requires a session (deny by default, derived from
+    the embedded spec); session middleware enforces the CSRF token on state-changing requests.
+  - Web: `/signup`, `/login` (with organization picker), auth gate, shell with org name + user menu + sign out,
+    `/settings/organization` (owner-editable, read-only for members), `/settings/sessions`, `/governance/audit`
+    (filters, load-older pagination). All with loading / empty / error (request id + retry) states and API field
+    errors mapped onto form fields. Toasts via sonner.
+- **Database changes:** `00003_org_identity_audit` — organizations, users, org_memberships, user_credentials,
+  sessions, audit_events (append-only), RLS on all, `hugi_auth` role + 4 `SECURITY DEFINER` auth functions,
+  outbox → organizations FK.
+- **API endpoints:** `POST /organizations`, `POST /auth/login`, `POST /auth/logout`, `GET /me`, `GET /me/sessions`,
+  `DELETE /me/sessions/{id}`, `GET|PATCH /organizations/current`, `GET /audit-events`.
+- **Tests executed (2026-11-18)**
+  - Unit (`go test -race ./...`): pass — password hashing/verification and malformed hashes, password policy,
+    tokens + CSRF verification, org choice, email validation, interim authorizer decision table and HTTP mapping,
+    slug/name/settings validation, audit redaction, public-operation set derived from spec, session requirement for
+    protected ops, cross-site Origin rejection.
+  - `golangci-lint`: 0 issues. Web lint, typecheck, build: pass (7 routes).
+  - Integration suite written (`internal/api/auth_integration_test.go`, `ratelimit_integration_test.go`):
+    **not yet run** — Docker Desktop is stuck mid-shutdown after the earlier disk-full event,
+    so testcontainers cannot start. Covers: signup → me → CSRF-guarded update → audit trail → logout → login;
+    validation + slug/email conflicts with no partial rows left; wrong password / unknown email indistinguishable,
+    lockout and its expiry, failure audit; multi-org choice (list only after correct password); member vs owner
+    permissions; cross-tenant isolation (cannot revoke another org's session); session revoke and idle expiry;
+    Redis rate limits and fail-open. The S0 integration tests also need a re-run (new outbox FK).
+- **Bugs caught by tests:** the generated strict middleware passes Go-cased operation names (`Login`), so the
+  public-operation allowlist matched nothing and every public endpoint required a session (failed closed). Fixed
+  with case-insensitive matching + regression test.
+- **Known limitations**
+  - Signup reveals whether an email/slug is taken (409). Rate limited; email verification comes with invitations (S4).
+  - A user can belong to several orgs only via invitation (S4); S1 tests create the second membership as a fixture.
+  - No MFA yet (P1), no password reset yet (needs email delivery: S6 SMTP connector).
+  - `audit_events` not yet partitioned.
+  - Compose stack still unverified end to end (skipped at your request).
 
 ### 2026-11-18 — S0 Foundation
 - **Implemented**
@@ -82,7 +124,7 @@ _Last updated: 2026-11-18_
 | Slice | Status | Evidence |
 |---|---|---|
 | S0 Foundation | ◐ code complete; compose E2E pending | unit + integration + lint + web build pass (see log) |
-| S1 Org bootstrap, sessions, audit | ☐ | |
+| S1 Org bootstrap, sessions, audit | ◐ code complete; integration run pending Docker | unit + lint + web build pass |
 | S2 Workspaces & environments | ☐ | |
 | S3 Dynamic RBAC | ☐ | |
 | S4 Users, groups, invitations, service accounts | ☐ | |

@@ -33,7 +33,9 @@ type Service struct {
 	az   authz.Authorizer
 }
 
-func NewService(pool *pgxpool.Pool, az authz.Authorizer) *Service { return &Service{pool: pool, az: az} }
+func NewService(pool *pgxpool.Pool, az authz.Authorizer) *Service {
+	return &Service{pool: pool, az: az}
+}
 
 // NewOrganization is the input to Create.
 type NewOrganization struct {
