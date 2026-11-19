@@ -204,7 +204,7 @@ func (s *Service) CreateWorkspace(ctx context.Context, in WorkspaceInput) (Works
 			return err
 		}
 		// The creator administers what they create.
-		if err := authz.GrantCreatorInTx(ctx, tx, p.OrgID, p.ID, id); err != nil {
+		if err := authz.GrantCreatorInTx(ctx, tx, p, id); err != nil {
 			return err
 		}
 		if err := tx.GetContext(ctx, &out, q.Get("GetWorkspaceBySlug"), in.Slug); err != nil {
@@ -362,7 +362,7 @@ func (s *Service) AddWorkspaceMember(ctx context.Context, slug string, userID uu
 		if w.ArchivedAt.Valid {
 			return conflict("workspace_archived", "Restore the workspace before changing its members.")
 		}
-		id, err := s.acl.BindInTx(ctx, tx, p, authz.BindingInput{UserID: userID, RoleKey: roleKey,
+		id, err := s.acl.BindInTx(ctx, tx, p, authz.BindingInput{Principal: authz.UserRef(userID), RoleKey: roleKey,
 			Scope: authz.ScopeRef{Type: authz.ScopeWorkspace, WorkspaceID: w.ID}})
 		if err != nil || id == uuid.Nil {
 			return err
@@ -406,19 +406,6 @@ func (s *Service) RemoveWorkspaceMember(ctx context.Context, slug string, userID
 		s.acl.Invalidate(ctx, p.OrgID)
 	}
 	return err
-}
-
-// ListOrgMembers lists the organization's members (for assigning to workspaces).
-func (s *Service) ListOrgMembers(ctx context.Context) ([]Member, error) {
-	p, err := s.authorize(ctx, "read", UserResource, "", nil)
-	if err != nil {
-		return nil, err
-	}
-	var rows []memberRow
-	err = s.tx(ctx, p, func(tx *sqlx.Tx) error {
-		return tx.SelectContext(ctx, &rows, q.Get("ListOrgMembers"))
-	})
-	return membersFrom(rows), err
 }
 
 func membersFrom(rows []memberRow) []Member {

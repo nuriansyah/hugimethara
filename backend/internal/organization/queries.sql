@@ -108,14 +108,3 @@ LEFT JOIN org_member_roles omr ON omr.org_id = a.org_id AND omr.user_id = a.user
 WHERE a.workspace_id = $1
 GROUP BY u.id, u.email, u.display_name, u.status, omr.is_owner
 ORDER BY u.display_name;
-
--- Organization members (read-only until S4 user management) -----------------------
-
--- name: ListOrgMembers
-SELECT u.id, u.email::text AS email, u.display_name, u.status, COALESCE(omr.is_owner, false) AS is_owner,
-       om.status AS membership_status, om.joined_at,
-       COALESCE(array_to_json(omr.role_keys)::text, '[]') AS roles
-FROM org_memberships om
-JOIN users u ON u.id = om.user_id
-LEFT JOIN org_member_roles omr ON omr.org_id = om.org_id AND omr.user_id = om.user_id
-ORDER BY u.display_name;

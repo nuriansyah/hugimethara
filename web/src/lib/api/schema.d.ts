@@ -114,6 +114,199 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/auth/oidc/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Enabled SSO providers of an organization (public)
+         * @description Public. Used by the sign-in page to offer a "Continue with SSO" button. Returns an empty
+         *     list for unknown organizations so slugs cannot be enumerated. Rate limited per client IP.
+         */
+        get: operations["listOidcProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/auth/oidc/{idp_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Begin an OIDC sign-in (public)
+         * @description Public. Sets a sealed, short-lived state cookie (state, nonce, PKCE verifier) and redirects
+         *     the browser to the identity provider. `redirect` is a relative web path to land on after
+         *     sign-in (defaults to `/`). Failures redirect to the sign-in page with `sso_error`.
+         */
+        get: operations["startOidcLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/auth/oidc/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Finish an OIDC sign-in (public)
+         * @description Public. Validates state and nonce, exchanges the authorization code with PKCE, verifies the
+         *     ID token signature, issuer and audience, links or just-in-time provisions the user, applies
+         *     group mappings and sets the session cookies. Always redirects to the web app; failures carry
+         *     a stable `sso_error` code.
+         */
+        get: operations["completeOidcLogin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/identity/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * OIDC identity providers
+         * @description Permission: identity_provider:read. Secrets are never returned.
+         */
+        get: operations["listIdentityProviders"];
+        put?: never;
+        /**
+         * Configure an OIDC identity provider
+         * @description Permission: identity_provider:create. The client secret is write-only.
+         */
+        post: operations["createIdentityProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/identity/providers/{provider_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * One identity provider
+         * @description Permission: identity_provider:read.
+         */
+        get: operations["getIdentityProvider"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete an identity provider, its links and group mappings
+         * @description Permission: identity_provider:delete. Members stay; they can no longer sign in through it.
+         */
+        delete: operations["deleteIdentityProvider"];
+        options?: never;
+        head?: never;
+        /**
+         * Update an identity provider
+         * @description Permission: identity_provider:update. Omitted client secret keeps the current one; an
+         *     empty string removes it.
+         */
+        patch: operations["updateIdentityProvider"];
+        trace?: never;
+    };
+    "/v1/hugimethara/identity/providers/{provider_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check discovery and signing-key reachability
+         * @description Permission: identity_provider:test. Fetches the issuer's discovery document and JWKS.
+         */
+        post: operations["testIdentityProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/identity/providers/{provider_id}/group-mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * External-group to internal-group mappings
+         * @description Permission: identity_provider:read.
+         */
+        get: operations["listGroupMappings"];
+        put?: never;
+        /**
+         * Map an IdP group to an internal group
+         * @description Permission: identity_provider:update. Without `group_id` a group with `source: idp` is
+         *     created from the external name (its members are then managed by the IdP only).
+         */
+        post: operations["createGroupMapping"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/identity/providers/{provider_id}/group-mappings/{mapping_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a group mapping
+         * @description Permission: identity_provider:update.
+         */
+        delete: operations["deleteGroupMapping"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/me": {
         parameters: {
             query?: never;
@@ -466,12 +659,336 @@ export interface paths {
         };
         /**
          * Members of the organization
-         * @description Permission: user:read. (Full user management arrives in S4.)
+         * @description Permission: user:read.
          */
         get: operations["listUsers"];
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * One member, with their groups
+         * @description Permission: user:read.
+         */
+        get: operations["getUser"];
+        put?: never;
+        post?: never;
+        /**
+         * Remove a member from the organization
+         * @description Permission: user:remove. Removes their roles and group memberships and ends their sessions. The account itself (shared with other organizations) is kept.
+         */
+        delete: operations["removeUser"];
+        options?: never;
+        head?: never;
+        /**
+         * Suspend or reactivate a member
+         * @description Permission: user:update. Suspending ends the member's sessions; you cannot suspend yourself or the last owner.
+         */
+        patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/v1/hugimethara/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Invitations, newest first
+         * @description Permission: user:invite.
+         */
+        get: operations["listInvitations"];
+        put?: never;
+        /**
+         * Invite someone by email
+         * @description Permission: user:invite; workspace roles need workspace:manage_members there, an organization role needs role:bind, and you can only hand out permissions you hold. Re-inviting an address replaces its open invitation. The link token is returned once.
+         */
+        post: operations["createInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/invitations/{invitation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke an open invitation
+         * @description Permission: user:invite.
+         */
+        delete: operations["revokeInvitation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/invitation-tokens/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        /** What an invitation link is for (public) */
+        get: operations["getInvitationPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/invitation-tokens/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept an invitation and sign in to the organization (public, rate-limited)
+         * @description Signed in as the invited address: no body needed. Otherwise send the password of the
+         *     existing account, or a display name and password to create one. Sets session cookies.
+         */
+        post: operations["acceptInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Groups
+         * @description Permission: group:read.
+         */
+        get: operations["listGroups"];
+        put?: never;
+        /**
+         * Create a group
+         * @description Permission: group:create.
+         */
+        post: operations["createGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/groups/{group_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * One group
+         * @description Permission: group:read.
+         */
+        get: operations["getGroup"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a group and its role assignments
+         * @description Permission: group:delete.
+         */
+        delete: operations["deleteGroup"];
+        options?: never;
+        head?: never;
+        /**
+         * Rename or describe a group
+         * @description Permission: group:update.
+         */
+        patch: operations["updateGroup"];
+        trace?: never;
+    };
+    "/v1/hugimethara/groups/{group_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Members of a group
+         * @description Permission: group:read.
+         */
+        get: operations["listGroupMembers"];
+        put?: never;
+        /**
+         * Add a member to a group (idempotent)
+         * @description Permission: group:manage_members, and you must be able to grant every role the group holds.
+         */
+        post: operations["addGroupMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/groups/{group_id}/members/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a member from a group
+         * @description Permission: group:manage_members.
+         */
+        delete: operations["removeGroupMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Service accounts
+         * @description Permission: service_account:read.
+         */
+        get: operations["listServiceAccounts"];
+        put?: never;
+        /**
+         * Create a service account
+         * @description Permission: service_account:create. Grant it roles with /role-bindings.
+         */
+        post: operations["createServiceAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts/{service_account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * One service account
+         * @description Permission: service_account:read.
+         */
+        get: operations["getServiceAccount"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a service account, its keys and role assignments
+         * @description Permission: service_account:delete.
+         */
+        delete: operations["deleteServiceAccount"];
+        options?: never;
+        head?: never;
+        /**
+         * Rename, describe, disable or re-enable a service account
+         * @description Permission: service_account:update. Disabled accounts cannot authenticate.
+         */
+        patch: operations["updateServiceAccount"];
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts/{service_account_id}/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * API keys of a service account (never the secret)
+         * @description Permission: service_account:read.
+         */
+        get: operations["listApiKeys"];
+        put?: never;
+        /**
+         * Create an API key (the secret is returned once)
+         * @description Permission: service_account:manage_keys.
+         */
+        post: operations["createApiKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Revoke an API key
+         * @description Permission: service_account:manage_keys.
+         */
+        delete: operations["revokeApiKey"];
         options?: never;
         head?: never;
         patch?: never;
@@ -616,7 +1133,7 @@ export interface paths {
         get: operations["listRoleBindings"];
         put?: never;
         /**
-         * Assign a role to a member at a scope
+         * Assign a role to a member, group or service account at a scope
          * @description Permission: role:bind at the target scope; the role's permissions must all be held by you there.
          */
         post: operations["createRoleBinding"];
@@ -800,8 +1317,15 @@ export interface components {
             display_name: string;
             status: string;
             is_owner: boolean;
+            /**
+             * @description Organization lists only.
+             * @enum {string}
+             */
+            membership_status?: "active" | "suspended";
             /** @description Role keys (organization-level in /users, workspace-level in workspace member lists). */
             roles?: string[];
+            /** @description Groups the member belongs to (/users/{id} only). */
+            groups?: components["schemas"]["GroupRef"][];
             /** Format: date-time */
             joined_at?: string;
             /** Format: date-time */
@@ -905,10 +1429,22 @@ export interface components {
             resource_type?: string;
             resource_id?: string;
         };
+        /** @enum {string} */
+        PrincipalType: "user" | "group" | "service_account";
         RoleBinding: {
             /** Format: uuid */
             id: string;
-            user: {
+            principal: {
+                type: components["schemas"]["PrincipalType"];
+                /** Format: uuid */
+                id: string;
+                /** @description Display name, group name or service-account name. */
+                name: string;
+                /** @description Users only. */
+                email?: string;
+            };
+            /** @description Present for user assignments (kept for older clients). */
+            user?: {
                 /** Format: uuid */
                 id: string;
                 email: string;
@@ -928,18 +1464,26 @@ export interface components {
             /** Format: date-time */
             expires_at?: string;
         };
+        /** @description Exactly one of user_id, group_id, service_account_id. */
         RoleBindingCreate: {
             /** Format: uuid */
-            user_id: string;
+            user_id?: string;
+            /** Format: uuid */
+            group_id?: string;
+            /** Format: uuid */
+            service_account_id?: string;
             /** Format: uuid */
             role_id: string;
             scope: components["schemas"]["BindingScope"];
             /** Format: date-time */
             expires_at?: string;
         };
+        /** @description Exactly one of user_id (includes group roles) or service_account_id. */
         EvaluateRequest: {
             /** Format: uuid */
-            user_id: string;
+            user_id?: string;
+            /** Format: uuid */
+            service_account_id?: string;
             resource_type: string;
             action: string;
             resource_id?: string;
@@ -960,6 +1504,8 @@ export interface components {
             occurred_at: string;
             /** Format: uuid */
             principal_id: string;
+            principal_type?: components["schemas"]["PrincipalType"];
+            /** @description Email of a user, or the service-account name. */
             principal_email?: string;
             action: string;
             resource_type: string;
@@ -970,6 +1516,267 @@ export interface components {
             reason: string;
             matched_rules: string[];
             request_id?: string;
+        };
+        GroupRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        UserUpdate: {
+            /** @enum {string} */
+            status: "active" | "suspended";
+        };
+        Group: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: string;
+            /** @enum {string} */
+            source: "internal" | "idp";
+            /** Format: int64 */
+            member_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        GroupInput: {
+            name: string;
+            description?: string;
+        };
+        GroupMember: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            display_name: string;
+            /** Format: date-time */
+            added_at: string;
+        };
+        InvitationWorkspace: {
+            /** Format: uuid */
+            workspace_id: string;
+            workspace_name: string;
+            workspace_slug?: string;
+            /** Format: uuid */
+            role_id: string;
+            role_name: string;
+        };
+        Invitation: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            /** @enum {string} */
+            status: "pending" | "accepted" | "revoked" | "expired";
+            org_role?: {
+                /** Format: uuid */
+                id: string;
+                key: string;
+                name: string;
+            };
+            workspaces: components["schemas"]["InvitationWorkspace"][];
+            invited_by_name?: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            expires_at: string;
+            /** Format: date-time */
+            accepted_at?: string;
+        };
+        InvitationCreate: {
+            email: string;
+            /**
+             * Format: uuid
+             * @description Organization role in addition to Member.
+             */
+            org_role_id?: string;
+            workspaces?: {
+                /** Format: uuid */
+                workspace_id: string;
+                /** Format: uuid */
+                role_id: string;
+            }[];
+            /** @default 7 */
+            expires_in_days: number;
+        };
+        InvitationCreated: {
+            invitation: components["schemas"]["Invitation"];
+            /** @description Shown once. Anyone with the link can accept as the invited address. */
+            token: string;
+            /** @description Web path of the invitation page, e.g. /invite/<token>. */
+            accept_path: string;
+        };
+        InvitationPreview: {
+            organization: components["schemas"]["OrganizationSummary"];
+            email: string;
+            invited_by_name?: string;
+            /** Format: date-time */
+            expires_at: string;
+            /** @description True: accept with the account's password. False: choose a name and password. */
+            account_exists: boolean;
+        };
+        InvitationAccept: {
+            display_name?: string;
+            password?: string;
+        };
+        ServiceAccount: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: string;
+            disabled: boolean;
+            /** Format: int64 */
+            active_key_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ServiceAccountCreate: {
+            name: string;
+            description?: string;
+        };
+        ServiceAccountUpdate: {
+            name: string;
+            description?: string;
+            disabled: boolean;
+        };
+        ApiKey: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description Identifies the key (hugi_<prefix>_…); not secret. */
+            prefix: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            expires_at?: string;
+            /** Format: date-time */
+            last_used_at?: string;
+            /** Format: date-time */
+            revoked_at?: string;
+        };
+        ApiKeyCreate: {
+            name: string;
+            /** Format: date-time */
+            expires_at?: string;
+        };
+        ApiKeyCreated: {
+            key: components["schemas"]["ApiKey"];
+            /** @description The full key. Shown once; store it in a secret manager. */
+            secret: string;
+        };
+        ClaimMapping: {
+            /** @description Claim carrying the verified email address. */
+            email: string;
+            /** @description Claim carrying the display name. */
+            name: string;
+            /** @description Claim carrying group names. Empty disables group mapping. */
+            groups?: string;
+        };
+        /** @enum {string} */
+        IdentityProviderPreset: "entra" | "google" | "keycloak" | "generic";
+        IdentityProvider: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            protocol: "oidc";
+            preset: components["schemas"]["IdentityProviderPreset"];
+            issuer: string;
+            client_id: string;
+            /** @description The secret itself is never returned. */
+            has_client_secret: boolean;
+            scopes: string[];
+            claim_mapping: components["schemas"]["ClaimMapping"];
+            /** @description Create members on first sign-in. Off: only existing members can link. */
+            jit_provisioning: boolean;
+            /** @description Email domains allowed to sign in. Empty allows every domain the IdP asserts. */
+            allowed_domains: string[];
+            enabled: boolean;
+            /** @description Exact redirect URI to register at the identity provider. */
+            redirect_uri: string;
+            /** @description Browser URL that starts the SSO flow (points at the web origin). */
+            sso_url: string;
+            /** Format: int64 */
+            group_mapping_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        IdentityProviderCreate: {
+            name: string;
+            preset: components["schemas"]["IdentityProviderPreset"];
+            /** @description Issuer URL; discovery is read from /.well-known/openid-configuration. */
+            issuer: string;
+            client_id: string;
+            /**
+             * Format: password
+             * @description Write-only. Omit for public clients using PKCE.
+             */
+            client_secret?: string;
+            scopes?: string[];
+            claim_mapping?: components["schemas"]["ClaimMapping"];
+            /** @default true */
+            jit_provisioning: boolean;
+            allowed_domains?: string[];
+            /** @default true */
+            enabled: boolean;
+        };
+        IdentityProviderUpdate: {
+            name?: string;
+            preset?: components["schemas"]["IdentityProviderPreset"];
+            issuer?: string;
+            client_id?: string;
+            /**
+             * Format: password
+             * @description Omit to keep; empty string removes.
+             */
+            client_secret?: string;
+            scopes?: string[];
+            claim_mapping?: components["schemas"]["ClaimMapping"];
+            jit_provisioning?: boolean;
+            allowed_domains?: string[];
+            enabled?: boolean;
+        };
+        IdentityProviderTest: {
+            ok: boolean;
+            issuer?: string;
+            authorization_endpoint?: string;
+            token_endpoint?: string;
+            jwks_uri?: string;
+            /** Format: int64 */
+            latency_ms: number;
+            /** @description Sanitized failure reason when ok is false. */
+            error?: string;
+            /** Format: date-time */
+            checked_at: string;
+        };
+        GroupMapping: {
+            /** Format: uuid */
+            id: string;
+            external_group: string;
+            /** Format: uuid */
+            group_id: string;
+            group_name: string;
+            /** @enum {string} */
+            group_source: "internal" | "idp";
+            /** Format: date-time */
+            created_at: string;
+        };
+        GroupMappingCreate: {
+            external_group: string;
+            /**
+             * Format: uuid
+             * @description Omit to create an IdP-managed group named after the external group.
+             */
+            group_id?: string;
+        };
+        OidcProviderOption: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            preset: components["schemas"]["IdentityProviderPreset"];
         };
         SignupRequest: {
             /** @example Acme Indonesia */
@@ -1303,6 +2110,322 @@ export interface operations {
                 };
                 content?: never;
             };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listOidcProviders: {
+        parameters: {
+            query: {
+                /** @description Organization slug. */
+                organization: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Enabled identity providers. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["OidcProviderOption"][];
+                    };
+                };
+            };
+            429: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    startOidcLogin: {
+        parameters: {
+            query?: {
+                redirect?: string;
+            };
+            header?: never;
+            path: {
+                idp_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to the identity provider (or to the sign-in page on failure). */
+            302: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            429: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    completeOidcLogin: {
+        parameters: {
+            query?: {
+                code?: string;
+                state?: string;
+                error?: string;
+                error_description?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to the web app; session cookies are set on success. */
+            302: {
+                headers: {
+                    Location?: string;
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            429: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listIdentityProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Providers. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["IdentityProvider"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityProviderCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProvider"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The provider. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProvider"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityProviderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProvider"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    testIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The probe result (ok=false carries a sanitized error). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProviderTest"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listGroupMappings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mappings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GroupMapping"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createGroupMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupMappingCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupMapping"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteGroupMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider_id: string;
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
             default: components["responses"]["Problem"];
         };
     };
@@ -1956,6 +3079,649 @@ export interface operations {
             default: components["responses"]["Problem"];
         };
     };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The member. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Member"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    removeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Member"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listInvitations: {
+        parameters: {
+            query?: {
+                status?: "pending" | "all";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invitations. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Invitation"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationCreate"];
+            };
+        };
+        responses: {
+            /** @description Invited. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationCreated"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    revokeInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getInvitationPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The invitation. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationPreview"];
+                };
+            };
+            404: components["responses"]["Problem"];
+            410: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    acceptInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["InvitationAccept"];
+            };
+        };
+        responses: {
+            /** @description Joined and signed in. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            410: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            429: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Groups. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Group"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupInput"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The group. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupInput"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listGroupMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Members. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["GroupMember"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    addGroupMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    user_id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The user is a member. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    removeGroupMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listServiceAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service accounts. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceAccount"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccount"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The service account. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccount"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAccountUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccount"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listApiKeys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Keys. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ApiKey"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyCreated"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    revokeApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_account_id: string;
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
     getEntitlements: {
         parameters: {
             query?: never;
@@ -2182,6 +3948,9 @@ export interface operations {
         parameters: {
             query?: {
                 user_id?: string;
+                group_id?: string;
+                service_account_id?: string;
+                principal_type?: "user" | "group" | "service_account";
                 scope_type?: "org" | "workspace" | "resource";
                 workspace_id?: string;
             };

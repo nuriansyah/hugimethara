@@ -21,12 +21,29 @@ type ScopeRef struct {
 	ResourceID   string    // resource scope
 }
 
+// Principal kinds a role can be bound to.
+const (
+	PrincipalUser           = "user"
+	PrincipalGroup          = "group"
+	PrincipalServiceAccount = "service_account"
+)
+
+// PrincipalRef identifies who a binding is for.
+type PrincipalRef struct {
+	Type string // user | group | service_account
+	ID   uuid.UUID
+}
+
+// UserRef is a PrincipalRef for a user.
+func UserRef(id uuid.UUID) PrincipalRef { return PrincipalRef{Type: PrincipalUser, ID: id} }
+
 // Grant is one permission pattern held at a scope through a role binding.
 type Grant struct {
 	Permission string // "type:action"; either part may be "*"
 	Scope      ScopeRef
 	RoleKey    string
 	BindingID  uuid.UUID
+	Via        string // principal type of the binding (user, group, service_account)
 }
 
 func splitPerm(p string) (string, string, bool) {

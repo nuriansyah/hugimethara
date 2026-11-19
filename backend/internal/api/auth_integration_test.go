@@ -27,6 +27,7 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/identity"
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/health"
+	"github.com/nuriansyah/hugimethara/backend/internal/platform/secretbox"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/testsupport"
 )
 
@@ -50,8 +51,11 @@ func setup(t *testing.T) *env {
 		return audit.Record(ctx, tx, audit.Event{OrgID: org, Action: action, ResourceType: rt, ResourceID: rid, Details: details})
 	})
 	orgs := organization.NewService(pg.App, az, acl)
-	ids := identity.NewService(pg.App, orgs, az, nil, log, identity.Config{
+	sealer, err := secretbox.New(secretbox.DeriveKey("integration-test"))
+	require.NoError(t, err)
+	ids := identity.NewService(pg.App, orgs, az, acl, nil, log, identity.Config{
 		Hasher: identity.NewHasher(testArgon), MaxFailedLogins: 3,
+		PublicURL: "http://localhost:3000", Sealer: sealer,
 	})
 	router, err := api.NewRouter(api.Deps{
 		Env: "test", Health: health.New(0), Registerer: prometheus.NewRegistry(),
@@ -105,6 +109,15 @@ type resp struct {
 
 func (c *client) do(method, path string, body any, withCSRF bool) resp {
 	c.e.t.Helper()
+	var h http.Header
+	if withCSRF {
+		h = http.Header{identity.CSRFHeader: {c.csrf()}}
+	}
+	return c.doWithHeader(method, path, body, h)
+}
+
+func (c *client) doWithHeader(method, path string, body any, header http.Header) resp {
+	c.e.t.Helper()
 	var rd io.Reader
 	if body != nil {
 		b, _ := json.Marshal(body)
@@ -115,8 +128,8 @@ func (c *client) do(method, path string, body any, withCSRF bool) resp {
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
-	if withCSRF {
-		req.Header.Set(identity.CSRFHeader, c.csrf())
+	for k, v := range header {
+		req.Header[k] = v
 	}
 	res, err := c.hc.Do(req)
 	require.NoError(c.e.t, err)

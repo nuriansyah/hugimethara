@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useGroups, useServiceAccounts } from "@/features/identity/api";
 import { useOrgUsers, useWorkspaces } from "@/features/workspaces/api";
 import { errorMessage, toastError } from "@/lib/errors";
 import { keepOpen } from "@/lib/forms";
@@ -39,6 +40,9 @@ export function AccessManager() {
   );
 }
 
+type PrincipalKind = "user" | "group" | "service_account";
+const KIND_LABEL: Record<PrincipalKind, string> = { user: "Member", group: "Group", service_account: "Service account" };
+
 function scopeLabel(b: RoleBinding) {
   if (b.scope.type === "org") return "Whole organization";
   if (b.scope.type === "workspace") return `Workspace · ${b.workspace_name ?? b.workspace_slug ?? "?"}`;
@@ -54,7 +58,7 @@ function Assignments({ canBind }: { canBind: boolean }) {
       <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
         <div>
           <CardTitle>Role assignments</CardTitle>
-          <CardDescription>Who holds which role, and where. Workspace roles can also be managed from each workspace.</CardDescription>
+          <CardDescription>Who holds which role, and where — members directly, through groups, and service accounts. Workspace roles can also be managed from each workspace.</CardDescription>
         </div>
         {canBind && <Button onClick={() => setAssigning(true)}><Plus aria-hidden /> Assign role</Button>}
       </CardHeader>
@@ -70,7 +74,7 @@ function Assignments({ canBind }: { canBind: boolean }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Member</TableHead>
+                  <TableHead>Assigned to</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Scope</TableHead>
                   <TableHead>Since</TableHead>
@@ -81,8 +85,10 @@ function Assignments({ canBind }: { canBind: boolean }) {
                 {q.data.map((b) => (
                   <TableRow key={b.id}>
                     <TableCell>
-                      <span className="block text-sm font-medium">{b.user.display_name}</span>
-                      <span className="block text-xs text-muted-foreground">{b.user.email}</span>
+                      <span className="block text-sm font-medium">{b.principal.name}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {b.principal.type === "user" ? b.principal.email : KIND_LABEL[b.principal.type]}
+                      </span>
                     </TableCell>
                     <TableCell><Badge variant={b.role.key === "org_owner" ? "default" : "outline"}>{b.role.name}</Badge></TableCell>
                     <TableCell className="text-sm">{scopeLabel(b)}</TableCell>
@@ -93,9 +99,9 @@ function Assignments({ canBind }: { canBind: boolean }) {
                     <TableCell>
                       {canBind && (
                         <ConfirmDialog
-                          trigger={<Button variant="ghost" size="icon" aria-label={`Remove ${b.role.name} from ${b.user.display_name}`}><Trash2 /></Button>}
+                          trigger={<Button variant="ghost" size="icon" aria-label={`Remove ${b.role.name} from ${b.principal.name}`}><Trash2 /></Button>}
                           title="Remove this assignment?"
-                          description={`${b.user.display_name} loses the ${b.role.name} role (${scopeLabel(b)}) immediately.`}
+                          description={`${b.principal.name} loses the ${b.role.name} role (${scopeLabel(b)}) immediately${b.principal.type === "group" ? " — for every member of the group" : ""}.`}
                           confirmLabel="Remove"
                           onConfirm={async () => {
                             try {
@@ -122,7 +128,11 @@ function Assignments({ canBind }: { canBind: boolean }) {
 }
 
 function AssignDialog({ onClose }: { onClose: () => void }) {
-  const users = useOrgUsers(true);
+  const can = useCan();
+  const [kind, setKind] = useState<PrincipalKind>("user");
+  const users = useOrgUsers(kind === "user");
+  const groups = useGroups(kind === "group");
+  const accounts = useServiceAccounts(kind === "service_account");
   const roles = useRoles();
   const workspaces = useWorkspaces(false);
   const { assign } = useBindingMutations();
@@ -137,7 +147,9 @@ function AssignDialog({ onClose }: { onClose: () => void }) {
     setError(undefined);
     try {
       await assign.mutateAsync({
-        user_id: userId,
+        user_id: kind === "user" ? userId : undefined,
+        group_id: kind === "group" ? userId : undefined,
+        service_account_id: kind === "service_account" ? userId : undefined,
         role_id: roleId,
         scope: scope === "org" ? { type: "org" } : { type: "workspace", workspace_id: workspaceId },
       });
@@ -155,12 +167,29 @@ function AssignDialog({ onClose }: { onClose: () => void }) {
           <DialogTitle>Assign a role</DialogTitle>
           <DialogDescription>You can only assign roles whose permissions you hold yourself at that scope.</DialogDescription>
         </DialogHeader>
-        {users.error || roles.error ? (
-          <QueryError error={(users.error ?? roles.error)!} onRetry={() => { users.refetch(); roles.refetch(); }} title="Could not load members or roles" />
+        {users.error || groups.error || accounts.error || roles.error ? (
+          <QueryError error={(users.error ?? groups.error ?? accounts.error ?? roles.error)!}
+            onRetry={() => { users.refetch(); groups.refetch(); accounts.refetch(); roles.refetch(); }} title="Could not load assignees or roles" />
         ) : (
           <div className="flex flex-col gap-4">
-            <Picker id="as-user" label="Member" value={userId} onChange={setUserId} loading={users.isPending}
-              options={(users.data ?? []).map((u) => ({ value: u.id, label: `${u.display_name} · ${u.email}` }))} />
+            <Picker id="as-kind" label="Assign to" value={kind} onChange={(v) => { setKind(v as PrincipalKind); setUserId(""); }}
+              options={[
+                { value: "user", label: "A member" },
+                ...(can("group:read") ? [{ value: "group", label: "A group" }] : []),
+                ...(can("service_account:read") ? [{ value: "service_account", label: "A service account" }] : []),
+              ]} />
+            {kind === "user" && (
+              <Picker id="as-user" label="Member" value={userId} onChange={setUserId} loading={users.isPending}
+                options={(users.data ?? []).map((u) => ({ value: u.id, label: `${u.display_name} · ${u.email}` }))} />
+            )}
+            {kind === "group" && (
+              <Picker id="as-group" label="Group" value={userId} onChange={setUserId} loading={groups.isPending}
+                options={(groups.data ?? []).map((g) => ({ value: g.id, label: `${g.name} · ${g.member_count} member${g.member_count === 1 ? "" : "s"}` }))} />
+            )}
+            {kind === "service_account" && (
+              <Picker id="as-sa" label="Service account" value={userId} onChange={setUserId} loading={accounts.isPending}
+                options={(accounts.data ?? []).map((a) => ({ value: a.id, label: a.name + (a.disabled ? " (disabled)" : "") }))} />
+            )}
             <Picker id="as-role" label="Role" value={roleId} onChange={setRoleId} loading={roles.isPending}
               options={(roles.data ?? []).map((r) => ({ value: r.id, label: r.name }))} />
             <Picker id="as-scope" label="Where" value={scope} onChange={(v) => setScope(v as "org" | "workspace")}

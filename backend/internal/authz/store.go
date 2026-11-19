@@ -17,17 +17,18 @@ var queryFS embed.FS
 var q = db.MustLoad(queryFS, "queries.sql")
 
 type grantRow struct {
-	Permission   string         `db:"permission"`
-	ScopeType    string         `db:"scope_type"`
-	WorkspaceID  uuid.NullUUID  `db:"workspace_id"`
-	ResourceType sql.NullString `db:"resource_type"`
-	ResourceID   sql.NullString `db:"resource_id"`
-	RoleKey      string         `db:"role_key"`
-	BindingID    uuid.UUID      `db:"binding_id"`
+	Permission    string         `db:"permission"`
+	ScopeType     string         `db:"scope_type"`
+	WorkspaceID   uuid.NullUUID  `db:"workspace_id"`
+	ResourceType  sql.NullString `db:"resource_type"`
+	ResourceID    sql.NullString `db:"resource_id"`
+	RoleKey       string         `db:"role_key"`
+	BindingID     uuid.UUID      `db:"binding_id"`
+	PrincipalType string         `db:"principal_type"`
 }
 
 func (r grantRow) toGrant() Grant {
-	return Grant{Permission: r.Permission, RoleKey: r.RoleKey, BindingID: r.BindingID, Scope: ScopeRef{
+	return Grant{Permission: r.Permission, RoleKey: r.RoleKey, BindingID: r.BindingID, Via: r.PrincipalType, Scope: ScopeRef{
 		Type: r.ScopeType, WorkspaceID: r.WorkspaceID.UUID, ResourceType: r.ResourceType.String, ResourceID: r.ResourceID.String,
 	}}
 }
@@ -89,42 +90,44 @@ func (r roleRow) toModel() Role {
 }
 
 type bindingRow struct {
-	ID            uuid.UUID      `db:"id"`
-	UserID        uuid.UUID      `db:"user_id"`
-	UserEmail     string         `db:"user_email"`
-	UserName      string         `db:"user_name"`
-	RoleID        uuid.UUID      `db:"role_id"`
-	RoleKey       string         `db:"role_key"`
-	RoleName      string         `db:"role_name"`
-	ScopeType     string         `db:"scope_type"`
-	WorkspaceID   uuid.NullUUID  `db:"workspace_id"`
-	WorkspaceSlug sql.NullString `db:"workspace_slug"`
-	WorkspaceName sql.NullString `db:"workspace_name"`
-	ResourceType  sql.NullString `db:"resource_type"`
-	ResourceID    sql.NullString `db:"resource_id"`
-	CreatedAt     time.Time      `db:"created_at"`
-	ExpiresAt     sql.NullTime   `db:"expires_at"`
+	ID             uuid.UUID      `db:"id"`
+	PrincipalType  string         `db:"principal_type"`
+	PrincipalID    uuid.UUID      `db:"principal_id"`
+	PrincipalName  string         `db:"principal_name"`
+	PrincipalEmail sql.NullString `db:"principal_email"`
+	RoleID         uuid.UUID      `db:"role_id"`
+	RoleKey        string         `db:"role_key"`
+	RoleName       string         `db:"role_name"`
+	ScopeType      string         `db:"scope_type"`
+	WorkspaceID    uuid.NullUUID  `db:"workspace_id"`
+	WorkspaceSlug  sql.NullString `db:"workspace_slug"`
+	WorkspaceName  sql.NullString `db:"workspace_name"`
+	ResourceType   sql.NullString `db:"resource_type"`
+	ResourceID     sql.NullString `db:"resource_id"`
+	CreatedAt      time.Time      `db:"created_at"`
+	ExpiresAt      sql.NullTime   `db:"expires_at"`
 }
 
-// Binding grants a role to a user at a scope.
+// Binding grants a role to a principal (user, group or service account) at a scope.
 type Binding struct {
-	ID            uuid.UUID
-	UserID        uuid.UUID
-	UserEmail     string
-	UserName      string
-	RoleID        uuid.UUID
-	RoleKey       string
-	RoleName      string
-	Scope         ScopeRef
-	WorkspaceSlug string
-	WorkspaceName string
-	CreatedAt     time.Time
-	ExpiresAt     *time.Time
+	ID             uuid.UUID
+	Principal      PrincipalRef
+	PrincipalName  string
+	PrincipalEmail string // users only
+	RoleID         uuid.UUID
+	RoleKey        string
+	RoleName       string
+	Scope          ScopeRef
+	WorkspaceSlug  string
+	WorkspaceName  string
+	CreatedAt      time.Time
+	ExpiresAt      *time.Time
 }
 
 func (r bindingRow) toModel() Binding {
-	b := Binding{ID: r.ID, UserID: r.UserID, UserEmail: r.UserEmail, UserName: r.UserName, RoleID: r.RoleID,
-		RoleKey: r.RoleKey, RoleName: r.RoleName, WorkspaceSlug: r.WorkspaceSlug.String, WorkspaceName: r.WorkspaceName.String,
+	b := Binding{ID: r.ID, Principal: PrincipalRef{Type: r.PrincipalType, ID: r.PrincipalID}, PrincipalName: r.PrincipalName,
+		PrincipalEmail: r.PrincipalEmail.String, RoleID: r.RoleID, RoleKey: r.RoleKey, RoleName: r.RoleName,
+		WorkspaceSlug: r.WorkspaceSlug.String, WorkspaceName: r.WorkspaceName.String,
 		CreatedAt: r.CreatedAt, Scope: ScopeRef{Type: r.ScopeType, WorkspaceID: r.WorkspaceID.UUID,
 			ResourceType: r.ResourceType.String, ResourceID: r.ResourceID.String}}
 	if r.ExpiresAt.Valid {

@@ -36,7 +36,10 @@ type RBAC struct {
 	types   map[string]ResourceType
 }
 
-type cacheKey struct{ org, user uuid.UUID }
+type cacheKey struct {
+	org, id uuid.UUID
+	kind    principal.Type
+}
 
 type cacheEntry struct {
 	version  int64
@@ -84,7 +87,7 @@ func (r *RBAC) Grants(ctx context.Context, p principal.Principal) ([]Grant, int6
 	if err != nil {
 		return nil, 0, err
 	}
-	key := cacheKey{p.OrgID, p.ID}
+	key := cacheKey{p.OrgID, p.ID, p.Type}
 	r.mu.Lock()
 	e, ok := r.cache[key]
 	r.mu.Unlock()
@@ -92,9 +95,17 @@ func (r *RBAC) Grants(ctx context.Context, p principal.Principal) ([]Grant, int6
 		return e.grants, ver, nil
 	}
 
+	query := "LoadUserGrants"
+	switch p.Type {
+	case principal.User, "":
+	case principal.ServiceAccount:
+		query = "LoadServiceAccountGrants"
+	default:
+		return nil, ver, nil // unknown principal kinds hold nothing
+	}
 	var rows []grantRow
 	err = db.InTenantTx(ctx, r.db, p.OrgID, func(tx *sqlx.Tx) error {
-		return tx.SelectContext(ctx, &rows, q.Get("LoadGrants"), p.ID)
+		return tx.SelectContext(ctx, &rows, q.Get(query), p.ID)
 	})
 	if err != nil {
 		return nil, 0, fmt.Errorf("authz: load grants: %w", err)
@@ -165,7 +176,11 @@ func (r *RBAC) evaluate(ctx context.Context, in AuthorizationInput, audit bool) 
 	if m := matching(grants, in.Action, in.Resource); len(m) > 0 {
 		d.Allowed, d.Reason = true, "granted_by_binding"
 		for _, g := range m {
-			d.MatchedRules = append(d.MatchedRules, g.RoleKey+"@"+g.Scope.Type+"#"+g.BindingID.String())
+			rule := g.RoleKey + "@" + g.Scope.Type + "#" + g.BindingID.String()
+			if g.Via == PrincipalGroup {
+				rule += " (via group)"
+			}
+			d.MatchedRules = append(d.MatchedRules, rule)
 		}
 	}
 	if audit && (!d.Allowed || r.sensitive(ctx, in.Resource.Type, in.Action)) {
@@ -244,10 +259,14 @@ func (r *RBAC) record(ctx context.Context, in AuthorizationInput, d Authorizatio
 	if matched == nil {
 		matched = []string{}
 	}
+	ptype := string(in.Principal.Type)
+	if ptype == "" {
+		ptype = PrincipalUser
+	}
 	wctx := context.WithoutCancel(ctx)
 	err := db.InTenantTx(wctx, r.db, in.Principal.OrgID, func(tx *sqlx.Tx) error {
 		_, err := tx.ExecContext(wctx, q.Get("InsertDecision"), in.Principal.OrgID, in.Principal.ID, in.Action,
-			in.Resource.Type, resID, ws, d.Allowed, d.Reason, matched, d.PolicyVersion, reqID)
+			in.Resource.Type, resID, ws, d.Allowed, d.Reason, matched, d.PolicyVersion, reqID, ptype)
 		return err
 	})
 	if err != nil {

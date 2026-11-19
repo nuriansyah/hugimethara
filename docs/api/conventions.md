@@ -11,7 +11,9 @@ principal's org returns **404** (never 403 — no existence oracle).
 
 ## Authentication
 - Browser: session cookie + `X-CSRF-Token` header on unsafe methods.
-- Machines: `Authorization: Bearer hgm_…` (service-account API key).
+- Machines: `Authorization: Bearer hugi_<prefix>_<secret>` (service-account API key, S4). A request with an
+  `Authorization` header is authenticated by API key only; no CSRF token is needed. `/me` and session endpoints
+  answer 403 `not_a_user` for API keys.
 - `X-Hugi-Org` header only for users belonging to multiple orgs (session is bound to one active org; switching
   creates a new session-org binding).
 

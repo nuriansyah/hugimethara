@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { api, ensureOk, unwrap } from "@/lib/api/client";
-import type { components } from "@/lib/api/schema";
+import type { components, paths } from "@/lib/api/schema";
 
 export type Role = components["schemas"]["Role"];
 export type RoleBinding = components["schemas"]["RoleBinding"];
@@ -82,7 +82,7 @@ export function useRoleMutations() {
   };
 }
 
-export function useRoleBindings(query: { user_id?: string; scope_type?: "org" | "workspace" | "resource" } = {}) {
+export function useRoleBindings(query: NonNullable<paths["/v1/hugimethara/role-bindings"]["get"]["parameters"]["query"]> = {}) {
   return useQuery({
     queryKey: ["role-bindings", query],
     queryFn: async () => unwrap(await api.GET("/v1/hugimethara/role-bindings", { params: { query } })).data,

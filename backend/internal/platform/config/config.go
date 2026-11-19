@@ -3,6 +3,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/netip"
@@ -11,6 +12,8 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+
+	"github.com/nuriansyah/hugimethara/backend/internal/platform/secretbox"
 )
 
 // Config is shared by all binaries. Fields a binary does not use are ignored.
@@ -30,6 +33,15 @@ type Config struct {
 	// CookieSecure marks session cookies Secure and uses the __Host- prefix.
 	// Disable only for plain-HTTP local development.
 	CookieSecure bool `env:"HUGI_COOKIE_SECURE" envDefault:"true"`
+
+	// PublicURL is the origin users reach the app at. OIDC redirect URIs and
+	// post-login redirects are built from it (the web app proxies /api to this
+	// listener, so the browser sees one origin).
+	PublicURL string `env:"HUGI_PUBLIC_URL" envDefault:"http://localhost:3000"`
+	// MasterKey is a base64-encoded 32-byte key that encrypts identity-provider
+	// client secrets and the short-lived OIDC state cookie. Required in
+	// production; development falls back to a documented key.
+	MasterKey string `env:"HUGI_MASTER_KEY"`
 
 	Log LogConfig
 
@@ -111,6 +123,15 @@ func (c Config) validate(needs []Requirement) error {
 	if c.IsProduction() && !c.CookieSecure {
 		errs = append(errs, errors.New("HUGI_COOKIE_SECURE: must be true in production"))
 	}
+	if u, err := url.Parse(c.PublicURL); err != nil || u.Scheme == "" || u.Host == "" || u.Path != "" {
+		errs = append(errs, errors.New("HUGI_PUBLIC_URL: must be an origin (scheme://host[:port])"))
+	}
+	if c.IsProduction() && c.MasterKey == "" {
+		errs = append(errs, errors.New("HUGI_MASTER_KEY: required in production"))
+	}
+	if _, _, err := c.MasterKeyBytes(); err != nil {
+		errs = append(errs, err)
+	}
 	for _, n := range needs {
 		switch n {
 		case NeedDatabase:
@@ -126,6 +147,25 @@ func (c Config) validate(needs []Requirement) error {
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// MasterKeyBytes decodes HUGI_MASTER_KEY. When unset outside production it
+// returns a stable development key and defaulted=true so the caller can warn.
+func (c Config) MasterKeyBytes() (key []byte, defaulted bool, err error) {
+	if c.MasterKey == "" {
+		if c.IsProduction() {
+			return nil, false, errors.New("HUGI_MASTER_KEY: required in production")
+		}
+		return secretbox.DeriveKey("hugi-development-master-key"), true, nil
+	}
+	key, err = base64.StdEncoding.DecodeString(c.MasterKey)
+	if err != nil {
+		return nil, false, errors.New("HUGI_MASTER_KEY: must be base64")
+	}
+	if len(key) != secretbox.KeySize {
+		return nil, false, fmt.Errorf("HUGI_MASTER_KEY: must decode to %d bytes", secretbox.KeySize)
+	}
+	return key, false, nil
 }
 
 // TrustedProxyPrefixes parses TrustedProxies (validated by Load).

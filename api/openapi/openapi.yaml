@@ -12,6 +12,7 @@ servers:
   - url: /
 security:
   - sessionCookie: []
+  - apiKey: []
 tags:
   - name: system
     description: Deployment metadata and health.
@@ -27,6 +28,8 @@ tags:
     description: Plans, paid features and quotas.
   - name: access
     description: Roles, permissions, role assignments and access checks (RBAC).
+  - name: identity
+    description: Members, invitations, groups, service accounts and API keys.
 paths:
   /healthz:
     get:
@@ -131,6 +134,241 @@ paths:
       security: []
       responses:
         "204": { description: Signed out; cookies cleared. }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/auth/oidc/providers:
+    get:
+      tags: [auth]
+      operationId: listOidcProviders
+      summary: Enabled SSO providers of an organization (public)
+      description: |
+        Public. Used by the sign-in page to offer a "Continue with SSO" button. Returns an empty
+        list for unknown organizations so slugs cannot be enumerated. Rate limited per client IP.
+      security: []
+      parameters:
+        - { name: organization, in: query, required: true, schema: { type: string, maxLength: 40 }, description: Organization slug. }
+      responses:
+        "200":
+          description: Enabled identity providers.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/OidcProviderOption" }
+        "429": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/auth/oidc/{idp_id}/start:
+    get:
+      tags: [auth]
+      operationId: startOidcLogin
+      summary: Begin an OIDC sign-in (public)
+      description: |
+        Public. Sets a sealed, short-lived state cookie (state, nonce, PKCE verifier) and redirects
+        the browser to the identity provider. `redirect` is a relative web path to land on after
+        sign-in (defaults to `/`). Failures redirect to the sign-in page with `sso_error`.
+      security: []
+      parameters:
+        - { name: idp_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: redirect, in: query, schema: { type: string, maxLength: 512 } }
+      responses:
+        "302":
+          description: Redirect to the identity provider (or to the sign-in page on failure).
+          headers:
+            Location: { schema: { type: string } }
+        "429": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/auth/oidc/callback:
+    get:
+      tags: [auth]
+      operationId: completeOidcLogin
+      summary: Finish an OIDC sign-in (public)
+      description: |
+        Public. Validates state and nonce, exchanges the authorization code with PKCE, verifies the
+        ID token signature, issuer and audience, links or just-in-time provisions the user, applies
+        group mappings and sets the session cookies. Always redirects to the web app; failures carry
+        a stable `sso_error` code.
+      security: []
+      parameters:
+        - { name: code, in: query, schema: { type: string, maxLength: 4096 } }
+        - { name: state, in: query, schema: { type: string, maxLength: 512 } }
+        - { name: error, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: error_description, in: query, schema: { type: string, maxLength: 500 } }
+      responses:
+        "302":
+          description: Redirect to the web app; session cookies are set on success.
+          headers:
+            Location: { schema: { type: string } }
+        "429": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/identity/providers:
+    get:
+      tags: [identity]
+      operationId: listIdentityProviders
+      summary: OIDC identity providers
+      description: "Permission: identity_provider:read. Secrets are never returned."
+      responses:
+        "200":
+          description: Providers.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/IdentityProvider" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [identity]
+      operationId: createIdentityProvider
+      summary: Configure an OIDC identity provider
+      description: "Permission: identity_provider:create. The client secret is write-only."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IdentityProviderCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IdentityProvider" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/identity/providers/{provider_id}:
+    parameters:
+      - { name: provider_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [identity]
+      operationId: getIdentityProvider
+      summary: One identity provider
+      description: "Permission: identity_provider:read."
+      responses:
+        "200":
+          description: The provider.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IdentityProvider" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [identity]
+      operationId: updateIdentityProvider
+      summary: Update an identity provider
+      description: |
+        Permission: identity_provider:update. Omitted client secret keeps the current one; an
+        empty string removes it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IdentityProviderUpdate" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IdentityProvider" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [identity]
+      operationId: deleteIdentityProvider
+      summary: Delete an identity provider, its links and group mappings
+      description: "Permission: identity_provider:delete. Members stay; they can no longer sign in through it."
+      responses:
+        "204": { description: Deleted. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/identity/providers/{provider_id}/test:
+    parameters:
+      - { name: provider_id, in: path, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [identity]
+      operationId: testIdentityProvider
+      summary: Check discovery and signing-key reachability
+      description: "Permission: identity_provider:test. Fetches the issuer's discovery document and JWKS."
+      responses:
+        "200":
+          description: The probe result (ok=false carries a sanitized error).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IdentityProviderTest" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/identity/providers/{provider_id}/group-mappings:
+    parameters:
+      - { name: provider_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [identity]
+      operationId: listGroupMappings
+      summary: External-group to internal-group mappings
+      description: "Permission: identity_provider:read."
+      responses:
+        "200":
+          description: Mappings.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/GroupMapping" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [identity]
+      operationId: createGroupMapping
+      summary: Map an IdP group to an internal group
+      description: |
+        Permission: identity_provider:update. Without `group_id` a group with `source: idp` is
+        created from the external name (its members are then managed by the IdP only).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GroupMappingCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GroupMapping" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/identity/providers/{provider_id}/group-mappings/{mapping_id}:
+    parameters:
+      - { name: provider_id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [identity]
+      operationId: deleteGroupMapping
+      summary: Remove a group mapping
+      description: "Permission: identity_provider:update."
+      responses:
+        "204": { description: Removed. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
         default: { $ref: "#/components/responses/Problem" }
   /v1/hugimethara/me:
     get:
@@ -570,10 +808,10 @@ paths:
         default: { $ref: "#/components/responses/Problem" }
   /v1/hugimethara/users:
     get:
-      tags: [workspace]
+      tags: [identity]
       operationId: listUsers
       summary: Members of the organization
-      description: "Permission: user:read. (Full user management arrives in S4.)"
+      description: "Permission: user:read."
       responses:
         "200":
           description: Organization members.
@@ -587,6 +825,449 @@ paths:
                     type: array
                     items: { $ref: "#/components/schemas/Member" }
         "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/users/{user_id}:
+    parameters:
+      - { name: user_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [identity]
+      operationId: getUser
+      summary: One member, with their groups
+      description: "Permission: user:read."
+      responses:
+        "200":
+          description: The member.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Member" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [identity]
+      operationId: updateUser
+      summary: Suspend or reactivate a member
+      description: "Permission: user:update. Suspending ends the member's sessions; you cannot suspend yourself or the last owner."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserUpdate" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Member" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [identity]
+      operationId: removeUser
+      summary: Remove a member from the organization
+      description: "Permission: user:remove. Removes their roles and group memberships and ends their sessions. The account itself (shared with other organizations) is kept."
+      responses:
+        "204": { description: Removed. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/invitations:
+    get:
+      tags: [identity]
+      operationId: listInvitations
+      summary: Invitations, newest first
+      description: "Permission: user:invite."
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [pending, all], default: pending } }
+      responses:
+        "200":
+          description: Invitations.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Invitation" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [identity]
+      operationId: createInvitation
+      summary: Invite someone by email
+      description: "Permission: user:invite; workspace roles need workspace:manage_members there, an organization role needs role:bind, and you can only hand out permissions you hold. Re-inviting an address replaces its open invitation. The link token is returned once."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InvitationCreate" }
+      responses:
+        "201":
+          description: Invited.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvitationCreated" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/invitations/{invitation_id}:
+    parameters:
+      - { name: invitation_id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [identity]
+      operationId: revokeInvitation
+      summary: Revoke an open invitation
+      description: "Permission: user:invite."
+      responses:
+        "204": { description: Revoked. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/invitation-tokens/{token}:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string, maxLength: 128 } }
+    get:
+      tags: [identity]
+      operationId: getInvitationPreview
+      summary: What an invitation link is for (public)
+      security: []
+      responses:
+        "200":
+          description: The invitation.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvitationPreview" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "410": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/invitation-tokens/{token}/accept:
+    parameters:
+      - { name: token, in: path, required: true, schema: { type: string, maxLength: 128 } }
+    post:
+      tags: [identity]
+      operationId: acceptInvitation
+      summary: Accept an invitation and sign in to the organization (public, rate-limited)
+      description: |
+        Signed in as the invited address: no body needed. Otherwise send the password of the
+        existing account, or a display name and password to create one. Sets session cookies.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InvitationAccept" }
+      responses:
+        "200":
+          description: Joined and signed in.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResponse" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "410": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        "429": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/groups:
+    get:
+      tags: [identity]
+      operationId: listGroups
+      summary: Groups
+      description: "Permission: group:read."
+      responses:
+        "200":
+          description: Groups.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Group" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [identity]
+      operationId: createGroup
+      summary: Create a group
+      description: "Permission: group:create."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GroupInput" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Group" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/groups/{group_id}:
+    parameters:
+      - { name: group_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [identity]
+      operationId: getGroup
+      summary: One group
+      description: "Permission: group:read."
+      responses:
+        "200":
+          description: The group.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Group" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [identity]
+      operationId: updateGroup
+      summary: Rename or describe a group
+      description: "Permission: group:update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GroupInput" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Group" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [identity]
+      operationId: deleteGroup
+      summary: Delete a group and its role assignments
+      description: "Permission: group:delete."
+      responses:
+        "204": { description: Deleted. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/groups/{group_id}/members:
+    parameters:
+      - { name: group_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [identity]
+      operationId: listGroupMembers
+      summary: Members of a group
+      description: "Permission: group:read."
+      responses:
+        "200":
+          description: Members.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/GroupMember" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [identity]
+      operationId: addGroupMember
+      summary: Add a member to a group (idempotent)
+      description: "Permission: group:manage_members, and you must be able to grant every role the group holds."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id: { type: string, format: uuid }
+      responses:
+        "204": { description: The user is a member. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/groups/{group_id}/members/{user_id}:
+    parameters:
+      - { name: group_id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: user_id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [identity]
+      operationId: removeGroupMember
+      summary: Remove a member from a group
+      description: "Permission: group:manage_members."
+      responses:
+        "204": { description: Removed. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/service-accounts:
+    get:
+      tags: [identity]
+      operationId: listServiceAccounts
+      summary: Service accounts
+      description: "Permission: service_account:read."
+      responses:
+        "200":
+          description: Service accounts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ServiceAccount" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [identity]
+      operationId: createServiceAccount
+      summary: Create a service account
+      description: "Permission: service_account:create. Grant it roles with /role-bindings."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceAccountCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceAccount" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/service-accounts/{service_account_id}:
+    parameters:
+      - { name: service_account_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [identity]
+      operationId: getServiceAccount
+      summary: One service account
+      description: "Permission: service_account:read."
+      responses:
+        "200":
+          description: The service account.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceAccount" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [identity]
+      operationId: updateServiceAccount
+      summary: Rename, describe, disable or re-enable a service account
+      description: "Permission: service_account:update. Disabled accounts cannot authenticate."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceAccountUpdate" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceAccount" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [identity]
+      operationId: deleteServiceAccount
+      summary: Delete a service account, its keys and role assignments
+      description: "Permission: service_account:delete."
+      responses:
+        "204": { description: Deleted. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/service-accounts/{service_account_id}/keys:
+    parameters:
+      - { name: service_account_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [identity]
+      operationId: listApiKeys
+      summary: API keys of a service account (never the secret)
+      description: "Permission: service_account:read."
+      responses:
+        "200":
+          description: Keys.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ApiKey" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [identity]
+      operationId: createApiKey
+      summary: Create an API key (the secret is returned once)
+      description: "Permission: service_account:manage_keys."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ApiKeyCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApiKeyCreated" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id}:
+    parameters:
+      - { name: service_account_id, in: path, required: true, schema: { type: string, format: uuid } }
+      - { name: key_id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [identity]
+      operationId: revokeApiKey
+      summary: Revoke an API key
+      description: "Permission: service_account:manage_keys."
+      responses:
+        "204": { description: Revoked. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
         default: { $ref: "#/components/responses/Problem" }
   /v1/hugimethara/entitlements:
     get:
@@ -750,6 +1431,9 @@ paths:
       description: "Permission: role:read."
       parameters:
         - { name: user_id, in: query, schema: { type: string, format: uuid } }
+        - { name: group_id, in: query, schema: { type: string, format: uuid } }
+        - { name: service_account_id, in: query, schema: { type: string, format: uuid } }
+        - { name: principal_type, in: query, schema: { type: string, enum: [user, group, service_account] } }
         - { name: scope_type, in: query, schema: { type: string, enum: [org, workspace, resource] } }
         - { name: workspace_id, in: query, schema: { type: string, format: uuid } }
       responses:
@@ -769,7 +1453,7 @@ paths:
     post:
       tags: [access]
       operationId: createRoleBinding
-      summary: Assign a role to a member at a scope
+      summary: Assign a role to a member, group or service account at a scope
       description: "Permission: role:bind at the target scope; the role's permissions must all be held by you there."
       requestBody:
         required: true
@@ -854,6 +1538,12 @@ components:
       description: |
         Session cookie set by login/signup (`__Host-hugi_session` when served over HTTPS).
         State-changing requests must also send `X-CSRF-Token` with the value of the `hugi_csrf` cookie.
+    apiKey:
+      type: http
+      scheme: bearer
+      description: |
+        Service-account API key: `Authorization: Bearer hugi_<prefix>_<secret>`. No CSRF token needed.
+        Endpoints about the signed-in person (/me, sessions) are not available to API keys.
   parameters:
     WorkspaceSlug:
       name: workspace
@@ -1002,10 +1692,15 @@ components:
         display_name: { type: string }
         status: { type: string }
         is_owner: { type: boolean }
+        membership_status: { type: string, enum: [active, suspended], description: Organization lists only. }
         roles:
           type: array
           description: Role keys (organization-level in /users, workspace-level in workspace member lists).
           items: { type: string }
+        groups:
+          type: array
+          description: Groups the member belongs to (/users/{id} only).
+          items: { $ref: "#/components/schemas/GroupRef" }
         joined_at: { type: string, format: date-time }
         added_at: { type: string, format: date-time }
     FeatureDefinition:
@@ -1118,13 +1813,25 @@ components:
         workspace_id: { type: string, format: uuid }
         resource_type: { type: string }
         resource_id: { type: string, maxLength: 200 }
+    PrincipalType:
+      type: string
+      enum: [user, group, service_account]
     RoleBinding:
       type: object
-      required: [id, user, role, scope, created_at]
+      required: [id, principal, role, scope, created_at]
       properties:
         id: { type: string, format: uuid }
+        principal:
+          type: object
+          required: [type, id, name]
+          properties:
+            type: { $ref: "#/components/schemas/PrincipalType" }
+            id: { type: string, format: uuid }
+            name: { type: string, description: "Display name, group name or service-account name." }
+            email: { type: string, description: Users only. }
         user:
           type: object
+          description: Present for user assignments (kept for older clients).
           required: [id, email, display_name]
           properties:
             id: { type: string, format: uuid }
@@ -1144,17 +1851,22 @@ components:
         expires_at: { type: string, format: date-time }
     RoleBindingCreate:
       type: object
-      required: [user_id, role_id, scope]
+      description: Exactly one of user_id, group_id, service_account_id.
+      required: [role_id, scope]
       properties:
         user_id: { type: string, format: uuid }
+        group_id: { type: string, format: uuid }
+        service_account_id: { type: string, format: uuid }
         role_id: { type: string, format: uuid }
         scope: { $ref: "#/components/schemas/BindingScope" }
         expires_at: { type: string, format: date-time }
     EvaluateRequest:
       type: object
-      required: [user_id, resource_type, action]
+      description: Exactly one of user_id (includes group roles) or service_account_id.
+      required: [resource_type, action]
       properties:
         user_id: { type: string, format: uuid }
+        service_account_id: { type: string, format: uuid }
         resource_type: { type: string }
         action: { type: string }
         resource_id: { type: string, maxLength: 200 }
@@ -1174,7 +1886,8 @@ components:
         id: { type: string, format: uuid }
         occurred_at: { type: string, format: date-time }
         principal_id: { type: string, format: uuid }
-        principal_email: { type: string }
+        principal_type: { $ref: "#/components/schemas/PrincipalType" }
+        principal_email: { type: string, description: "Email of a user, or the service-account name." }
         action: { type: string }
         resource_type: { type: string }
         resource_id: { type: string }
@@ -1183,6 +1896,255 @@ components:
         reason: { type: string }
         matched_rules: { type: array, items: { type: string } }
         request_id: { type: string }
+    GroupRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+    UserUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [active, suspended] }
+    Group:
+      type: object
+      required: [id, name, description, source, member_count, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        source: { type: string, enum: [internal, idp] }
+        member_count: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    GroupInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+    GroupMember:
+      type: object
+      required: [id, email, display_name, added_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        display_name: { type: string }
+        added_at: { type: string, format: date-time }
+    InvitationWorkspace:
+      type: object
+      required: [workspace_id, workspace_name, role_id, role_name]
+      properties:
+        workspace_id: { type: string, format: uuid }
+        workspace_name: { type: string }
+        workspace_slug: { type: string }
+        role_id: { type: string, format: uuid }
+        role_name: { type: string }
+    Invitation:
+      type: object
+      required: [id, email, status, workspaces, created_at, expires_at]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        status: { type: string, enum: [pending, accepted, revoked, expired] }
+        org_role:
+          type: object
+          required: [id, key, name]
+          properties:
+            id: { type: string, format: uuid }
+            key: { type: string }
+            name: { type: string }
+        workspaces:
+          type: array
+          items: { $ref: "#/components/schemas/InvitationWorkspace" }
+        invited_by_name: { type: string }
+        created_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        accepted_at: { type: string, format: date-time }
+    InvitationCreate:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, maxLength: 254 }
+        org_role_id: { type: string, format: uuid, description: "Organization role in addition to Member." }
+        workspaces:
+          type: array
+          maxItems: 50
+          items:
+            type: object
+            required: [workspace_id, role_id]
+            properties:
+              workspace_id: { type: string, format: uuid }
+              role_id: { type: string, format: uuid }
+        expires_in_days: { type: integer, minimum: 1, maximum: 30, default: 7 }
+    InvitationCreated:
+      type: object
+      required: [invitation, token, accept_path]
+      properties:
+        invitation: { $ref: "#/components/schemas/Invitation" }
+        token: { type: string, description: Shown once. Anyone with the link can accept as the invited address. }
+        accept_path: { type: string, description: "Web path of the invitation page, e.g. /invite/<token>." }
+    InvitationPreview:
+      type: object
+      required: [organization, email, expires_at, account_exists]
+      properties:
+        organization: { $ref: "#/components/schemas/OrganizationSummary" }
+        email: { type: string }
+        invited_by_name: { type: string }
+        expires_at: { type: string, format: date-time }
+        account_exists: { type: boolean, description: "True: accept with the account's password. False: choose a name and password." }
+    InvitationAccept:
+      type: object
+      properties:
+        display_name: { type: string, maxLength: 100 }
+        password: { type: string, maxLength: 1024 }
+    ServiceAccount:
+      type: object
+      required: [id, name, description, disabled, active_key_count, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        disabled: { type: boolean }
+        active_key_count: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ServiceAccountCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+    ServiceAccountUpdate:
+      type: object
+      required: [name, disabled]
+      properties:
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+        disabled: { type: boolean }
+    ApiKey:
+      type: object
+      required: [id, name, prefix, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        prefix: { type: string, description: "Identifies the key (hugi_<prefix>_…); not secret." }
+        created_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        last_used_at: { type: string, format: date-time }
+        revoked_at: { type: string, format: date-time }
+    ApiKeyCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100 }
+        expires_at: { type: string, format: date-time }
+    ApiKeyCreated:
+      type: object
+      required: [key, secret]
+      properties:
+        key: { $ref: "#/components/schemas/ApiKey" }
+        secret: { type: string, description: "The full key. Shown once; store it in a secret manager." }
+    ClaimMapping:
+      type: object
+      required: [email, name]
+      properties:
+        email: { type: string, maxLength: 200, description: "Claim carrying the verified email address." }
+        name: { type: string, maxLength: 200, description: "Claim carrying the display name." }
+        groups: { type: string, maxLength: 200, description: "Claim carrying group names. Empty disables group mapping." }
+    IdentityProviderPreset:
+      type: string
+      enum: [entra, google, keycloak, generic]
+    IdentityProvider:
+      type: object
+      required: [id, name, protocol, preset, issuer, client_id, has_client_secret, scopes, claim_mapping,
+                 jit_provisioning, allowed_domains, enabled, redirect_uri, sso_url, group_mapping_count,
+                 created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        protocol: { type: string, enum: [oidc] }
+        preset: { $ref: "#/components/schemas/IdentityProviderPreset" }
+        issuer: { type: string }
+        client_id: { type: string }
+        has_client_secret: { type: boolean, description: "The secret itself is never returned." }
+        scopes: { type: array, items: { type: string } }
+        claim_mapping: { $ref: "#/components/schemas/ClaimMapping" }
+        jit_provisioning: { type: boolean, description: "Create members on first sign-in. Off: only existing members can link." }
+        allowed_domains:
+          type: array
+          description: Email domains allowed to sign in. Empty allows every domain the IdP asserts.
+          items: { type: string }
+        enabled: { type: boolean }
+        redirect_uri: { type: string, description: "Exact redirect URI to register at the identity provider." }
+        sso_url: { type: string, description: "Browser URL that starts the SSO flow (points at the web origin)." }
+        group_mapping_count: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    IdentityProviderCreate:
+      type: object
+      required: [name, preset, issuer, client_id]
+      properties:
+        name: { type: string, maxLength: 100 }
+        preset: { $ref: "#/components/schemas/IdentityProviderPreset" }
+        issuer: { type: string, maxLength: 500, description: "Issuer URL; discovery is read from /.well-known/openid-configuration." }
+        client_id: { type: string, maxLength: 255 }
+        client_secret: { type: string, maxLength: 4096, format: password, description: "Write-only. Omit for public clients using PKCE." }
+        scopes: { type: array, maxItems: 20, items: { type: string, maxLength: 64 } }
+        claim_mapping: { $ref: "#/components/schemas/ClaimMapping" }
+        jit_provisioning: { type: boolean, default: true }
+        allowed_domains: { type: array, maxItems: 20, items: { type: string, maxLength: 255 } }
+        enabled: { type: boolean, default: true }
+    IdentityProviderUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, maxLength: 100 }
+        preset: { $ref: "#/components/schemas/IdentityProviderPreset" }
+        issuer: { type: string, maxLength: 500 }
+        client_id: { type: string, maxLength: 255 }
+        client_secret: { type: string, maxLength: 4096, format: password, description: "Omit to keep; empty string removes." }
+        scopes: { type: array, maxItems: 20, items: { type: string, maxLength: 64 } }
+        claim_mapping: { $ref: "#/components/schemas/ClaimMapping" }
+        jit_provisioning: { type: boolean }
+        allowed_domains: { type: array, maxItems: 20, items: { type: string, maxLength: 255 } }
+        enabled: { type: boolean }
+    IdentityProviderTest:
+      type: object
+      required: [ok, latency_ms, checked_at]
+      properties:
+        ok: { type: boolean }
+        issuer: { type: string }
+        authorization_endpoint: { type: string }
+        token_endpoint: { type: string }
+        jwks_uri: { type: string }
+        latency_ms: { type: integer, format: int64 }
+        error: { type: string, description: "Sanitized failure reason when ok is false." }
+        checked_at: { type: string, format: date-time }
+    GroupMapping:
+      type: object
+      required: [id, external_group, group_id, group_name, group_source, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        external_group: { type: string }
+        group_id: { type: string, format: uuid }
+        group_name: { type: string }
+        group_source: { type: string, enum: [internal, idp] }
+        created_at: { type: string, format: date-time }
+    GroupMappingCreate:
+      type: object
+      required: [external_group]
+      properties:
+        external_group: { type: string, maxLength: 200 }
+        group_id: { type: string, format: uuid, description: "Omit to create an IdP-managed group named after the external group." }
+    OidcProviderOption:
+      type: object
+      required: [id, name, preset]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        preset: { $ref: "#/components/schemas/IdentityProviderPreset" }
     SignupRequest:
       type: object
       required: [organization_name, organization_slug, display_name, email, password]

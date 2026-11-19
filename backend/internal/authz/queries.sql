@@ -1,13 +1,35 @@
 -- Authorization: roles, permissions, bindings, decisions.
 
--- name: LoadGrants
--- Every permission pattern a user holds, with the scope it applies at.
-SELECT rp.permission, rb.scope_type, rb.workspace_id, rb.resource_type, rb.resource_id, r.key::text AS role_key, rb.id AS binding_id
+-- name: LoadUserGrants
+-- Every permission pattern an active member holds, directly or through a group.
+SELECT rp.permission, rb.scope_type, rb.workspace_id, rb.resource_type, rb.resource_id, r.key::text AS role_key,
+       rb.id AS binding_id, rb.principal_type
 FROM role_bindings rb
 JOIN roles r ON r.id = rb.role_id
 JOIN role_permissions rp ON rp.role_id = r.id
-JOIN org_memberships m ON m.org_id = rb.org_id AND m.user_id = rb.user_id AND m.status = 'active'
-WHERE rb.user_id = $1 AND (rb.expires_at IS NULL OR rb.expires_at > now());
+WHERE (rb.expires_at IS NULL OR rb.expires_at > now())
+  AND EXISTS (SELECT 1 FROM org_memberships m WHERE m.user_id = $1 AND m.status = 'active')
+  AND (rb.user_id = $1
+       OR rb.group_id IN (SELECT gm.group_id FROM group_members gm WHERE gm.user_id = $1));
+
+-- name: LoadServiceAccountGrants
+SELECT rp.permission, rb.scope_type, rb.workspace_id, rb.resource_type, rb.resource_id, r.key::text AS role_key,
+       rb.id AS binding_id, rb.principal_type
+FROM role_bindings rb
+JOIN roles r ON r.id = rb.role_id
+JOIN role_permissions rp ON rp.role_id = r.id
+JOIN service_accounts sa ON sa.org_id = rb.org_id AND sa.id = rb.service_account_id AND sa.disabled_at IS NULL
+WHERE rb.service_account_id = $1 AND (rb.expires_at IS NULL OR rb.expires_at > now());
+
+-- name: PrincipalBindingGrants
+-- Permissions held through one principal's own bindings (what joining a group hands out).
+SELECT rp.permission, rb.scope_type, rb.workspace_id, rb.resource_type, rb.resource_id, r.key::text AS role_key,
+       rb.id AS binding_id, rb.principal_type
+FROM role_bindings rb
+JOIN roles r ON r.id = rb.role_id
+JOIN role_permissions rp ON rp.role_id = r.id
+WHERE rb.principal_type = $1 AND COALESCE(rb.user_id, rb.group_id, rb.service_account_id) = $2
+  AND (rb.expires_at IS NULL OR rb.expires_at > now());
 
 -- name: GetVersion
 SELECT authz_version FROM organizations WHERE id = $1;
@@ -22,13 +44,16 @@ FROM resource_types ORDER BY type;
 
 -- name: InsertDecision
 INSERT INTO authz_decisions (org_id, principal_id, action, resource_type, resource_id, workspace_id,
-                             allowed, reason, matched_rules, authz_version, request_id)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);
+                             allowed, reason, matched_rules, authz_version, request_id, principal_type)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
 
 -- name: ListDecisions
-SELECT d.id, d.occurred_at, d.principal_id, u.email::text AS principal_email, d.action, d.resource_type,
-       d.resource_id, d.workspace_id, d.allowed, d.reason, array_to_json(d.matched_rules)::text AS matched_rules, d.request_id
-FROM authz_decisions d LEFT JOIN users u ON u.id = d.principal_id
+SELECT d.id, d.occurred_at, d.principal_id, d.principal_type, COALESCE(u.email::text, sa.name::text) AS principal_email,
+       d.action, d.resource_type, d.resource_id, d.workspace_id, d.allowed, d.reason,
+       array_to_json(d.matched_rules)::text AS matched_rules, d.request_id
+FROM authz_decisions d
+LEFT JOIN users u ON d.principal_type = 'user' AND u.id = d.principal_id
+LEFT JOIN service_accounts sa ON d.principal_type = 'service_account' AND sa.id = d.principal_id
 WHERE ($1::boolean IS NULL OR d.allowed = $1)
   AND ($2::timestamptz IS NULL OR (d.occurred_at, d.id) < ($2, $3::uuid))
 ORDER BY d.occurred_at DESC, d.id DESC
@@ -88,34 +113,42 @@ DELETE FROM role_permissions WHERE role_id = $1;
 -- Bindings ---------------------------------------------------------------------
 
 -- name: ListBindings
--- Optional filters: $1 user, $2 scope type, $3 workspace.
-SELECT rb.id, rb.user_id, u.email::text AS user_email, u.display_name AS user_name,
+-- Optional filters: $1 principal type, $2 principal id, $3 scope type, $4 workspace.
+SELECT rb.id, rb.principal_type, COALESCE(rb.user_id, rb.group_id, rb.service_account_id) AS principal_id,
+       COALESCE(u.display_name, g.name::text, sa.name::text, '') AS principal_name, u.email::text AS principal_email,
        r.id AS role_id, r.key::text AS role_key, r.name AS role_name,
        rb.scope_type, rb.workspace_id, w.slug::text AS workspace_slug, w.name AS workspace_name,
        rb.resource_type, rb.resource_id, rb.created_at, rb.expires_at
 FROM role_bindings rb
 JOIN roles r ON r.id = rb.role_id
-JOIN users u ON u.id = rb.user_id
+LEFT JOIN users u ON u.id = rb.user_id
+LEFT JOIN groups g ON g.org_id = rb.org_id AND g.id = rb.group_id
+LEFT JOIN service_accounts sa ON sa.org_id = rb.org_id AND sa.id = rb.service_account_id
 LEFT JOIN workspaces w ON w.org_id = rb.org_id AND w.id = rb.workspace_id
-WHERE ($1::uuid IS NULL OR rb.user_id = $1)
-  AND ($2::text IS NULL OR rb.scope_type = $2)
-  AND ($3::uuid IS NULL OR rb.workspace_id = $3)
-ORDER BY u.display_name, rb.scope_type, r.name;
+WHERE ($1::text IS NULL OR rb.principal_type = $1)
+  AND ($2::uuid IS NULL OR COALESCE(rb.user_id, rb.group_id, rb.service_account_id) = $2)
+  AND ($3::text IS NULL OR rb.scope_type = $3)
+  AND ($4::uuid IS NULL OR rb.workspace_id = $4)
+ORDER BY rb.principal_type DESC, principal_name, rb.scope_type, r.name;
 
 -- name: GetBinding
-SELECT rb.id, rb.user_id, u.email::text AS user_email, u.display_name AS user_name,
+SELECT rb.id, rb.principal_type, COALESCE(rb.user_id, rb.group_id, rb.service_account_id) AS principal_id,
+       COALESCE(u.display_name, g.name::text, sa.name::text, '') AS principal_name, u.email::text AS principal_email,
        r.id AS role_id, r.key::text AS role_key, r.name AS role_name,
        rb.scope_type, rb.workspace_id, w.slug::text AS workspace_slug, w.name AS workspace_name,
        rb.resource_type, rb.resource_id, rb.created_at, rb.expires_at
 FROM role_bindings rb
 JOIN roles r ON r.id = rb.role_id
-JOIN users u ON u.id = rb.user_id
+LEFT JOIN users u ON u.id = rb.user_id
+LEFT JOIN groups g ON g.org_id = rb.org_id AND g.id = rb.group_id
+LEFT JOIN service_accounts sa ON sa.org_id = rb.org_id AND sa.id = rb.service_account_id
 LEFT JOIN workspaces w ON w.org_id = rb.org_id AND w.id = rb.workspace_id
 WHERE rb.id = $1;
 
 -- name: InsertBinding
-INSERT INTO role_bindings (id, org_id, role_id, user_id, scope_type, workspace_id, resource_type, resource_id, created_by, expires_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+INSERT INTO role_bindings (id, org_id, role_id, principal_type, user_id, group_id, service_account_id,
+                           scope_type, workspace_id, resource_type, resource_id, created_by, expires_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 ON CONFLICT DO NOTHING;
 
 -- name: DeleteBinding
@@ -123,17 +156,18 @@ DELETE FROM role_bindings WHERE id = $1;
 
 -- name: DeleteWorkspaceBindings
 -- Removes every workspace-scope binding of a user in a workspace (leave workspace).
-DELETE FROM role_bindings WHERE scope_type = 'workspace' AND workspace_id = $1 AND user_id = $2;
+DELETE FROM role_bindings WHERE scope_type = 'workspace' AND workspace_id = $1 AND principal_type = 'user' AND user_id = $2;
 
 -- name: CountOtherOwners
--- Active org-scope owner bindings excluding binding $1.
+-- Active direct org-scope owner bindings, excluding binding $1 and the users in $2.
 SELECT count(*) FROM role_bindings rb
 JOIN roles r ON r.id = rb.role_id
 JOIN org_memberships m ON m.org_id = rb.org_id AND m.user_id = rb.user_id AND m.status = 'active'
-WHERE r.key = 'org_owner' AND rb.scope_type = 'org' AND rb.id <> $1
+WHERE r.key = 'org_owner' AND rb.scope_type = 'org' AND rb.principal_type = 'user' AND rb.id <> $1
+  AND rb.user_id <> ALL($2::uuid[])
   AND (rb.expires_at IS NULL OR rb.expires_at > now());
 
 -- name: IsOrgOwner
 SELECT EXISTS (SELECT 1 FROM role_bindings rb JOIN roles r ON r.id = rb.role_id
-               WHERE rb.user_id = $1 AND rb.scope_type = 'org' AND r.key = 'org_owner'
+               WHERE rb.principal_type = 'user' AND rb.user_id = $1 AND rb.scope_type = 'org' AND r.key = 'org_owner'
                  AND (rb.expires_at IS NULL OR rb.expires_at > now()));

@@ -28,14 +28,14 @@ Conventions ([ADR-0002](../adr/0002-postgresql-tenancy.md)):
 | org_memberships | org_id, user_id, status, joined_at — PK(org_id, user_id) |
 | user_credentials | user_id, password_hash (argon2id), mfa_secret_enc?, failed_attempts, locked_until |
 | sessions | id, token_hash (unique), user_id, org_id, created_at, last_seen_at, expires_at, revoked_at, ip, user_agent |
-| identity_providers | org_id, id, protocol(`oidc`; `saml` reserved), preset(`entra`/`google`/`keycloak`/`generic`), issuer, client_id, client_secret_ref → secrets, scopes[], claim_mapping jsonb, jit_provisioning bool, allowed_domains[], enabled |
-| identity_links | org_id, idp_id, subject, user_id — UNIQUE(idp_id, subject) |
+| identity_providers | org_id, id, protocol(`oidc`; `saml` reserved), preset(`entra`/`google`/`keycloak`/`generic`), issuer, client_id, client_secret_ciphertext (AES-256-GCM, write-only; S6 vault replaces it), scopes[], claim_mapping jsonb, jit_provisioning bool, allowed_domains[], enabled — UNIQUE(org_id, name) |
+| identity_links | org_id, idp_id, subject, user_id, last_login_at — UNIQUE(org_id, idp_id, subject), UNIQUE(org_id, idp_id, user_id) |
 | groups | org_id, id, name, source(`internal`/`idp`) — UNIQUE(org_id, name) |
 | group_members | org_id, group_id, user_id |
-| group_mappings | org_id, idp_id, external_group, group_id |
-| invitations | org_id, id, email, token_hash, workspace_ids[], role_id?, expires_at, accepted_at, invited_by |
-| service_accounts | org_id, id, name, workspace_id?, disabled_at |
-| api_keys | org_id, id, service_account_id, prefix (unique), key_hash, expires_at, last_used_at, revoked_at |
+| group_mappings | org_id, idp_id, external_group, group_id — UNIQUE(org_id, idp_id, external_group), UNIQUE(org_id, group_id) |
+| invitations | org_id, id, email, token_hash, org_role_id?, expires_at, accepted_at, revoked_at, invited_by (+ invitation_workspaces: workspace_id, role_id per workspace) |
+| service_accounts | org_id, id, name, description, disabled_at (scope comes from role bindings) |
+| api_keys | org_id, id, service_account_id, name, prefix (unique), key_hash, expires_at, last_used_at, revoked_at |
 
 ### Authorization
 | Table | Key columns / constraints |
@@ -157,8 +157,8 @@ erDiagram
 | ✅ 00004_workspaces (departments, environments + backfill, workspaces, workspace_members; composite FKs) | S2 |
 | ✅ 00005_entitlements (features, plans, plan_entitlements, org_subscriptions, org_entitlement_overrides + seed) | S2 (paid features, ADR-0013) |
 | ✅ 00006_rbac (resource_types, role_templates, roles, role_permissions, role_bindings, authz_decisions, views workspace_access / org_member_roles; backfill; drops workspace_members and is_owner) | S3 |
-| 0006_groups_invitations_service_accounts | S4 |
-| 0007_identity_providers | S5 |
+| ✅ 00007_groups_invitations_service_accounts (groups, group_members, invitations, invitation_workspaces, service_accounts, api_keys; role_bindings gain group/service-account principals; 2 pre-tenant `SECURITY DEFINER` lookups) | S4 |
+| ✅ 00008_identity_providers (identity_providers, identity_links, group_mappings; RLS; 5 pre-tenant `SECURITY DEFINER` lookups; `identity_provider` catalog + `org_admin` grant) | S5 |
 | 0008_secrets_connectors | S6 |
 | 0009_service_registry | S7 |
 | 0010_mappings · 0011_compositions | S8–S9 |

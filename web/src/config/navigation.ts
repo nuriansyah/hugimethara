@@ -1,7 +1,9 @@
 import {
   Activity,
+  Bot,
   Building2,
   CreditCard,
+  Fingerprint,
   FolderKanban,
   KeyRound,
   Layers,
@@ -9,6 +11,8 @@ import {
   Network,
   ScrollText,
   ShieldCheck,
+  UserRound,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -36,6 +40,14 @@ export const navigation: NavSection[] = [
     items: [{ title: "Workspaces", href: "/workspaces", icon: FolderKanban }],
   },
   {
+    title: "People",
+    items: [
+      { title: "Members", href: "/settings/members", icon: UserRound, permission: "user:read" },
+      { title: "Groups", href: "/settings/groups", icon: UsersRound, permission: "group:read" },
+      { title: "Service accounts", href: "/settings/service-accounts", icon: Bot, permission: "service_account:read" },
+    ],
+  },
+  {
     title: "Governance",
     items: [
       { title: "Roles", href: "/governance/roles", icon: ShieldCheck, permission: "role:read" },
@@ -46,6 +58,7 @@ export const navigation: NavSection[] = [
   {
     title: "Settings",
     items: [
+      { title: "Single sign-on", href: "/settings/identity-providers", icon: Fingerprint, permission: "identity_provider:read" },
       { title: "Organization", href: "/settings/organization", icon: Building2 },
       { title: "Departments", href: "/settings/departments", icon: Layers },
       { title: "Environments", href: "/settings/environments", icon: Network },

@@ -25,6 +25,7 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/logging"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/migrate"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/ratelimit"
+	"github.com/nuriansyah/hugimethara/backend/internal/platform/secretbox"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/telemetry"
 )
 
@@ -82,8 +83,23 @@ func run() error {
 	az := authz.NewRBAC(pool, rdb, log)
 	acl := authz.NewService(pool, az, auditAdapter)
 	limiter := ratelimit.New(rdb, log)
+	masterKey, defaulted, err := cfg.MasterKeyBytes()
+	if err != nil {
+		log.Error("invalid master key", "err", err)
+		return err
+	}
+	if defaulted {
+		log.Warn("HUGI_MASTER_KEY is not set; using the development key. Set it in every real deployment.")
+	}
+	sealer, err := secretbox.New(masterKey)
+	if err != nil {
+		log.Error("master key unusable", "err", err)
+		return err
+	}
 	orgSvc := organization.NewService(pool, az, acl)
-	idSvc := identity.NewService(pool, orgSvc, az, limiter, log, identity.Config{})
+	idSvc := identity.NewService(pool, orgSvc, az, acl, limiter, log, identity.Config{
+		PublicURL: cfg.PublicURL, Sealer: sealer,
+	})
 	router, err := api.NewRouter(api.Deps{
 		Env: cfg.Env, TrustedOrigins: cfg.CORSAllowedOrigins, TrustedProxies: cfg.TrustedProxyPrefixes(),
 		Health: hc, Registerer: reg,

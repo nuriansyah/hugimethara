@@ -99,6 +99,8 @@ func TestPublicOperationsComeFromSpec(t *testing.T) {
 	require.Equal(t, map[string]bool{
 		"GetLiveness": true, "GetReadiness": true, "GetSystemInfo": true,
 		"CreateOrganization": true, "Login": true, "Logout": true,
+		"GetInvitationPreview": true, "AcceptInvitation": true, // S4: invitation links (token-gated, rate-limited)
+		"ListOidcProviders": true, "StartOidcLogin": true, "CompleteOidcLogin": true, // S5: SSO before a session exists
 	}, public, "adding a public operation is a security decision: update this test deliberately")
 }
 

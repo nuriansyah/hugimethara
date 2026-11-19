@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -149,6 +150,42 @@ func (e FeatureDefinitionKind) Valid() bool {
 	}
 }
 
+// Defines values for GroupSource.
+const (
+	GroupSourceIdp      GroupSource = "idp"
+	GroupSourceInternal GroupSource = "internal"
+)
+
+// Valid indicates whether the value is a known member of the GroupSource enum.
+func (e GroupSource) Valid() bool {
+	switch e {
+	case GroupSourceIdp:
+		return true
+	case GroupSourceInternal:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupMappingGroupSource.
+const (
+	GroupMappingGroupSourceIdp      GroupMappingGroupSource = "idp"
+	GroupMappingGroupSourceInternal GroupMappingGroupSource = "internal"
+)
+
+// Valid indicates whether the value is a known member of the GroupMappingGroupSource enum.
+func (e GroupMappingGroupSource) Valid() bool {
+	switch e {
+	case GroupMappingGroupSourceIdp:
+		return true
+	case GroupMappingGroupSourceInternal:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for HealthReportChecksStatus.
 const (
 	HealthReportChecksStatusFail HealthReportChecksStatus = "fail"
@@ -185,6 +222,87 @@ func (e HealthReportStatus) Valid() bool {
 	}
 }
 
+// Defines values for IdentityProviderProtocol.
+const (
+	Oidc IdentityProviderProtocol = "oidc"
+)
+
+// Valid indicates whether the value is a known member of the IdentityProviderProtocol enum.
+func (e IdentityProviderProtocol) Valid() bool {
+	switch e {
+	case Oidc:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for IdentityProviderPreset.
+const (
+	Entra    IdentityProviderPreset = "entra"
+	Generic  IdentityProviderPreset = "generic"
+	Google   IdentityProviderPreset = "google"
+	Keycloak IdentityProviderPreset = "keycloak"
+)
+
+// Valid indicates whether the value is a known member of the IdentityProviderPreset enum.
+func (e IdentityProviderPreset) Valid() bool {
+	switch e {
+	case Entra:
+		return true
+	case Generic:
+		return true
+	case Google:
+		return true
+	case Keycloak:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for InvitationStatus.
+const (
+	InvitationStatusAccepted InvitationStatus = "accepted"
+	InvitationStatusExpired  InvitationStatus = "expired"
+	InvitationStatusPending  InvitationStatus = "pending"
+	InvitationStatusRevoked  InvitationStatus = "revoked"
+)
+
+// Valid indicates whether the value is a known member of the InvitationStatus enum.
+func (e InvitationStatus) Valid() bool {
+	switch e {
+	case InvitationStatusAccepted:
+		return true
+	case InvitationStatusExpired:
+		return true
+	case InvitationStatusPending:
+		return true
+	case InvitationStatusRevoked:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for MemberMembershipStatus.
+const (
+	MemberMembershipStatusActive    MemberMembershipStatus = "active"
+	MemberMembershipStatusSuspended MemberMembershipStatus = "suspended"
+)
+
+// Valid indicates whether the value is a known member of the MemberMembershipStatus enum.
+func (e MemberMembershipStatus) Valid() bool {
+	switch e {
+	case MemberMembershipStatusActive:
+		return true
+	case MemberMembershipStatusSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for OrganizationStatus.
 const (
 	OrganizationStatusActive    OrganizationStatus = "active"
@@ -197,6 +315,27 @@ func (e OrganizationStatus) Valid() bool {
 	case OrganizationStatusActive:
 		return true
 	case OrganizationStatusSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PrincipalType.
+const (
+	PrincipalTypeGroup          PrincipalType = "group"
+	PrincipalTypeServiceAccount PrincipalType = "service_account"
+	PrincipalTypeUser           PrincipalType = "user"
+)
+
+// Valid indicates whether the value is a known member of the PrincipalType enum.
+func (e PrincipalType) Valid() bool {
+	switch e {
+	case PrincipalTypeGroup:
+		return true
+	case PrincipalTypeServiceAccount:
+		return true
+	case PrincipalTypeUser:
 		return true
 	default:
 		return false
@@ -245,6 +384,63 @@ func (e UserStatus) Valid() bool {
 	}
 }
 
+// Defines values for UserUpdateStatus.
+const (
+	UserUpdateStatusActive    UserUpdateStatus = "active"
+	UserUpdateStatusSuspended UserUpdateStatus = "suspended"
+)
+
+// Valid indicates whether the value is a known member of the UserUpdateStatus enum.
+func (e UserUpdateStatus) Valid() bool {
+	switch e {
+	case UserUpdateStatusActive:
+		return true
+	case UserUpdateStatusSuspended:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListInvitationsParamsStatus.
+const (
+	ListInvitationsParamsStatusAll     ListInvitationsParamsStatus = "all"
+	ListInvitationsParamsStatusPending ListInvitationsParamsStatus = "pending"
+)
+
+// Valid indicates whether the value is a known member of the ListInvitationsParamsStatus enum.
+func (e ListInvitationsParamsStatus) Valid() bool {
+	switch e {
+	case ListInvitationsParamsStatusAll:
+		return true
+	case ListInvitationsParamsStatusPending:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListRoleBindingsParamsPrincipalType.
+const (
+	ListRoleBindingsParamsPrincipalTypeGroup          ListRoleBindingsParamsPrincipalType = "group"
+	ListRoleBindingsParamsPrincipalTypeServiceAccount ListRoleBindingsParamsPrincipalType = "service_account"
+	ListRoleBindingsParamsPrincipalTypeUser           ListRoleBindingsParamsPrincipalType = "user"
+)
+
+// Valid indicates whether the value is a known member of the ListRoleBindingsParamsPrincipalType enum.
+func (e ListRoleBindingsParamsPrincipalType) Valid() bool {
+	switch e {
+	case ListRoleBindingsParamsPrincipalTypeGroup:
+		return true
+	case ListRoleBindingsParamsPrincipalTypeServiceAccount:
+		return true
+	case ListRoleBindingsParamsPrincipalTypeUser:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListRoleBindingsParamsScopeType.
 const (
 	ListRoleBindingsParamsScopeTypeOrg       ListRoleBindingsParamsScopeType = "org"
@@ -272,6 +468,33 @@ type AccessDecision struct {
 	MatchedRules  []string `json:"matched_rules"`
 	PolicyVersion int64    `json:"policy_version"`
 	Reason        string   `json:"reason"`
+}
+
+// ApiKey defines model for ApiKey.
+type ApiKey struct {
+	CreatedAt  time.Time          `json:"created_at"`
+	ExpiresAt  *time.Time         `json:"expires_at,omitempty"`
+	Id         openapi_types.UUID `json:"id"`
+	LastUsedAt *time.Time         `json:"last_used_at,omitempty"`
+	Name       string             `json:"name"`
+
+	// Prefix Identifies the key (hugi_<prefix>_…); not secret.
+	Prefix    string     `json:"prefix"`
+	RevokedAt *time.Time `json:"revoked_at,omitempty"`
+}
+
+// ApiKeyCreate defines model for ApiKeyCreate.
+type ApiKeyCreate struct {
+	ExpiresAt *time.Time `json:"expires_at,omitempty"`
+	Name      string     `json:"name"`
+}
+
+// ApiKeyCreated defines model for ApiKeyCreated.
+type ApiKeyCreated struct {
+	Key ApiKey `json:"key"`
+
+	// Secret The full key. Shown once; store it in a secret manager.
+	Secret string `json:"secret"`
 }
 
 // AuditEvent defines model for AuditEvent.
@@ -321,6 +544,18 @@ type BindingScope struct {
 
 // BindingScopeType defines model for BindingScope.Type.
 type BindingScopeType string
+
+// ClaimMapping defines model for ClaimMapping.
+type ClaimMapping struct {
+	// Email Claim carrying the verified email address.
+	Email string `json:"email"`
+
+	// Groups Claim carrying group names. Empty disables group mapping.
+	Groups *string `json:"groups,omitempty"`
+
+	// Name Claim carrying the display name.
+	Name string `json:"name"`
+}
 
 // Department defines model for Department.
 type Department struct {
@@ -417,13 +652,14 @@ type EnvironmentUpdate struct {
 	Name            string    `json:"name"`
 }
 
-// EvaluateRequest defines model for EvaluateRequest.
+// EvaluateRequest Exactly one of user_id (includes group roles) or service_account_id.
 type EvaluateRequest struct {
-	Action       string              `json:"action"`
-	ResourceId   *string             `json:"resource_id,omitempty"`
-	ResourceType string              `json:"resource_type"`
-	UserId       openapi_types.UUID  `json:"user_id"`
-	WorkspaceId  *openapi_types.UUID `json:"workspace_id,omitempty"`
+	Action           string              `json:"action"`
+	ResourceId       *string             `json:"resource_id,omitempty"`
+	ResourceType     string              `json:"resource_type"`
+	ServiceAccountId *openapi_types.UUID `json:"service_account_id,omitempty"`
+	UserId           *openapi_types.UUID `json:"user_id,omitempty"`
+	WorkspaceId      *openapi_types.UUID `json:"workspace_id,omitempty"`
 }
 
 // FeatureDefinition defines model for FeatureDefinition.
@@ -445,6 +681,61 @@ type FieldError struct {
 	Message string `json:"message"`
 }
 
+// Group defines model for Group.
+type Group struct {
+	CreatedAt   time.Time          `json:"created_at"`
+	Description string             `json:"description"`
+	Id          openapi_types.UUID `json:"id"`
+	MemberCount int64              `json:"member_count"`
+	Name        string             `json:"name"`
+	Source      GroupSource        `json:"source"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+}
+
+// GroupSource defines model for Group.Source.
+type GroupSource string
+
+// GroupInput defines model for GroupInput.
+type GroupInput struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+}
+
+// GroupMapping defines model for GroupMapping.
+type GroupMapping struct {
+	CreatedAt     time.Time               `json:"created_at"`
+	ExternalGroup string                  `json:"external_group"`
+	GroupId       openapi_types.UUID      `json:"group_id"`
+	GroupName     string                  `json:"group_name"`
+	GroupSource   GroupMappingGroupSource `json:"group_source"`
+	Id            openapi_types.UUID      `json:"id"`
+}
+
+// GroupMappingGroupSource defines model for GroupMapping.GroupSource.
+type GroupMappingGroupSource string
+
+// GroupMappingCreate defines model for GroupMappingCreate.
+type GroupMappingCreate struct {
+	ExternalGroup string `json:"external_group"`
+
+	// GroupId Omit to create an IdP-managed group named after the external group.
+	GroupId *openapi_types.UUID `json:"group_id,omitempty"`
+}
+
+// GroupMember defines model for GroupMember.
+type GroupMember struct {
+	AddedAt     time.Time          `json:"added_at"`
+	DisplayName string             `json:"display_name"`
+	Email       string             `json:"email"`
+	Id          openapi_types.UUID `json:"id"`
+}
+
+// GroupRef defines model for GroupRef.
+type GroupRef struct {
+	Id   openapi_types.UUID `json:"id"`
+	Name string             `json:"name"`
+}
+
 // HealthReport defines model for HealthReport.
 type HealthReport struct {
 	Checks *map[string]struct {
@@ -460,15 +751,170 @@ type HealthReportChecksStatus string
 // HealthReportStatus defines model for HealthReport.Status.
 type HealthReportStatus string
 
+// IdentityProvider defines model for IdentityProvider.
+type IdentityProvider struct {
+	// AllowedDomains Email domains allowed to sign in. Empty allows every domain the IdP asserts.
+	AllowedDomains    []string     `json:"allowed_domains"`
+	ClaimMapping      ClaimMapping `json:"claim_mapping"`
+	ClientId          string       `json:"client_id"`
+	CreatedAt         time.Time    `json:"created_at"`
+	Enabled           bool         `json:"enabled"`
+	GroupMappingCount int64        `json:"group_mapping_count"`
+
+	// HasClientSecret The secret itself is never returned.
+	HasClientSecret bool               `json:"has_client_secret"`
+	Id              openapi_types.UUID `json:"id"`
+	Issuer          string             `json:"issuer"`
+
+	// JitProvisioning Create members on first sign-in. Off: only existing members can link.
+	JitProvisioning bool                     `json:"jit_provisioning"`
+	Name            string                   `json:"name"`
+	Preset          IdentityProviderPreset   `json:"preset"`
+	Protocol        IdentityProviderProtocol `json:"protocol"`
+
+	// RedirectUri Exact redirect URI to register at the identity provider.
+	RedirectUri string   `json:"redirect_uri"`
+	Scopes      []string `json:"scopes"`
+
+	// SsoUrl Browser URL that starts the SSO flow (points at the web origin).
+	SsoUrl    string    `json:"sso_url"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// IdentityProviderProtocol defines model for IdentityProvider.Protocol.
+type IdentityProviderProtocol string
+
+// IdentityProviderCreate defines model for IdentityProviderCreate.
+type IdentityProviderCreate struct {
+	AllowedDomains *[]string     `json:"allowed_domains,omitempty"`
+	ClaimMapping   *ClaimMapping `json:"claim_mapping,omitempty"`
+	ClientId       string        `json:"client_id"`
+
+	// ClientSecret Write-only. Omit for public clients using PKCE.
+	ClientSecret *string `json:"client_secret,omitempty"`
+	Enabled      *bool   `json:"enabled,omitempty"`
+
+	// Issuer Issuer URL; discovery is read from /.well-known/openid-configuration.
+	Issuer          string                 `json:"issuer"`
+	JitProvisioning *bool                  `json:"jit_provisioning,omitempty"`
+	Name            string                 `json:"name"`
+	Preset          IdentityProviderPreset `json:"preset"`
+	Scopes          *[]string              `json:"scopes,omitempty"`
+}
+
+// IdentityProviderPreset defines model for IdentityProviderPreset.
+type IdentityProviderPreset string
+
+// IdentityProviderTest defines model for IdentityProviderTest.
+type IdentityProviderTest struct {
+	AuthorizationEndpoint *string   `json:"authorization_endpoint,omitempty"`
+	CheckedAt             time.Time `json:"checked_at"`
+
+	// Error Sanitized failure reason when ok is false.
+	Error         *string `json:"error,omitempty"`
+	Issuer        *string `json:"issuer,omitempty"`
+	JwksUri       *string `json:"jwks_uri,omitempty"`
+	LatencyMs     int64   `json:"latency_ms"`
+	Ok            bool    `json:"ok"`
+	TokenEndpoint *string `json:"token_endpoint,omitempty"`
+}
+
+// IdentityProviderUpdate defines model for IdentityProviderUpdate.
+type IdentityProviderUpdate struct {
+	AllowedDomains *[]string     `json:"allowed_domains,omitempty"`
+	ClaimMapping   *ClaimMapping `json:"claim_mapping,omitempty"`
+	ClientId       *string       `json:"client_id,omitempty"`
+
+	// ClientSecret Omit to keep; empty string removes.
+	ClientSecret    *string                 `json:"client_secret,omitempty"`
+	Enabled         *bool                   `json:"enabled,omitempty"`
+	Issuer          *string                 `json:"issuer,omitempty"`
+	JitProvisioning *bool                   `json:"jit_provisioning,omitempty"`
+	Name            *string                 `json:"name,omitempty"`
+	Preset          *IdentityProviderPreset `json:"preset,omitempty"`
+	Scopes          *[]string               `json:"scopes,omitempty"`
+}
+
+// Invitation defines model for Invitation.
+type Invitation struct {
+	AcceptedAt    *time.Time         `json:"accepted_at,omitempty"`
+	CreatedAt     time.Time          `json:"created_at"`
+	Email         string             `json:"email"`
+	ExpiresAt     time.Time          `json:"expires_at"`
+	Id            openapi_types.UUID `json:"id"`
+	InvitedByName *string            `json:"invited_by_name,omitempty"`
+	OrgRole       *struct {
+		Id   openapi_types.UUID `json:"id"`
+		Key  string             `json:"key"`
+		Name string             `json:"name"`
+	} `json:"org_role,omitempty"`
+	Status     InvitationStatus      `json:"status"`
+	Workspaces []InvitationWorkspace `json:"workspaces"`
+}
+
+// InvitationStatus defines model for Invitation.Status.
+type InvitationStatus string
+
+// InvitationAccept defines model for InvitationAccept.
+type InvitationAccept struct {
+	DisplayName *string `json:"display_name,omitempty"`
+	Password    *string `json:"password,omitempty"`
+}
+
+// InvitationCreate defines model for InvitationCreate.
+type InvitationCreate struct {
+	Email         string `json:"email"`
+	ExpiresInDays *int   `json:"expires_in_days,omitempty"`
+
+	// OrgRoleId Organization role in addition to Member.
+	OrgRoleId  *openapi_types.UUID `json:"org_role_id,omitempty"`
+	Workspaces *[]struct {
+		RoleId      openapi_types.UUID `json:"role_id"`
+		WorkspaceId openapi_types.UUID `json:"workspace_id"`
+	} `json:"workspaces,omitempty"`
+}
+
+// InvitationCreated defines model for InvitationCreated.
+type InvitationCreated struct {
+	// AcceptPath Web path of the invitation page, e.g. /invite/<token>.
+	AcceptPath string     `json:"accept_path"`
+	Invitation Invitation `json:"invitation"`
+
+	// Token Shown once. Anyone with the link can accept as the invited address.
+	Token string `json:"token"`
+}
+
+// InvitationPreview defines model for InvitationPreview.
+type InvitationPreview struct {
+	// AccountExists True: accept with the account's password. False: choose a name and password.
+	AccountExists bool                `json:"account_exists"`
+	Email         string              `json:"email"`
+	ExpiresAt     time.Time           `json:"expires_at"`
+	InvitedByName *string             `json:"invited_by_name,omitempty"`
+	Organization  OrganizationSummary `json:"organization"`
+}
+
+// InvitationWorkspace defines model for InvitationWorkspace.
+type InvitationWorkspace struct {
+	RoleId        openapi_types.UUID `json:"role_id"`
+	RoleName      string             `json:"role_name"`
+	WorkspaceId   openapi_types.UUID `json:"workspace_id"`
+	WorkspaceName string             `json:"workspace_name"`
+	WorkspaceSlug *string            `json:"workspace_slug,omitempty"`
+}
+
 // LoggedDecision defines model for LoggedDecision.
 type LoggedDecision struct {
-	Action         string              `json:"action"`
-	Allowed        bool                `json:"allowed"`
-	Id             openapi_types.UUID  `json:"id"`
-	MatchedRules   []string            `json:"matched_rules"`
-	OccurredAt     time.Time           `json:"occurred_at"`
+	Action       string             `json:"action"`
+	Allowed      bool               `json:"allowed"`
+	Id           openapi_types.UUID `json:"id"`
+	MatchedRules []string           `json:"matched_rules"`
+	OccurredAt   time.Time          `json:"occurred_at"`
+
+	// PrincipalEmail Email of a user, or the service-account name.
 	PrincipalEmail *string             `json:"principal_email,omitempty"`
 	PrincipalId    openapi_types.UUID  `json:"principal_id"`
+	PrincipalType  *PrincipalType      `json:"principal_type,omitempty"`
 	Reason         string              `json:"reason"`
 	RequestId      *string             `json:"request_id,omitempty"`
 	ResourceId     *string             `json:"resource_id,omitempty"`
@@ -497,16 +943,32 @@ type Me struct {
 
 // Member defines model for Member.
 type Member struct {
-	AddedAt     *time.Time         `json:"added_at,omitempty"`
-	DisplayName string             `json:"display_name"`
-	Email       string             `json:"email"`
-	Id          openapi_types.UUID `json:"id"`
-	IsOwner     bool               `json:"is_owner"`
-	JoinedAt    *time.Time         `json:"joined_at,omitempty"`
+	AddedAt     *time.Time `json:"added_at,omitempty"`
+	DisplayName string     `json:"display_name"`
+	Email       string     `json:"email"`
+
+	// Groups Groups the member belongs to (/users/{id} only).
+	Groups   *[]GroupRef        `json:"groups,omitempty"`
+	Id       openapi_types.UUID `json:"id"`
+	IsOwner  bool               `json:"is_owner"`
+	JoinedAt *time.Time         `json:"joined_at,omitempty"`
+
+	// MembershipStatus Organization lists only.
+	MembershipStatus *MemberMembershipStatus `json:"membership_status,omitempty"`
 
 	// Roles Role keys (organization-level in /users, workspace-level in workspace member lists).
 	Roles  *[]string `json:"roles,omitempty"`
 	Status string    `json:"status"`
+}
+
+// MemberMembershipStatus Organization lists only.
+type MemberMembershipStatus string
+
+// OidcProviderOption defines model for OidcProviderOption.
+type OidcProviderOption struct {
+	Id     openapi_types.UUID     `json:"id"`
+	Name   string                 `json:"name"`
+	Preset IdentityProviderPreset `json:"preset"`
 }
 
 // Organization defines model for Organization.
@@ -586,6 +1048,9 @@ type PlanProblem struct {
 	Type      string        `json:"type"`
 }
 
+// PrincipalType defines model for PrincipalType.
+type PrincipalType string
+
 // Problem defines model for Problem.
 type Problem struct {
 	// Code Stable machine-readable error code.
@@ -625,27 +1090,40 @@ type RoleBinding struct {
 	CreatedAt time.Time          `json:"created_at"`
 	ExpiresAt *time.Time         `json:"expires_at,omitempty"`
 	Id        openapi_types.UUID `json:"id"`
-	Role      struct {
+	Principal struct {
+		// Email Users only.
+		Email *string            `json:"email,omitempty"`
+		Id    openapi_types.UUID `json:"id"`
+
+		// Name Display name, group name or service-account name.
+		Name string        `json:"name"`
+		Type PrincipalType `json:"type"`
+	} `json:"principal"`
+	Role struct {
 		Id   openapi_types.UUID `json:"id"`
 		Key  string             `json:"key"`
 		Name string             `json:"name"`
 	} `json:"role"`
 	Scope BindingScope `json:"scope"`
-	User  struct {
+
+	// User Present for user assignments (kept for older clients).
+	User *struct {
 		DisplayName string             `json:"display_name"`
 		Email       string             `json:"email"`
 		Id          openapi_types.UUID `json:"id"`
-	} `json:"user"`
+	} `json:"user,omitempty"`
 	WorkspaceName *string `json:"workspace_name,omitempty"`
 	WorkspaceSlug *string `json:"workspace_slug,omitempty"`
 }
 
-// RoleBindingCreate defines model for RoleBindingCreate.
+// RoleBindingCreate Exactly one of user_id, group_id, service_account_id.
 type RoleBindingCreate struct {
-	ExpiresAt *time.Time         `json:"expires_at,omitempty"`
-	RoleId    openapi_types.UUID `json:"role_id"`
-	Scope     BindingScope       `json:"scope"`
-	UserId    openapi_types.UUID `json:"user_id"`
+	ExpiresAt        *time.Time          `json:"expires_at,omitempty"`
+	GroupId          *openapi_types.UUID `json:"group_id,omitempty"`
+	RoleId           openapi_types.UUID  `json:"role_id"`
+	Scope            BindingScope        `json:"scope"`
+	ServiceAccountId *openapi_types.UUID `json:"service_account_id,omitempty"`
+	UserId           *openapi_types.UUID `json:"user_id,omitempty"`
 }
 
 // RoleCreate defines model for RoleCreate.
@@ -661,6 +1139,30 @@ type RoleUpdate struct {
 	Description *string  `json:"description,omitempty"`
 	Name        string   `json:"name"`
 	Permissions []string `json:"permissions"`
+}
+
+// ServiceAccount defines model for ServiceAccount.
+type ServiceAccount struct {
+	ActiveKeyCount int64              `json:"active_key_count"`
+	CreatedAt      time.Time          `json:"created_at"`
+	Description    string             `json:"description"`
+	Disabled       bool               `json:"disabled"`
+	Id             openapi_types.UUID `json:"id"`
+	Name           string             `json:"name"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+}
+
+// ServiceAccountCreate defines model for ServiceAccountCreate.
+type ServiceAccountCreate struct {
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
+}
+
+// ServiceAccountUpdate defines model for ServiceAccountUpdate.
+type ServiceAccountUpdate struct {
+	Description *string `json:"description,omitempty"`
+	Disabled    bool    `json:"disabled"`
+	Name        string  `json:"name"`
 }
 
 // SessionInfo defines model for SessionInfo.
@@ -732,6 +1234,14 @@ type User struct {
 // UserStatus defines model for User.Status.
 type UserStatus string
 
+// UserUpdate defines model for UserUpdate.
+type UserUpdate struct {
+	Status UserUpdateStatus `json:"status"`
+}
+
+// UserUpdateStatus defines model for UserUpdate.Status.
+type UserUpdateStatus string
+
 // Workspace defines model for Workspace.
 type Workspace struct {
 	ArchivedAt     *time.Time          `json:"archived_at,omitempty"`
@@ -782,6 +1292,25 @@ type ListAuditEventsParams struct {
 	Cursor       *Cursor             `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
+// CompleteOidcLoginParams defines parameters for CompleteOidcLogin.
+type CompleteOidcLoginParams struct {
+	Code             *string `form:"code,omitempty" json:"code,omitempty"`
+	State            *string `form:"state,omitempty" json:"state,omitempty"`
+	Error            *string `form:"error,omitempty" json:"error,omitempty"`
+	ErrorDescription *string `form:"error_description,omitempty" json:"error_description,omitempty"`
+}
+
+// ListOidcProvidersParams defines parameters for ListOidcProviders.
+type ListOidcProvidersParams struct {
+	// Organization Organization slug.
+	Organization string `form:"organization" json:"organization"`
+}
+
+// StartOidcLoginParams defines parameters for StartOidcLogin.
+type StartOidcLoginParams struct {
+	Redirect *string `form:"redirect,omitempty" json:"redirect,omitempty"`
+}
+
 // ListAccessDecisionsParams defines parameters for ListAccessDecisions.
 type ListAccessDecisionsParams struct {
 	Allowed *bool   `form:"allowed,omitempty" json:"allowed,omitempty"`
@@ -789,12 +1318,31 @@ type ListAccessDecisionsParams struct {
 	Cursor  *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
+// AddGroupMemberJSONBody defines parameters for AddGroupMember.
+type AddGroupMemberJSONBody struct {
+	UserId openapi_types.UUID `json:"user_id"`
+}
+
+// ListInvitationsParams defines parameters for ListInvitations.
+type ListInvitationsParams struct {
+	Status *ListInvitationsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// ListInvitationsParamsStatus defines parameters for ListInvitations.
+type ListInvitationsParamsStatus string
+
 // ListRoleBindingsParams defines parameters for ListRoleBindings.
 type ListRoleBindingsParams struct {
-	UserId      *openapi_types.UUID              `form:"user_id,omitempty" json:"user_id,omitempty"`
-	ScopeType   *ListRoleBindingsParamsScopeType `form:"scope_type,omitempty" json:"scope_type,omitempty"`
-	WorkspaceId *openapi_types.UUID              `form:"workspace_id,omitempty" json:"workspace_id,omitempty"`
+	UserId           *openapi_types.UUID                  `form:"user_id,omitempty" json:"user_id,omitempty"`
+	GroupId          *openapi_types.UUID                  `form:"group_id,omitempty" json:"group_id,omitempty"`
+	ServiceAccountId *openapi_types.UUID                  `form:"service_account_id,omitempty" json:"service_account_id,omitempty"`
+	PrincipalType    *ListRoleBindingsParamsPrincipalType `form:"principal_type,omitempty" json:"principal_type,omitempty"`
+	ScopeType        *ListRoleBindingsParamsScopeType     `form:"scope_type,omitempty" json:"scope_type,omitempty"`
+	WorkspaceId      *openapi_types.UUID                  `form:"workspace_id,omitempty" json:"workspace_id,omitempty"`
 }
+
+// ListRoleBindingsParamsPrincipalType defines parameters for ListRoleBindings.
+type ListRoleBindingsParamsPrincipalType string
 
 // ListRoleBindingsParamsScopeType defines parameters for ListRoleBindings.
 type ListRoleBindingsParamsScopeType string
@@ -829,6 +1377,30 @@ type CreateEnvironmentJSONRequestBody = EnvironmentCreate
 // UpdateEnvironmentJSONRequestBody defines body for UpdateEnvironment for application/json ContentType.
 type UpdateEnvironmentJSONRequestBody = EnvironmentUpdate
 
+// CreateGroupJSONRequestBody defines body for CreateGroup for application/json ContentType.
+type CreateGroupJSONRequestBody = GroupInput
+
+// UpdateGroupJSONRequestBody defines body for UpdateGroup for application/json ContentType.
+type UpdateGroupJSONRequestBody = GroupInput
+
+// AddGroupMemberJSONRequestBody defines body for AddGroupMember for application/json ContentType.
+type AddGroupMemberJSONRequestBody AddGroupMemberJSONBody
+
+// CreateIdentityProviderJSONRequestBody defines body for CreateIdentityProvider for application/json ContentType.
+type CreateIdentityProviderJSONRequestBody = IdentityProviderCreate
+
+// UpdateIdentityProviderJSONRequestBody defines body for UpdateIdentityProvider for application/json ContentType.
+type UpdateIdentityProviderJSONRequestBody = IdentityProviderUpdate
+
+// CreateGroupMappingJSONRequestBody defines body for CreateGroupMapping for application/json ContentType.
+type CreateGroupMappingJSONRequestBody = GroupMappingCreate
+
+// AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
+type AcceptInvitationJSONRequestBody = InvitationAccept
+
+// CreateInvitationJSONRequestBody defines body for CreateInvitation for application/json ContentType.
+type CreateInvitationJSONRequestBody = InvitationCreate
+
 // CreateOrganizationJSONRequestBody defines body for CreateOrganization for application/json ContentType.
 type CreateOrganizationJSONRequestBody = SignupRequest
 
@@ -843,6 +1415,18 @@ type CreateRoleJSONRequestBody = RoleCreate
 
 // UpdateRoleJSONRequestBody defines body for UpdateRole for application/json ContentType.
 type UpdateRoleJSONRequestBody = RoleUpdate
+
+// CreateServiceAccountJSONRequestBody defines body for CreateServiceAccount for application/json ContentType.
+type CreateServiceAccountJSONRequestBody = ServiceAccountCreate
+
+// UpdateServiceAccountJSONRequestBody defines body for UpdateServiceAccount for application/json ContentType.
+type UpdateServiceAccountJSONRequestBody = ServiceAccountUpdate
+
+// CreateApiKeyJSONRequestBody defines body for CreateApiKey for application/json ContentType.
+type CreateApiKeyJSONRequestBody = ApiKeyCreate
+
+// UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
+type UpdateUserJSONRequestBody = UserUpdate
 
 // CreateWorkspaceJSONRequestBody defines body for CreateWorkspace for application/json ContentType.
 type CreateWorkspaceJSONRequestBody = WorkspaceCreate
@@ -870,6 +1454,15 @@ type ServerInterface interface {
 	// Logout Sign out (revoke the current session)
 	// (POST /v1/hugimethara/auth/logout)
 	Logout(w http.ResponseWriter, r *http.Request)
+	// CompleteOidcLogin Finish an OIDC sign-in (public)
+	// (GET /v1/hugimethara/auth/oidc/callback)
+	CompleteOidcLogin(w http.ResponseWriter, r *http.Request, params CompleteOidcLoginParams)
+	// ListOidcProviders Enabled SSO providers of an organization (public)
+	// (GET /v1/hugimethara/auth/oidc/providers)
+	ListOidcProviders(w http.ResponseWriter, r *http.Request, params ListOidcProvidersParams)
+	// StartOidcLogin Begin an OIDC sign-in (public)
+	// (GET /v1/hugimethara/auth/oidc/{idp_id}/start)
+	StartOidcLogin(w http.ResponseWriter, r *http.Request, idpId openapi_types.UUID, params StartOidcLoginParams)
 	// ListAccessDecisions Logged authorization decisions (every denial and sensitive allow), newest first
 	// (GET /v1/hugimethara/authorization/decisions)
 	ListAccessDecisions(w http.ResponseWriter, r *http.Request, params ListAccessDecisionsParams)
@@ -903,6 +1496,72 @@ type ServerInterface interface {
 	// UpdateEnvironment Update a environment
 	// (PATCH /v1/hugimethara/environments/{environment_id})
 	UpdateEnvironment(w http.ResponseWriter, r *http.Request, environmentId openapi_types.UUID)
+	// ListGroups Groups
+	// (GET /v1/hugimethara/groups)
+	ListGroups(w http.ResponseWriter, r *http.Request)
+	// CreateGroup Create a group
+	// (POST /v1/hugimethara/groups)
+	CreateGroup(w http.ResponseWriter, r *http.Request)
+	// DeleteGroup Delete a group and its role assignments
+	// (DELETE /v1/hugimethara/groups/{group_id})
+	DeleteGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID)
+	// GetGroup One group
+	// (GET /v1/hugimethara/groups/{group_id})
+	GetGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID)
+	// UpdateGroup Rename or describe a group
+	// (PATCH /v1/hugimethara/groups/{group_id})
+	UpdateGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID)
+	// ListGroupMembers Members of a group
+	// (GET /v1/hugimethara/groups/{group_id}/members)
+	ListGroupMembers(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID)
+	// AddGroupMember Add a member to a group (idempotent)
+	// (POST /v1/hugimethara/groups/{group_id}/members)
+	AddGroupMember(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID)
+	// RemoveGroupMember Remove a member from a group
+	// (DELETE /v1/hugimethara/groups/{group_id}/members/{user_id})
+	RemoveGroupMember(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID, userId openapi_types.UUID)
+	// ListIdentityProviders OIDC identity providers
+	// (GET /v1/hugimethara/identity/providers)
+	ListIdentityProviders(w http.ResponseWriter, r *http.Request)
+	// CreateIdentityProvider Configure an OIDC identity provider
+	// (POST /v1/hugimethara/identity/providers)
+	CreateIdentityProvider(w http.ResponseWriter, r *http.Request)
+	// DeleteIdentityProvider Delete an identity provider, its links and group mappings
+	// (DELETE /v1/hugimethara/identity/providers/{provider_id})
+	DeleteIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID)
+	// GetIdentityProvider One identity provider
+	// (GET /v1/hugimethara/identity/providers/{provider_id})
+	GetIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID)
+	// UpdateIdentityProvider Update an identity provider
+	// (PATCH /v1/hugimethara/identity/providers/{provider_id})
+	UpdateIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID)
+	// ListGroupMappings External-group to internal-group mappings
+	// (GET /v1/hugimethara/identity/providers/{provider_id}/group-mappings)
+	ListGroupMappings(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID)
+	// CreateGroupMapping Map an IdP group to an internal group
+	// (POST /v1/hugimethara/identity/providers/{provider_id}/group-mappings)
+	CreateGroupMapping(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID)
+	// DeleteGroupMapping Remove a group mapping
+	// (DELETE /v1/hugimethara/identity/providers/{provider_id}/group-mappings/{mapping_id})
+	DeleteGroupMapping(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID, mappingId openapi_types.UUID)
+	// TestIdentityProvider Check discovery and signing-key reachability
+	// (POST /v1/hugimethara/identity/providers/{provider_id}/test)
+	TestIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID)
+	// GetInvitationPreview What an invitation link is for (public)
+	// (GET /v1/hugimethara/invitation-tokens/{token})
+	GetInvitationPreview(w http.ResponseWriter, r *http.Request, token string)
+	// AcceptInvitation Accept an invitation and sign in to the organization (public, rate-limited)
+	// (POST /v1/hugimethara/invitation-tokens/{token}/accept)
+	AcceptInvitation(w http.ResponseWriter, r *http.Request, token string)
+	// ListInvitations Invitations, newest first
+	// (GET /v1/hugimethara/invitations)
+	ListInvitations(w http.ResponseWriter, r *http.Request, params ListInvitationsParams)
+	// CreateInvitation Invite someone by email
+	// (POST /v1/hugimethara/invitations)
+	CreateInvitation(w http.ResponseWriter, r *http.Request)
+	// RevokeInvitation Revoke an open invitation
+	// (DELETE /v1/hugimethara/invitations/{invitation_id})
+	RevokeInvitation(w http.ResponseWriter, r *http.Request, invitationId openapi_types.UUID)
 	// GetMe The signed-in user, their organization and session
 	// (GET /v1/hugimethara/me)
 	GetMe(w http.ResponseWriter, r *http.Request)
@@ -933,7 +1592,7 @@ type ServerInterface interface {
 	// ListRoleBindings Role assignments
 	// (GET /v1/hugimethara/role-bindings)
 	ListRoleBindings(w http.ResponseWriter, r *http.Request, params ListRoleBindingsParams)
-	// CreateRoleBinding Assign a role to a member at a scope
+	// CreateRoleBinding Assign a role to a member, group or service account at a scope
 	// (POST /v1/hugimethara/role-bindings)
 	CreateRoleBinding(w http.ResponseWriter, r *http.Request)
 	// DeleteRoleBinding Remove a role assignment (the last owner cannot be removed)
@@ -954,12 +1613,45 @@ type ServerInterface interface {
 	// UpdateRole Replace a role's name, description and permissions
 	// (PUT /v1/hugimethara/roles/{role_id})
 	UpdateRole(w http.ResponseWriter, r *http.Request, roleId openapi_types.UUID)
+	// ListServiceAccounts Service accounts
+	// (GET /v1/hugimethara/service-accounts)
+	ListServiceAccounts(w http.ResponseWriter, r *http.Request)
+	// CreateServiceAccount Create a service account
+	// (POST /v1/hugimethara/service-accounts)
+	CreateServiceAccount(w http.ResponseWriter, r *http.Request)
+	// DeleteServiceAccount Delete a service account, its keys and role assignments
+	// (DELETE /v1/hugimethara/service-accounts/{service_account_id})
+	DeleteServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID)
+	// GetServiceAccount One service account
+	// (GET /v1/hugimethara/service-accounts/{service_account_id})
+	GetServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID)
+	// UpdateServiceAccount Rename, describe, disable or re-enable a service account
+	// (PATCH /v1/hugimethara/service-accounts/{service_account_id})
+	UpdateServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID)
+	// ListApiKeys API keys of a service account (never the secret)
+	// (GET /v1/hugimethara/service-accounts/{service_account_id}/keys)
+	ListApiKeys(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID)
+	// CreateApiKey Create an API key (the secret is returned once)
+	// (POST /v1/hugimethara/service-accounts/{service_account_id}/keys)
+	CreateApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID)
+	// RevokeApiKey Revoke an API key
+	// (DELETE /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id})
+	RevokeApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID, keyId openapi_types.UUID)
 	// GetSystemInfo Build and deployment information
 	// (GET /v1/hugimethara/system/info)
 	GetSystemInfo(w http.ResponseWriter, r *http.Request)
 	// ListUsers Members of the organization
 	// (GET /v1/hugimethara/users)
 	ListUsers(w http.ResponseWriter, r *http.Request)
+	// RemoveUser Remove a member from the organization
+	// (DELETE /v1/hugimethara/users/{user_id})
+	RemoveUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID)
+	// GetUser One member, with their groups
+	// (GET /v1/hugimethara/users/{user_id})
+	GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID)
+	// UpdateUser Suspend or reactivate a member
+	// (PATCH /v1/hugimethara/users/{user_id})
+	UpdateUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID)
 	// ListWorkspaces Workspaces visible to the caller
 	// (GET /v1/hugimethara/workspaces)
 	ListWorkspaces(w http.ResponseWriter, r *http.Request, params ListWorkspacesParams)
@@ -1020,6 +1712,24 @@ func (_ Unimplemented) Login(w http.ResponseWriter, r *http.Request) {
 // Logout Sign out (revoke the current session)
 // (POST /v1/hugimethara/auth/logout)
 func (_ Unimplemented) Logout(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CompleteOidcLogin Finish an OIDC sign-in (public)
+// (GET /v1/hugimethara/auth/oidc/callback)
+func (_ Unimplemented) CompleteOidcLogin(w http.ResponseWriter, r *http.Request, params CompleteOidcLoginParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListOidcProviders Enabled SSO providers of an organization (public)
+// (GET /v1/hugimethara/auth/oidc/providers)
+func (_ Unimplemented) ListOidcProviders(w http.ResponseWriter, r *http.Request, params ListOidcProvidersParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// StartOidcLogin Begin an OIDC sign-in (public)
+// (GET /v1/hugimethara/auth/oidc/{idp_id}/start)
+func (_ Unimplemented) StartOidcLogin(w http.ResponseWriter, r *http.Request, idpId openapi_types.UUID, params StartOidcLoginParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1089,6 +1799,138 @@ func (_ Unimplemented) UpdateEnvironment(w http.ResponseWriter, r *http.Request,
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// ListGroups Groups
+// (GET /v1/hugimethara/groups)
+func (_ Unimplemented) ListGroups(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateGroup Create a group
+// (POST /v1/hugimethara/groups)
+func (_ Unimplemented) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteGroup Delete a group and its role assignments
+// (DELETE /v1/hugimethara/groups/{group_id})
+func (_ Unimplemented) DeleteGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetGroup One group
+// (GET /v1/hugimethara/groups/{group_id})
+func (_ Unimplemented) GetGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateGroup Rename or describe a group
+// (PATCH /v1/hugimethara/groups/{group_id})
+func (_ Unimplemented) UpdateGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListGroupMembers Members of a group
+// (GET /v1/hugimethara/groups/{group_id}/members)
+func (_ Unimplemented) ListGroupMembers(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AddGroupMember Add a member to a group (idempotent)
+// (POST /v1/hugimethara/groups/{group_id}/members)
+func (_ Unimplemented) AddGroupMember(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RemoveGroupMember Remove a member from a group
+// (DELETE /v1/hugimethara/groups/{group_id}/members/{user_id})
+func (_ Unimplemented) RemoveGroupMember(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID, userId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListIdentityProviders OIDC identity providers
+// (GET /v1/hugimethara/identity/providers)
+func (_ Unimplemented) ListIdentityProviders(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateIdentityProvider Configure an OIDC identity provider
+// (POST /v1/hugimethara/identity/providers)
+func (_ Unimplemented) CreateIdentityProvider(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteIdentityProvider Delete an identity provider, its links and group mappings
+// (DELETE /v1/hugimethara/identity/providers/{provider_id})
+func (_ Unimplemented) DeleteIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetIdentityProvider One identity provider
+// (GET /v1/hugimethara/identity/providers/{provider_id})
+func (_ Unimplemented) GetIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateIdentityProvider Update an identity provider
+// (PATCH /v1/hugimethara/identity/providers/{provider_id})
+func (_ Unimplemented) UpdateIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListGroupMappings External-group to internal-group mappings
+// (GET /v1/hugimethara/identity/providers/{provider_id}/group-mappings)
+func (_ Unimplemented) ListGroupMappings(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateGroupMapping Map an IdP group to an internal group
+// (POST /v1/hugimethara/identity/providers/{provider_id}/group-mappings)
+func (_ Unimplemented) CreateGroupMapping(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteGroupMapping Remove a group mapping
+// (DELETE /v1/hugimethara/identity/providers/{provider_id}/group-mappings/{mapping_id})
+func (_ Unimplemented) DeleteGroupMapping(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID, mappingId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// TestIdentityProvider Check discovery and signing-key reachability
+// (POST /v1/hugimethara/identity/providers/{provider_id}/test)
+func (_ Unimplemented) TestIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetInvitationPreview What an invitation link is for (public)
+// (GET /v1/hugimethara/invitation-tokens/{token})
+func (_ Unimplemented) GetInvitationPreview(w http.ResponseWriter, r *http.Request, token string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// AcceptInvitation Accept an invitation and sign in to the organization (public, rate-limited)
+// (POST /v1/hugimethara/invitation-tokens/{token}/accept)
+func (_ Unimplemented) AcceptInvitation(w http.ResponseWriter, r *http.Request, token string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListInvitations Invitations, newest first
+// (GET /v1/hugimethara/invitations)
+func (_ Unimplemented) ListInvitations(w http.ResponseWriter, r *http.Request, params ListInvitationsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateInvitation Invite someone by email
+// (POST /v1/hugimethara/invitations)
+func (_ Unimplemented) CreateInvitation(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RevokeInvitation Revoke an open invitation
+// (DELETE /v1/hugimethara/invitations/{invitation_id})
+func (_ Unimplemented) RevokeInvitation(w http.ResponseWriter, r *http.Request, invitationId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // GetMe The signed-in user, their organization and session
 // (GET /v1/hugimethara/me)
 func (_ Unimplemented) GetMe(w http.ResponseWriter, r *http.Request) {
@@ -1149,7 +1991,7 @@ func (_ Unimplemented) ListRoleBindings(w http.ResponseWriter, r *http.Request, 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// CreateRoleBinding Assign a role to a member at a scope
+// CreateRoleBinding Assign a role to a member, group or service account at a scope
 // (POST /v1/hugimethara/role-bindings)
 func (_ Unimplemented) CreateRoleBinding(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -1191,6 +2033,54 @@ func (_ Unimplemented) UpdateRole(w http.ResponseWriter, r *http.Request, roleId
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// ListServiceAccounts Service accounts
+// (GET /v1/hugimethara/service-accounts)
+func (_ Unimplemented) ListServiceAccounts(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateServiceAccount Create a service account
+// (POST /v1/hugimethara/service-accounts)
+func (_ Unimplemented) CreateServiceAccount(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteServiceAccount Delete a service account, its keys and role assignments
+// (DELETE /v1/hugimethara/service-accounts/{service_account_id})
+func (_ Unimplemented) DeleteServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetServiceAccount One service account
+// (GET /v1/hugimethara/service-accounts/{service_account_id})
+func (_ Unimplemented) GetServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateServiceAccount Rename, describe, disable or re-enable a service account
+// (PATCH /v1/hugimethara/service-accounts/{service_account_id})
+func (_ Unimplemented) UpdateServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListApiKeys API keys of a service account (never the secret)
+// (GET /v1/hugimethara/service-accounts/{service_account_id}/keys)
+func (_ Unimplemented) ListApiKeys(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateApiKey Create an API key (the secret is returned once)
+// (POST /v1/hugimethara/service-accounts/{service_account_id}/keys)
+func (_ Unimplemented) CreateApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RevokeApiKey Revoke an API key
+// (DELETE /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id})
+func (_ Unimplemented) RevokeApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID, keyId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // GetSystemInfo Build and deployment information
 // (GET /v1/hugimethara/system/info)
 func (_ Unimplemented) GetSystemInfo(w http.ResponseWriter, r *http.Request) {
@@ -1200,6 +2090,24 @@ func (_ Unimplemented) GetSystemInfo(w http.ResponseWriter, r *http.Request) {
 // ListUsers Members of the organization
 // (GET /v1/hugimethara/users)
 func (_ Unimplemented) ListUsers(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// RemoveUser Remove a member from the organization
+// (DELETE /v1/hugimethara/users/{user_id})
+func (_ Unimplemented) RemoveUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetUser One member, with their groups
+// (GET /v1/hugimethara/users/{user_id})
+func (_ Unimplemented) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateUser Suspend or reactivate a member
+// (PATCH /v1/hugimethara/users/{user_id})
+func (_ Unimplemented) UpdateUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1424,6 +2332,153 @@ func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Logout(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CompleteOidcLogin operation middleware
+func (siw *ServerInterfaceWrapper) CompleteOidcLogin(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CompleteOidcLoginParams
+
+	// ------------- Optional query parameter "code" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "code", r.URL.Query(), &params.Code, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "code"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "state" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "state", r.URL.Query(), &params.State, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "state"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "error" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "error", r.URL.Query(), &params.Error, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "error"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "error", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "error_description" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "error_description", r.URL.Query(), &params.ErrorDescription, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "error_description"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "error_description", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CompleteOidcLogin(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListOidcProviders operation middleware
+func (siw *ServerInterfaceWrapper) ListOidcProviders(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListOidcProvidersParams
+
+	// ------------- Required query parameter "organization" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "organization", r.URL.Query(), &params.Organization, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "organization"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "organization", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListOidcProviders(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StartOidcLogin operation middleware
+func (siw *ServerInterfaceWrapper) StartOidcLogin(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "idp_id" -------------
+	var idpId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "idp_id", chi.URLParam(r, "idp_id"), &idpId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "idp_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params StartOidcLoginParams
+
+	// ------------- Optional query parameter "redirect" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "redirect", r.URL.Query(), &params.Redirect, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "redirect"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartOidcLogin(w, r, idpId, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1680,6 +2735,543 @@ func (siw *ServerInterfaceWrapper) UpdateEnvironment(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
+// ListGroups operation middleware
+func (siw *ServerInterfaceWrapper) ListGroups(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroups(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGroup operation middleware
+func (siw *ServerInterfaceWrapper) CreateGroup(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGroup(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteGroup operation middleware
+func (siw *ServerInterfaceWrapper) DeleteGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "group_id" -------------
+	var groupId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "group_id", chi.URLParam(r, "group_id"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteGroup(w, r, groupId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetGroup operation middleware
+func (siw *ServerInterfaceWrapper) GetGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "group_id" -------------
+	var groupId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "group_id", chi.URLParam(r, "group_id"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetGroup(w, r, groupId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateGroup operation middleware
+func (siw *ServerInterfaceWrapper) UpdateGroup(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "group_id" -------------
+	var groupId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "group_id", chi.URLParam(r, "group_id"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateGroup(w, r, groupId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGroupMembers operation middleware
+func (siw *ServerInterfaceWrapper) ListGroupMembers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "group_id" -------------
+	var groupId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "group_id", chi.URLParam(r, "group_id"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroupMembers(w, r, groupId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AddGroupMember operation middleware
+func (siw *ServerInterfaceWrapper) AddGroupMember(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "group_id" -------------
+	var groupId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "group_id", chi.URLParam(r, "group_id"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AddGroupMember(w, r, groupId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveGroupMember operation middleware
+func (siw *ServerInterfaceWrapper) RemoveGroupMember(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "group_id" -------------
+	var groupId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "group_id", chi.URLParam(r, "group_id"), &groupId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "user_id" -------------
+	var userId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "user_id", chi.URLParam(r, "user_id"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "user_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveGroupMember(w, r, groupId, userId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListIdentityProviders operation middleware
+func (siw *ServerInterfaceWrapper) ListIdentityProviders(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListIdentityProviders(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateIdentityProvider operation middleware
+func (siw *ServerInterfaceWrapper) CreateIdentityProvider(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateIdentityProvider(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteIdentityProvider operation middleware
+func (siw *ServerInterfaceWrapper) DeleteIdentityProvider(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "provider_id" -------------
+	var providerId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider_id", chi.URLParam(r, "provider_id"), &providerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteIdentityProvider(w, r, providerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetIdentityProvider operation middleware
+func (siw *ServerInterfaceWrapper) GetIdentityProvider(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "provider_id" -------------
+	var providerId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider_id", chi.URLParam(r, "provider_id"), &providerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetIdentityProvider(w, r, providerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateIdentityProvider operation middleware
+func (siw *ServerInterfaceWrapper) UpdateIdentityProvider(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "provider_id" -------------
+	var providerId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider_id", chi.URLParam(r, "provider_id"), &providerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateIdentityProvider(w, r, providerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListGroupMappings operation middleware
+func (siw *ServerInterfaceWrapper) ListGroupMappings(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "provider_id" -------------
+	var providerId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider_id", chi.URLParam(r, "provider_id"), &providerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListGroupMappings(w, r, providerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateGroupMapping operation middleware
+func (siw *ServerInterfaceWrapper) CreateGroupMapping(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "provider_id" -------------
+	var providerId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider_id", chi.URLParam(r, "provider_id"), &providerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateGroupMapping(w, r, providerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteGroupMapping operation middleware
+func (siw *ServerInterfaceWrapper) DeleteGroupMapping(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "provider_id" -------------
+	var providerId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider_id", chi.URLParam(r, "provider_id"), &providerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "mapping_id" -------------
+	var mappingId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mapping_id", chi.URLParam(r, "mapping_id"), &mappingId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mapping_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteGroupMapping(w, r, providerId, mappingId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TestIdentityProvider operation middleware
+func (siw *ServerInterfaceWrapper) TestIdentityProvider(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "provider_id" -------------
+	var providerId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "provider_id", chi.URLParam(r, "provider_id"), &providerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TestIdentityProvider(w, r, providerId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetInvitationPreview operation middleware
+func (siw *ServerInterfaceWrapper) GetInvitationPreview(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "token" -------------
+	var token string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "token", chi.URLParam(r, "token"), &token, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "token", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetInvitationPreview(w, r, token)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AcceptInvitation operation middleware
+func (siw *ServerInterfaceWrapper) AcceptInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "token" -------------
+	var token string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "token", chi.URLParam(r, "token"), &token, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "token", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AcceptInvitation(w, r, token)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListInvitations operation middleware
+func (siw *ServerInterfaceWrapper) ListInvitations(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListInvitationsParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListInvitations(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateInvitation operation middleware
+func (siw *ServerInterfaceWrapper) CreateInvitation(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateInvitation(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeInvitation operation middleware
+func (siw *ServerInterfaceWrapper) RevokeInvitation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "invitation_id" -------------
+	var invitationId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "invitation_id", chi.URLParam(r, "invitation_id"), &invitationId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "invitation_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeInvitation(w, r, invitationId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetMe operation middleware
 func (siw *ServerInterfaceWrapper) GetMe(w http.ResponseWriter, r *http.Request) {
 
@@ -1836,6 +3428,45 @@ func (siw *ServerInterfaceWrapper) ListRoleBindings(w http.ResponseWriter, r *ht
 			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "user_id"})
 		} else {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "user_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "group_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "group_id", r.URL.Query(), &params.GroupId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "group_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "group_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "service_account_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "service_account_id", r.URL.Query(), &params.ServiceAccountId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "service_account_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_account_id", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "principal_type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "principal_type", r.URL.Query(), &params.PrincipalType, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "principal_type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "principal_type", Err: err})
 		}
 		return
 	}
@@ -2023,6 +3654,199 @@ func (siw *ServerInterfaceWrapper) UpdateRole(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
+// ListServiceAccounts operation middleware
+func (siw *ServerInterfaceWrapper) ListServiceAccounts(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListServiceAccounts(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateServiceAccount operation middleware
+func (siw *ServerInterfaceWrapper) CreateServiceAccount(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateServiceAccount(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteServiceAccount operation middleware
+func (siw *ServerInterfaceWrapper) DeleteServiceAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_account_id" -------------
+	var serviceAccountId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_account_id", chi.URLParam(r, "service_account_id"), &serviceAccountId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_account_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteServiceAccount(w, r, serviceAccountId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetServiceAccount operation middleware
+func (siw *ServerInterfaceWrapper) GetServiceAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_account_id" -------------
+	var serviceAccountId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_account_id", chi.URLParam(r, "service_account_id"), &serviceAccountId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_account_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetServiceAccount(w, r, serviceAccountId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateServiceAccount operation middleware
+func (siw *ServerInterfaceWrapper) UpdateServiceAccount(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_account_id" -------------
+	var serviceAccountId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_account_id", chi.URLParam(r, "service_account_id"), &serviceAccountId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_account_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateServiceAccount(w, r, serviceAccountId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListApiKeys operation middleware
+func (siw *ServerInterfaceWrapper) ListApiKeys(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_account_id" -------------
+	var serviceAccountId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_account_id", chi.URLParam(r, "service_account_id"), &serviceAccountId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_account_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListApiKeys(w, r, serviceAccountId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateApiKey operation middleware
+func (siw *ServerInterfaceWrapper) CreateApiKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_account_id" -------------
+	var serviceAccountId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_account_id", chi.URLParam(r, "service_account_id"), &serviceAccountId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_account_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateApiKey(w, r, serviceAccountId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RevokeApiKey operation middleware
+func (siw *ServerInterfaceWrapper) RevokeApiKey(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_account_id" -------------
+	var serviceAccountId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_account_id", chi.URLParam(r, "service_account_id"), &serviceAccountId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_account_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "key_id" -------------
+	var keyId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "key_id", chi.URLParam(r, "key_id"), &keyId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "key_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RevokeApiKey(w, r, serviceAccountId, keyId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetSystemInfo operation middleware
 func (siw *ServerInterfaceWrapper) GetSystemInfo(w http.ResponseWriter, r *http.Request) {
 
@@ -2042,6 +3866,84 @@ func (siw *ServerInterfaceWrapper) ListUsers(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ListUsers(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveUser operation middleware
+func (siw *ServerInterfaceWrapper) RemoveUser(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "user_id" -------------
+	var userId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "user_id", chi.URLParam(r, "user_id"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "user_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveUser(w, r, userId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetUser operation middleware
+func (siw *ServerInterfaceWrapper) GetUser(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "user_id" -------------
+	var userId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "user_id", chi.URLParam(r, "user_id"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "user_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetUser(w, r, userId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateUser operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUser(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "user_id" -------------
+	var userId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "user_id", chi.URLParam(r, "user_id"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "user_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateUser(w, r, userId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2421,6 +4323,42 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/v1/hugimethara/auth/logout", wrapper.Logout)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/auth/oidc/providers", wrapper.ListOidcProviders)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/auth/oidc/{idp_id}/start", wrapper.StartOidcLogin)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/auth/oidc/callback", wrapper.CompleteOidcLogin)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/identity/providers", wrapper.ListIdentityProviders)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/identity/providers", wrapper.CreateIdentityProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/identity/providers/{provider_id}", wrapper.DeleteIdentityProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/identity/providers/{provider_id}", wrapper.GetIdentityProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/v1/hugimethara/identity/providers/{provider_id}", wrapper.UpdateIdentityProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/identity/providers/{provider_id}/test", wrapper.TestIdentityProvider)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/identity/providers/{provider_id}/group-mappings", wrapper.ListGroupMappings)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/identity/providers/{provider_id}/group-mappings", wrapper.CreateGroupMapping)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/identity/providers/{provider_id}/group-mappings/{mapping_id}", wrapper.DeleteGroupMapping)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hugimethara/me", wrapper.GetMe)
 	})
 	r.Group(func(r chi.Router) {
@@ -2491,6 +4429,78 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hugimethara/users", wrapper.ListUsers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/users/{user_id}", wrapper.RemoveUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/users/{user_id}", wrapper.GetUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/v1/hugimethara/users/{user_id}", wrapper.UpdateUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/invitations", wrapper.ListInvitations)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/invitations", wrapper.CreateInvitation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/invitations/{invitation_id}", wrapper.RevokeInvitation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/invitation-tokens/{token}", wrapper.GetInvitationPreview)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/invitation-tokens/{token}/accept", wrapper.AcceptInvitation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/groups", wrapper.ListGroups)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/groups", wrapper.CreateGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/groups/{group_id}", wrapper.DeleteGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/groups/{group_id}", wrapper.GetGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/v1/hugimethara/groups/{group_id}", wrapper.UpdateGroup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/groups/{group_id}/members", wrapper.ListGroupMembers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/groups/{group_id}/members", wrapper.AddGroupMember)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/groups/{group_id}/members/{user_id}", wrapper.RemoveGroupMember)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/service-accounts", wrapper.ListServiceAccounts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/service-accounts", wrapper.CreateServiceAccount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/service-accounts/{service_account_id}", wrapper.DeleteServiceAccount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/service-accounts/{service_account_id}", wrapper.GetServiceAccount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/v1/hugimethara/service-accounts/{service_account_id}", wrapper.UpdateServiceAccount)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/service-accounts/{service_account_id}/keys", wrapper.ListApiKeys)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/service-accounts/{service_account_id}/keys", wrapper.CreateApiKey)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id}", wrapper.RevokeApiKey)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hugimethara/entitlements", wrapper.GetEntitlements)
@@ -2785,6 +4795,178 @@ type LogoutdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response LogoutdefaultApplicationProblemPlusJSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CompleteOidcLoginRequestObject struct {
+	Params CompleteOidcLoginParams
+}
+
+type CompleteOidcLoginResponseObject interface {
+	VisitCompleteOidcLoginResponse(w http.ResponseWriter) error
+}
+
+type CompleteOidcLogin302ResponseHeaders struct {
+	Location *string
+}
+
+type CompleteOidcLogin302Response struct {
+	Headers CompleteOidcLogin302ResponseHeaders
+}
+
+func (response CompleteOidcLogin302Response) VisitCompleteOidcLoginResponse(w http.ResponseWriter) error {
+	if response.Headers.Location != nil {
+		w.Header().Set("Location", fmt.Sprint(*response.Headers.Location))
+	}
+	w.WriteHeader(302)
+	return nil
+}
+
+type CompleteOidcLogin429ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CompleteOidcLogin429ApplicationProblemPlusJSONResponse) VisitCompleteOidcLoginResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(429)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CompleteOidcLogindefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CompleteOidcLogindefaultApplicationProblemPlusJSONResponse) VisitCompleteOidcLoginResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListOidcProvidersRequestObject struct {
+	Params ListOidcProvidersParams
+}
+
+type ListOidcProvidersResponseObject interface {
+	VisitListOidcProvidersResponse(w http.ResponseWriter) error
+}
+
+type ListOidcProviders200JSONResponse struct {
+	Data []OidcProviderOption `json:"data"`
+}
+
+func (response ListOidcProviders200JSONResponse) VisitListOidcProvidersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListOidcProviders429ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListOidcProviders429ApplicationProblemPlusJSONResponse) VisitListOidcProvidersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(429)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListOidcProvidersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListOidcProvidersdefaultApplicationProblemPlusJSONResponse) VisitListOidcProvidersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartOidcLoginRequestObject struct {
+	IdpId  openapi_types.UUID `json:"idp_id"`
+	Params StartOidcLoginParams
+}
+
+type StartOidcLoginResponseObject interface {
+	VisitStartOidcLoginResponse(w http.ResponseWriter) error
+}
+
+type StartOidcLogin302ResponseHeaders struct {
+	Location *string
+}
+
+type StartOidcLogin302Response struct {
+	Headers StartOidcLogin302ResponseHeaders
+}
+
+func (response StartOidcLogin302Response) VisitStartOidcLoginResponse(w http.ResponseWriter) error {
+	if response.Headers.Location != nil {
+		w.Header().Set("Location", fmt.Sprint(*response.Headers.Location))
+	}
+	w.WriteHeader(302)
+	return nil
+}
+
+type StartOidcLogin429ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response StartOidcLogin429ApplicationProblemPlusJSONResponse) VisitStartOidcLoginResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(429)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type StartOidcLogindefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response StartOidcLogindefaultApplicationProblemPlusJSONResponse) VisitStartOidcLoginResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -3658,6 +5840,1671 @@ type UpdateEnvironmentdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response UpdateEnvironmentdefaultApplicationProblemPlusJSONResponse) VisitUpdateEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupsRequestObject struct {
+}
+
+type ListGroupsResponseObject interface {
+	VisitListGroupsResponse(w http.ResponseWriter) error
+}
+
+type ListGroups200JSONResponse struct {
+	Data []Group `json:"data"`
+}
+
+func (response ListGroups200JSONResponse) VisitListGroupsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroups403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroups403ApplicationProblemPlusJSONResponse) VisitListGroupsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListGroupsdefaultApplicationProblemPlusJSONResponse) VisitListGroupsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupRequestObject struct {
+	Body *CreateGroupJSONRequestBody
+}
+
+type CreateGroupResponseObject interface {
+	VisitCreateGroupResponse(w http.ResponseWriter) error
+}
+
+type CreateGroup201JSONResponse Group
+
+func (response CreateGroup201JSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroup403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroup403ApplicationProblemPlusJSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroup409ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateGroup409ApplicationProblemPlusJSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroup422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateGroup422ApplicationProblemPlusJSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateGroupdefaultApplicationProblemPlusJSONResponse) VisitCreateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteGroupRequestObject struct {
+	GroupId openapi_types.UUID `json:"group_id"`
+}
+
+type DeleteGroupResponseObject interface {
+	VisitDeleteGroupResponse(w http.ResponseWriter) error
+}
+
+type DeleteGroup204Response struct {
+}
+
+func (response DeleteGroup204Response) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteGroup403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroup403ApplicationProblemPlusJSONResponse) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteGroup404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteGroup404ApplicationProblemPlusJSONResponse) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteGroupdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteGroupdefaultApplicationProblemPlusJSONResponse) VisitDeleteGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetGroupRequestObject struct {
+	GroupId openapi_types.UUID `json:"group_id"`
+}
+
+type GetGroupResponseObject interface {
+	VisitGetGroupResponse(w http.ResponseWriter) error
+}
+
+type GetGroup200JSONResponse Group
+
+func (response GetGroup200JSONResponse) VisitGetGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetGroup403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetGroup403ApplicationProblemPlusJSONResponse) VisitGetGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetGroup404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetGroup404ApplicationProblemPlusJSONResponse) VisitGetGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetGroupdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetGroupdefaultApplicationProblemPlusJSONResponse) VisitGetGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroupRequestObject struct {
+	GroupId openapi_types.UUID `json:"group_id"`
+	Body    *UpdateGroupJSONRequestBody
+}
+
+type UpdateGroupResponseObject interface {
+	VisitUpdateGroupResponse(w http.ResponseWriter) error
+}
+
+type UpdateGroup200JSONResponse Group
+
+func (response UpdateGroup200JSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroup403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateGroup403ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroup404ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateGroup404ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroup409ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateGroup409ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroup422ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateGroup422ApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateGroupdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateGroupdefaultApplicationProblemPlusJSONResponse) VisitUpdateGroupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMembersRequestObject struct {
+	GroupId openapi_types.UUID `json:"group_id"`
+}
+
+type ListGroupMembersResponseObject interface {
+	VisitListGroupMembersResponse(w http.ResponseWriter) error
+}
+
+type ListGroupMembers200JSONResponse struct {
+	Data []GroupMember `json:"data"`
+}
+
+func (response ListGroupMembers200JSONResponse) VisitListGroupMembersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMembers403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupMembers403ApplicationProblemPlusJSONResponse) VisitListGroupMembersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMembers404ApplicationProblemPlusJSONResponse Problem
+
+func (response ListGroupMembers404ApplicationProblemPlusJSONResponse) VisitListGroupMembersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMembersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListGroupMembersdefaultApplicationProblemPlusJSONResponse) VisitListGroupMembersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AddGroupMemberRequestObject struct {
+	GroupId openapi_types.UUID `json:"group_id"`
+	Body    *AddGroupMemberJSONRequestBody
+}
+
+type AddGroupMemberResponseObject interface {
+	VisitAddGroupMemberResponse(w http.ResponseWriter) error
+}
+
+type AddGroupMember204Response struct {
+}
+
+func (response AddGroupMember204Response) VisitAddGroupMemberResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type AddGroupMember403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response AddGroupMember403ApplicationProblemPlusJSONResponse) VisitAddGroupMemberResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AddGroupMember404ApplicationProblemPlusJSONResponse Problem
+
+func (response AddGroupMember404ApplicationProblemPlusJSONResponse) VisitAddGroupMemberResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AddGroupMember422ApplicationProblemPlusJSONResponse Problem
+
+func (response AddGroupMember422ApplicationProblemPlusJSONResponse) VisitAddGroupMemberResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AddGroupMemberdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AddGroupMemberdefaultApplicationProblemPlusJSONResponse) VisitAddGroupMemberResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveGroupMemberRequestObject struct {
+	GroupId openapi_types.UUID `json:"group_id"`
+	UserId  openapi_types.UUID `json:"user_id"`
+}
+
+type RemoveGroupMemberResponseObject interface {
+	VisitRemoveGroupMemberResponse(w http.ResponseWriter) error
+}
+
+type RemoveGroupMember204Response struct {
+}
+
+func (response RemoveGroupMember204Response) VisitRemoveGroupMemberResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RemoveGroupMember403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveGroupMember403ApplicationProblemPlusJSONResponse) VisitRemoveGroupMemberResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveGroupMember404ApplicationProblemPlusJSONResponse Problem
+
+func (response RemoveGroupMember404ApplicationProblemPlusJSONResponse) VisitRemoveGroupMemberResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveGroupMemberdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RemoveGroupMemberdefaultApplicationProblemPlusJSONResponse) VisitRemoveGroupMemberResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListIdentityProvidersRequestObject struct {
+}
+
+type ListIdentityProvidersResponseObject interface {
+	VisitListIdentityProvidersResponse(w http.ResponseWriter) error
+}
+
+type ListIdentityProviders200JSONResponse struct {
+	Data []IdentityProvider `json:"data"`
+}
+
+func (response ListIdentityProviders200JSONResponse) VisitListIdentityProvidersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListIdentityProviders403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListIdentityProviders403ApplicationProblemPlusJSONResponse) VisitListIdentityProvidersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListIdentityProvidersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListIdentityProvidersdefaultApplicationProblemPlusJSONResponse) VisitListIdentityProvidersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateIdentityProviderRequestObject struct {
+	Body *CreateIdentityProviderJSONRequestBody
+}
+
+type CreateIdentityProviderResponseObject interface {
+	VisitCreateIdentityProviderResponse(w http.ResponseWriter) error
+}
+
+type CreateIdentityProvider201JSONResponse IdentityProvider
+
+func (response CreateIdentityProvider201JSONResponse) VisitCreateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateIdentityProvider403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateIdentityProvider403ApplicationProblemPlusJSONResponse) VisitCreateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateIdentityProvider409ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateIdentityProvider409ApplicationProblemPlusJSONResponse) VisitCreateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateIdentityProvider422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateIdentityProvider422ApplicationProblemPlusJSONResponse) VisitCreateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateIdentityProviderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateIdentityProviderdefaultApplicationProblemPlusJSONResponse) VisitCreateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteIdentityProviderRequestObject struct {
+	ProviderId openapi_types.UUID `json:"provider_id"`
+}
+
+type DeleteIdentityProviderResponseObject interface {
+	VisitDeleteIdentityProviderResponse(w http.ResponseWriter) error
+}
+
+type DeleteIdentityProvider204Response struct {
+}
+
+func (response DeleteIdentityProvider204Response) VisitDeleteIdentityProviderResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteIdentityProvider403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteIdentityProvider403ApplicationProblemPlusJSONResponse) VisitDeleteIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteIdentityProvider404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteIdentityProvider404ApplicationProblemPlusJSONResponse) VisitDeleteIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteIdentityProviderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteIdentityProviderdefaultApplicationProblemPlusJSONResponse) VisitDeleteIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetIdentityProviderRequestObject struct {
+	ProviderId openapi_types.UUID `json:"provider_id"`
+}
+
+type GetIdentityProviderResponseObject interface {
+	VisitGetIdentityProviderResponse(w http.ResponseWriter) error
+}
+
+type GetIdentityProvider200JSONResponse IdentityProvider
+
+func (response GetIdentityProvider200JSONResponse) VisitGetIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetIdentityProvider403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetIdentityProvider403ApplicationProblemPlusJSONResponse) VisitGetIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetIdentityProvider404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetIdentityProvider404ApplicationProblemPlusJSONResponse) VisitGetIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetIdentityProviderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetIdentityProviderdefaultApplicationProblemPlusJSONResponse) VisitGetIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateIdentityProviderRequestObject struct {
+	ProviderId openapi_types.UUID `json:"provider_id"`
+	Body       *UpdateIdentityProviderJSONRequestBody
+}
+
+type UpdateIdentityProviderResponseObject interface {
+	VisitUpdateIdentityProviderResponse(w http.ResponseWriter) error
+}
+
+type UpdateIdentityProvider200JSONResponse IdentityProvider
+
+func (response UpdateIdentityProvider200JSONResponse) VisitUpdateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateIdentityProvider403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateIdentityProvider403ApplicationProblemPlusJSONResponse) VisitUpdateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateIdentityProvider404ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateIdentityProvider404ApplicationProblemPlusJSONResponse) VisitUpdateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateIdentityProvider409ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateIdentityProvider409ApplicationProblemPlusJSONResponse) VisitUpdateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateIdentityProvider422ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateIdentityProvider422ApplicationProblemPlusJSONResponse) VisitUpdateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateIdentityProviderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateIdentityProviderdefaultApplicationProblemPlusJSONResponse) VisitUpdateIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMappingsRequestObject struct {
+	ProviderId openapi_types.UUID `json:"provider_id"`
+}
+
+type ListGroupMappingsResponseObject interface {
+	VisitListGroupMappingsResponse(w http.ResponseWriter) error
+}
+
+type ListGroupMappings200JSONResponse struct {
+	Data []GroupMapping `json:"data"`
+}
+
+func (response ListGroupMappings200JSONResponse) VisitListGroupMappingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMappings403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListGroupMappings403ApplicationProblemPlusJSONResponse) VisitListGroupMappingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMappings404ApplicationProblemPlusJSONResponse Problem
+
+func (response ListGroupMappings404ApplicationProblemPlusJSONResponse) VisitListGroupMappingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListGroupMappingsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListGroupMappingsdefaultApplicationProblemPlusJSONResponse) VisitListGroupMappingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupMappingRequestObject struct {
+	ProviderId openapi_types.UUID `json:"provider_id"`
+	Body       *CreateGroupMappingJSONRequestBody
+}
+
+type CreateGroupMappingResponseObject interface {
+	VisitCreateGroupMappingResponse(w http.ResponseWriter) error
+}
+
+type CreateGroupMapping201JSONResponse GroupMapping
+
+func (response CreateGroupMapping201JSONResponse) VisitCreateGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupMapping403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateGroupMapping403ApplicationProblemPlusJSONResponse) VisitCreateGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupMapping404ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateGroupMapping404ApplicationProblemPlusJSONResponse) VisitCreateGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupMapping409ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateGroupMapping409ApplicationProblemPlusJSONResponse) VisitCreateGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupMapping422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateGroupMapping422ApplicationProblemPlusJSONResponse) VisitCreateGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateGroupMappingdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateGroupMappingdefaultApplicationProblemPlusJSONResponse) VisitCreateGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteGroupMappingRequestObject struct {
+	ProviderId openapi_types.UUID `json:"provider_id"`
+	MappingId  openapi_types.UUID `json:"mapping_id"`
+}
+
+type DeleteGroupMappingResponseObject interface {
+	VisitDeleteGroupMappingResponse(w http.ResponseWriter) error
+}
+
+type DeleteGroupMapping204Response struct {
+}
+
+func (response DeleteGroupMapping204Response) VisitDeleteGroupMappingResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteGroupMapping403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteGroupMapping403ApplicationProblemPlusJSONResponse) VisitDeleteGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteGroupMapping404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteGroupMapping404ApplicationProblemPlusJSONResponse) VisitDeleteGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteGroupMappingdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteGroupMappingdefaultApplicationProblemPlusJSONResponse) VisitDeleteGroupMappingResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestIdentityProviderRequestObject struct {
+	ProviderId openapi_types.UUID `json:"provider_id"`
+}
+
+type TestIdentityProviderResponseObject interface {
+	VisitTestIdentityProviderResponse(w http.ResponseWriter) error
+}
+
+type TestIdentityProvider200JSONResponse IdentityProviderTest
+
+func (response TestIdentityProvider200JSONResponse) VisitTestIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestIdentityProvider403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response TestIdentityProvider403ApplicationProblemPlusJSONResponse) VisitTestIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestIdentityProvider404ApplicationProblemPlusJSONResponse Problem
+
+func (response TestIdentityProvider404ApplicationProblemPlusJSONResponse) VisitTestIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestIdentityProviderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response TestIdentityProviderdefaultApplicationProblemPlusJSONResponse) VisitTestIdentityProviderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetInvitationPreviewRequestObject struct {
+	Token string `json:"token"`
+}
+
+type GetInvitationPreviewResponseObject interface {
+	VisitGetInvitationPreviewResponse(w http.ResponseWriter) error
+}
+
+type GetInvitationPreview200JSONResponse InvitationPreview
+
+func (response GetInvitationPreview200JSONResponse) VisitGetInvitationPreviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetInvitationPreview404ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetInvitationPreview404ApplicationProblemPlusJSONResponse) VisitGetInvitationPreviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetInvitationPreview410ApplicationProblemPlusJSONResponse Problem
+
+func (response GetInvitationPreview410ApplicationProblemPlusJSONResponse) VisitGetInvitationPreviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(410)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetInvitationPreviewdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetInvitationPreviewdefaultApplicationProblemPlusJSONResponse) VisitGetInvitationPreviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitationRequestObject struct {
+	Token string `json:"token"`
+	Body  *AcceptInvitationJSONRequestBody
+}
+
+type AcceptInvitationResponseObject interface {
+	VisitAcceptInvitationResponse(w http.ResponseWriter) error
+}
+
+type AcceptInvitation200JSONResponse AuthResponse
+
+func (response AcceptInvitation200JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response AcceptInvitation401ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation404ApplicationProblemPlusJSONResponse Problem
+
+func (response AcceptInvitation404ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation409ApplicationProblemPlusJSONResponse Problem
+
+func (response AcceptInvitation409ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation410ApplicationProblemPlusJSONResponse Problem
+
+func (response AcceptInvitation410ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(410)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation422ApplicationProblemPlusJSONResponse Problem
+
+func (response AcceptInvitation422ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitation429ApplicationProblemPlusJSONResponse Problem
+
+func (response AcceptInvitation429ApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(429)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitationdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AcceptInvitationdefaultApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitationsRequestObject struct {
+	Params ListInvitationsParams
+}
+
+type ListInvitationsResponseObject interface {
+	VisitListInvitationsResponse(w http.ResponseWriter) error
+}
+
+type ListInvitations200JSONResponse struct {
+	Data []Invitation `json:"data"`
+}
+
+func (response ListInvitations200JSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitations403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListInvitations403ApplicationProblemPlusJSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListInvitationsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListInvitationsdefaultApplicationProblemPlusJSONResponse) VisitListInvitationsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitationRequestObject struct {
+	Body *CreateInvitationJSONRequestBody
+}
+
+type CreateInvitationResponseObject interface {
+	VisitCreateInvitationResponse(w http.ResponseWriter) error
+}
+
+type CreateInvitation201JSONResponse InvitationCreated
+
+func (response CreateInvitation201JSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateInvitation403ApplicationProblemPlusJSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation409ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateInvitation409ApplicationProblemPlusJSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitation422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateInvitation422ApplicationProblemPlusJSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateInvitationdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateInvitationdefaultApplicationProblemPlusJSONResponse) VisitCreateInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitationRequestObject struct {
+	InvitationId openapi_types.UUID `json:"invitation_id"`
+}
+
+type RevokeInvitationResponseObject interface {
+	VisitRevokeInvitationResponse(w http.ResponseWriter) error
+}
+
+type RevokeInvitation204Response struct {
+}
+
+func (response RevokeInvitation204Response) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RevokeInvitation403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response RevokeInvitation403ApplicationProblemPlusJSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitation404ApplicationProblemPlusJSONResponse Problem
+
+func (response RevokeInvitation404ApplicationProblemPlusJSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitation409ApplicationProblemPlusJSONResponse Problem
+
+func (response RevokeInvitation409ApplicationProblemPlusJSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeInvitationdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RevokeInvitationdefaultApplicationProblemPlusJSONResponse) VisitRevokeInvitationResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -4797,6 +8644,622 @@ func (response UpdateRoledefaultApplicationProblemPlusJSONResponse) VisitUpdateR
 	return err
 }
 
+type ListServiceAccountsRequestObject struct {
+}
+
+type ListServiceAccountsResponseObject interface {
+	VisitListServiceAccountsResponse(w http.ResponseWriter) error
+}
+
+type ListServiceAccounts200JSONResponse struct {
+	Data []ServiceAccount `json:"data"`
+}
+
+func (response ListServiceAccounts200JSONResponse) VisitListServiceAccountsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceAccounts403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListServiceAccounts403ApplicationProblemPlusJSONResponse) VisitListServiceAccountsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceAccountsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListServiceAccountsdefaultApplicationProblemPlusJSONResponse) VisitListServiceAccountsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateServiceAccountRequestObject struct {
+	Body *CreateServiceAccountJSONRequestBody
+}
+
+type CreateServiceAccountResponseObject interface {
+	VisitCreateServiceAccountResponse(w http.ResponseWriter) error
+}
+
+type CreateServiceAccount201JSONResponse ServiceAccount
+
+func (response CreateServiceAccount201JSONResponse) VisitCreateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateServiceAccount403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateServiceAccount403ApplicationProblemPlusJSONResponse) VisitCreateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateServiceAccount409ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateServiceAccount409ApplicationProblemPlusJSONResponse) VisitCreateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateServiceAccount422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateServiceAccount422ApplicationProblemPlusJSONResponse) VisitCreateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateServiceAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateServiceAccountdefaultApplicationProblemPlusJSONResponse) VisitCreateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceAccountRequestObject struct {
+	ServiceAccountId openapi_types.UUID `json:"service_account_id"`
+}
+
+type DeleteServiceAccountResponseObject interface {
+	VisitDeleteServiceAccountResponse(w http.ResponseWriter) error
+}
+
+type DeleteServiceAccount204Response struct {
+}
+
+func (response DeleteServiceAccount204Response) VisitDeleteServiceAccountResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteServiceAccount403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteServiceAccount403ApplicationProblemPlusJSONResponse) VisitDeleteServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceAccount404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteServiceAccount404ApplicationProblemPlusJSONResponse) VisitDeleteServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteServiceAccountdefaultApplicationProblemPlusJSONResponse) VisitDeleteServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServiceAccountRequestObject struct {
+	ServiceAccountId openapi_types.UUID `json:"service_account_id"`
+}
+
+type GetServiceAccountResponseObject interface {
+	VisitGetServiceAccountResponse(w http.ResponseWriter) error
+}
+
+type GetServiceAccount200JSONResponse ServiceAccount
+
+func (response GetServiceAccount200JSONResponse) VisitGetServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServiceAccount403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetServiceAccount403ApplicationProblemPlusJSONResponse) VisitGetServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServiceAccount404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetServiceAccount404ApplicationProblemPlusJSONResponse) VisitGetServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServiceAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetServiceAccountdefaultApplicationProblemPlusJSONResponse) VisitGetServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceAccountRequestObject struct {
+	ServiceAccountId openapi_types.UUID `json:"service_account_id"`
+	Body             *UpdateServiceAccountJSONRequestBody
+}
+
+type UpdateServiceAccountResponseObject interface {
+	VisitUpdateServiceAccountResponse(w http.ResponseWriter) error
+}
+
+type UpdateServiceAccount200JSONResponse ServiceAccount
+
+func (response UpdateServiceAccount200JSONResponse) VisitUpdateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceAccount403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateServiceAccount403ApplicationProblemPlusJSONResponse) VisitUpdateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceAccount404ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateServiceAccount404ApplicationProblemPlusJSONResponse) VisitUpdateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceAccount409ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateServiceAccount409ApplicationProblemPlusJSONResponse) VisitUpdateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceAccount422ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateServiceAccount422ApplicationProblemPlusJSONResponse) VisitUpdateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateServiceAccountdefaultApplicationProblemPlusJSONResponse) VisitUpdateServiceAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListApiKeysRequestObject struct {
+	ServiceAccountId openapi_types.UUID `json:"service_account_id"`
+}
+
+type ListApiKeysResponseObject interface {
+	VisitListApiKeysResponse(w http.ResponseWriter) error
+}
+
+type ListApiKeys200JSONResponse struct {
+	Data []ApiKey `json:"data"`
+}
+
+func (response ListApiKeys200JSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListApiKeys403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListApiKeys403ApplicationProblemPlusJSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListApiKeys404ApplicationProblemPlusJSONResponse Problem
+
+func (response ListApiKeys404ApplicationProblemPlusJSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListApiKeysdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListApiKeysdefaultApplicationProblemPlusJSONResponse) VisitListApiKeysResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKeyRequestObject struct {
+	ServiceAccountId openapi_types.UUID `json:"service_account_id"`
+	Body             *CreateApiKeyJSONRequestBody
+}
+
+type CreateApiKeyResponseObject interface {
+	VisitCreateApiKeyResponse(w http.ResponseWriter) error
+}
+
+type CreateApiKey201JSONResponse ApiKeyCreated
+
+func (response CreateApiKey201JSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKey403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateApiKey403ApplicationProblemPlusJSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKey404ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateApiKey404ApplicationProblemPlusJSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKey409ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateApiKey409ApplicationProblemPlusJSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKey422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateApiKey422ApplicationProblemPlusJSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateApiKeydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateApiKeydefaultApplicationProblemPlusJSONResponse) VisitCreateApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeApiKeyRequestObject struct {
+	ServiceAccountId openapi_types.UUID `json:"service_account_id"`
+	KeyId            openapi_types.UUID `json:"key_id"`
+}
+
+type RevokeApiKeyResponseObject interface {
+	VisitRevokeApiKeyResponse(w http.ResponseWriter) error
+}
+
+type RevokeApiKey204Response struct {
+}
+
+func (response RevokeApiKey204Response) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RevokeApiKey403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response RevokeApiKey403ApplicationProblemPlusJSONResponse) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeApiKey404ApplicationProblemPlusJSONResponse Problem
+
+func (response RevokeApiKey404ApplicationProblemPlusJSONResponse) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeApiKey409ApplicationProblemPlusJSONResponse Problem
+
+func (response RevokeApiKey409ApplicationProblemPlusJSONResponse) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeApiKeydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RevokeApiKeydefaultApplicationProblemPlusJSONResponse) VisitRevokeApiKeyResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetSystemInfoRequestObject struct {
 }
 
@@ -4880,6 +9343,250 @@ type ListUsersdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response ListUsersdefaultApplicationProblemPlusJSONResponse) VisitListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveUserRequestObject struct {
+	UserId openapi_types.UUID `json:"user_id"`
+}
+
+type RemoveUserResponseObject interface {
+	VisitRemoveUserResponse(w http.ResponseWriter) error
+}
+
+type RemoveUser204Response struct {
+}
+
+func (response RemoveUser204Response) VisitRemoveUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type RemoveUser403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response RemoveUser403ApplicationProblemPlusJSONResponse) VisitRemoveUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveUser404ApplicationProblemPlusJSONResponse Problem
+
+func (response RemoveUser404ApplicationProblemPlusJSONResponse) VisitRemoveUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveUser409ApplicationProblemPlusJSONResponse Problem
+
+func (response RemoveUser409ApplicationProblemPlusJSONResponse) VisitRemoveUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RemoveUserdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RemoveUserdefaultApplicationProblemPlusJSONResponse) VisitRemoveUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUserRequestObject struct {
+	UserId openapi_types.UUID `json:"user_id"`
+}
+
+type GetUserResponseObject interface {
+	VisitGetUserResponse(w http.ResponseWriter) error
+}
+
+type GetUser200JSONResponse Member
+
+func (response GetUser200JSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUser403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetUser403ApplicationProblemPlusJSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUser404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetUser404ApplicationProblemPlusJSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUserdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetUserdefaultApplicationProblemPlusJSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUserRequestObject struct {
+	UserId openapi_types.UUID `json:"user_id"`
+	Body   *UpdateUserJSONRequestBody
+}
+
+type UpdateUserResponseObject interface {
+	VisitUpdateUserResponse(w http.ResponseWriter) error
+}
+
+type UpdateUser200JSONResponse Member
+
+func (response UpdateUser200JSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUser403ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateUser403ApplicationProblemPlusJSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUser404ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateUser404ApplicationProblemPlusJSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUser409ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateUser409ApplicationProblemPlusJSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUser422ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateUser422ApplicationProblemPlusJSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUserdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateUserdefaultApplicationProblemPlusJSONResponse) VisitUpdateUserResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -5628,6 +10335,15 @@ type StrictServerInterface interface {
 	// Logout Sign out (revoke the current session)
 	// (POST /v1/hugimethara/auth/logout)
 	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
+	// CompleteOidcLogin Finish an OIDC sign-in (public)
+	// (GET /v1/hugimethara/auth/oidc/callback)
+	CompleteOidcLogin(ctx context.Context, request CompleteOidcLoginRequestObject) (CompleteOidcLoginResponseObject, error)
+	// ListOidcProviders Enabled SSO providers of an organization (public)
+	// (GET /v1/hugimethara/auth/oidc/providers)
+	ListOidcProviders(ctx context.Context, request ListOidcProvidersRequestObject) (ListOidcProvidersResponseObject, error)
+	// StartOidcLogin Begin an OIDC sign-in (public)
+	// (GET /v1/hugimethara/auth/oidc/{idp_id}/start)
+	StartOidcLogin(ctx context.Context, request StartOidcLoginRequestObject) (StartOidcLoginResponseObject, error)
 	// ListAccessDecisions Logged authorization decisions (every denial and sensitive allow), newest first
 	// (GET /v1/hugimethara/authorization/decisions)
 	ListAccessDecisions(ctx context.Context, request ListAccessDecisionsRequestObject) (ListAccessDecisionsResponseObject, error)
@@ -5661,6 +10377,72 @@ type StrictServerInterface interface {
 	// UpdateEnvironment Update a environment
 	// (PATCH /v1/hugimethara/environments/{environment_id})
 	UpdateEnvironment(ctx context.Context, request UpdateEnvironmentRequestObject) (UpdateEnvironmentResponseObject, error)
+	// ListGroups Groups
+	// (GET /v1/hugimethara/groups)
+	ListGroups(ctx context.Context, request ListGroupsRequestObject) (ListGroupsResponseObject, error)
+	// CreateGroup Create a group
+	// (POST /v1/hugimethara/groups)
+	CreateGroup(ctx context.Context, request CreateGroupRequestObject) (CreateGroupResponseObject, error)
+	// DeleteGroup Delete a group and its role assignments
+	// (DELETE /v1/hugimethara/groups/{group_id})
+	DeleteGroup(ctx context.Context, request DeleteGroupRequestObject) (DeleteGroupResponseObject, error)
+	// GetGroup One group
+	// (GET /v1/hugimethara/groups/{group_id})
+	GetGroup(ctx context.Context, request GetGroupRequestObject) (GetGroupResponseObject, error)
+	// UpdateGroup Rename or describe a group
+	// (PATCH /v1/hugimethara/groups/{group_id})
+	UpdateGroup(ctx context.Context, request UpdateGroupRequestObject) (UpdateGroupResponseObject, error)
+	// ListGroupMembers Members of a group
+	// (GET /v1/hugimethara/groups/{group_id}/members)
+	ListGroupMembers(ctx context.Context, request ListGroupMembersRequestObject) (ListGroupMembersResponseObject, error)
+	// AddGroupMember Add a member to a group (idempotent)
+	// (POST /v1/hugimethara/groups/{group_id}/members)
+	AddGroupMember(ctx context.Context, request AddGroupMemberRequestObject) (AddGroupMemberResponseObject, error)
+	// RemoveGroupMember Remove a member from a group
+	// (DELETE /v1/hugimethara/groups/{group_id}/members/{user_id})
+	RemoveGroupMember(ctx context.Context, request RemoveGroupMemberRequestObject) (RemoveGroupMemberResponseObject, error)
+	// ListIdentityProviders OIDC identity providers
+	// (GET /v1/hugimethara/identity/providers)
+	ListIdentityProviders(ctx context.Context, request ListIdentityProvidersRequestObject) (ListIdentityProvidersResponseObject, error)
+	// CreateIdentityProvider Configure an OIDC identity provider
+	// (POST /v1/hugimethara/identity/providers)
+	CreateIdentityProvider(ctx context.Context, request CreateIdentityProviderRequestObject) (CreateIdentityProviderResponseObject, error)
+	// DeleteIdentityProvider Delete an identity provider, its links and group mappings
+	// (DELETE /v1/hugimethara/identity/providers/{provider_id})
+	DeleteIdentityProvider(ctx context.Context, request DeleteIdentityProviderRequestObject) (DeleteIdentityProviderResponseObject, error)
+	// GetIdentityProvider One identity provider
+	// (GET /v1/hugimethara/identity/providers/{provider_id})
+	GetIdentityProvider(ctx context.Context, request GetIdentityProviderRequestObject) (GetIdentityProviderResponseObject, error)
+	// UpdateIdentityProvider Update an identity provider
+	// (PATCH /v1/hugimethara/identity/providers/{provider_id})
+	UpdateIdentityProvider(ctx context.Context, request UpdateIdentityProviderRequestObject) (UpdateIdentityProviderResponseObject, error)
+	// ListGroupMappings External-group to internal-group mappings
+	// (GET /v1/hugimethara/identity/providers/{provider_id}/group-mappings)
+	ListGroupMappings(ctx context.Context, request ListGroupMappingsRequestObject) (ListGroupMappingsResponseObject, error)
+	// CreateGroupMapping Map an IdP group to an internal group
+	// (POST /v1/hugimethara/identity/providers/{provider_id}/group-mappings)
+	CreateGroupMapping(ctx context.Context, request CreateGroupMappingRequestObject) (CreateGroupMappingResponseObject, error)
+	// DeleteGroupMapping Remove a group mapping
+	// (DELETE /v1/hugimethara/identity/providers/{provider_id}/group-mappings/{mapping_id})
+	DeleteGroupMapping(ctx context.Context, request DeleteGroupMappingRequestObject) (DeleteGroupMappingResponseObject, error)
+	// TestIdentityProvider Check discovery and signing-key reachability
+	// (POST /v1/hugimethara/identity/providers/{provider_id}/test)
+	TestIdentityProvider(ctx context.Context, request TestIdentityProviderRequestObject) (TestIdentityProviderResponseObject, error)
+	// GetInvitationPreview What an invitation link is for (public)
+	// (GET /v1/hugimethara/invitation-tokens/{token})
+	GetInvitationPreview(ctx context.Context, request GetInvitationPreviewRequestObject) (GetInvitationPreviewResponseObject, error)
+	// AcceptInvitation Accept an invitation and sign in to the organization (public, rate-limited)
+	// (POST /v1/hugimethara/invitation-tokens/{token}/accept)
+	AcceptInvitation(ctx context.Context, request AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error)
+	// ListInvitations Invitations, newest first
+	// (GET /v1/hugimethara/invitations)
+	ListInvitations(ctx context.Context, request ListInvitationsRequestObject) (ListInvitationsResponseObject, error)
+	// CreateInvitation Invite someone by email
+	// (POST /v1/hugimethara/invitations)
+	CreateInvitation(ctx context.Context, request CreateInvitationRequestObject) (CreateInvitationResponseObject, error)
+	// RevokeInvitation Revoke an open invitation
+	// (DELETE /v1/hugimethara/invitations/{invitation_id})
+	RevokeInvitation(ctx context.Context, request RevokeInvitationRequestObject) (RevokeInvitationResponseObject, error)
 	// GetMe The signed-in user, their organization and session
 	// (GET /v1/hugimethara/me)
 	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
@@ -5691,7 +10473,7 @@ type StrictServerInterface interface {
 	// ListRoleBindings Role assignments
 	// (GET /v1/hugimethara/role-bindings)
 	ListRoleBindings(ctx context.Context, request ListRoleBindingsRequestObject) (ListRoleBindingsResponseObject, error)
-	// CreateRoleBinding Assign a role to a member at a scope
+	// CreateRoleBinding Assign a role to a member, group or service account at a scope
 	// (POST /v1/hugimethara/role-bindings)
 	CreateRoleBinding(ctx context.Context, request CreateRoleBindingRequestObject) (CreateRoleBindingResponseObject, error)
 	// DeleteRoleBinding Remove a role assignment (the last owner cannot be removed)
@@ -5712,12 +10494,45 @@ type StrictServerInterface interface {
 	// UpdateRole Replace a role's name, description and permissions
 	// (PUT /v1/hugimethara/roles/{role_id})
 	UpdateRole(ctx context.Context, request UpdateRoleRequestObject) (UpdateRoleResponseObject, error)
+	// ListServiceAccounts Service accounts
+	// (GET /v1/hugimethara/service-accounts)
+	ListServiceAccounts(ctx context.Context, request ListServiceAccountsRequestObject) (ListServiceAccountsResponseObject, error)
+	// CreateServiceAccount Create a service account
+	// (POST /v1/hugimethara/service-accounts)
+	CreateServiceAccount(ctx context.Context, request CreateServiceAccountRequestObject) (CreateServiceAccountResponseObject, error)
+	// DeleteServiceAccount Delete a service account, its keys and role assignments
+	// (DELETE /v1/hugimethara/service-accounts/{service_account_id})
+	DeleteServiceAccount(ctx context.Context, request DeleteServiceAccountRequestObject) (DeleteServiceAccountResponseObject, error)
+	// GetServiceAccount One service account
+	// (GET /v1/hugimethara/service-accounts/{service_account_id})
+	GetServiceAccount(ctx context.Context, request GetServiceAccountRequestObject) (GetServiceAccountResponseObject, error)
+	// UpdateServiceAccount Rename, describe, disable or re-enable a service account
+	// (PATCH /v1/hugimethara/service-accounts/{service_account_id})
+	UpdateServiceAccount(ctx context.Context, request UpdateServiceAccountRequestObject) (UpdateServiceAccountResponseObject, error)
+	// ListApiKeys API keys of a service account (never the secret)
+	// (GET /v1/hugimethara/service-accounts/{service_account_id}/keys)
+	ListApiKeys(ctx context.Context, request ListApiKeysRequestObject) (ListApiKeysResponseObject, error)
+	// CreateApiKey Create an API key (the secret is returned once)
+	// (POST /v1/hugimethara/service-accounts/{service_account_id}/keys)
+	CreateApiKey(ctx context.Context, request CreateApiKeyRequestObject) (CreateApiKeyResponseObject, error)
+	// RevokeApiKey Revoke an API key
+	// (DELETE /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id})
+	RevokeApiKey(ctx context.Context, request RevokeApiKeyRequestObject) (RevokeApiKeyResponseObject, error)
 	// GetSystemInfo Build and deployment information
 	// (GET /v1/hugimethara/system/info)
 	GetSystemInfo(ctx context.Context, request GetSystemInfoRequestObject) (GetSystemInfoResponseObject, error)
 	// ListUsers Members of the organization
 	// (GET /v1/hugimethara/users)
 	ListUsers(ctx context.Context, request ListUsersRequestObject) (ListUsersResponseObject, error)
+	// RemoveUser Remove a member from the organization
+	// (DELETE /v1/hugimethara/users/{user_id})
+	RemoveUser(ctx context.Context, request RemoveUserRequestObject) (RemoveUserResponseObject, error)
+	// GetUser One member, with their groups
+	// (GET /v1/hugimethara/users/{user_id})
+	GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error)
+	// UpdateUser Suspend or reactivate a member
+	// (PATCH /v1/hugimethara/users/{user_id})
+	UpdateUser(ctx context.Context, request UpdateUserRequestObject) (UpdateUserResponseObject, error)
 	// ListWorkspaces Workspaces visible to the caller
 	// (GET /v1/hugimethara/workspaces)
 	ListWorkspaces(ctx context.Context, request ListWorkspacesRequestObject) (ListWorkspacesResponseObject, error)
@@ -5908,6 +10723,85 @@ func (sh *strictHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(LogoutResponseObject); ok {
 		if err := validResponse.VisitLogoutResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CompleteOidcLogin operation middleware
+func (sh *strictHandler) CompleteOidcLogin(w http.ResponseWriter, r *http.Request, params CompleteOidcLoginParams) {
+	var request CompleteOidcLoginRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CompleteOidcLogin(ctx, request.(CompleteOidcLoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CompleteOidcLogin")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CompleteOidcLoginResponseObject); ok {
+		if err := validResponse.VisitCompleteOidcLoginResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListOidcProviders operation middleware
+func (sh *strictHandler) ListOidcProviders(w http.ResponseWriter, r *http.Request, params ListOidcProvidersParams) {
+	var request ListOidcProvidersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListOidcProviders(ctx, request.(ListOidcProvidersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListOidcProviders")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListOidcProvidersResponseObject); ok {
+		if err := validResponse.VisitListOidcProvidersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// StartOidcLogin operation middleware
+func (sh *strictHandler) StartOidcLogin(w http.ResponseWriter, r *http.Request, idpId openapi_types.UUID, params StartOidcLoginParams) {
+	var request StartOidcLoginRequestObject
+
+	request.IdpId = idpId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.StartOidcLogin(ctx, request.(StartOidcLoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "StartOidcLogin")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(StartOidcLoginResponseObject); ok {
+		if err := validResponse.VisitStartOidcLoginResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -6217,6 +11111,629 @@ func (sh *strictHandler) UpdateEnvironment(w http.ResponseWriter, r *http.Reques
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(UpdateEnvironmentResponseObject); ok {
 		if err := validResponse.VisitUpdateEnvironmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroups operation middleware
+func (sh *strictHandler) ListGroups(w http.ResponseWriter, r *http.Request) {
+	var request ListGroupsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroups(ctx, request.(ListGroupsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroups")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupsResponseObject); ok {
+		if err := validResponse.VisitListGroupsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateGroup operation middleware
+func (sh *strictHandler) CreateGroup(w http.ResponseWriter, r *http.Request) {
+	var request CreateGroupRequestObject
+
+	var body CreateGroupJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateGroup(ctx, request.(CreateGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateGroupResponseObject); ok {
+		if err := validResponse.VisitCreateGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteGroup operation middleware
+func (sh *strictHandler) DeleteGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	var request DeleteGroupRequestObject
+
+	request.GroupId = groupId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteGroup(ctx, request.(DeleteGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteGroupResponseObject); ok {
+		if err := validResponse.VisitDeleteGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetGroup operation middleware
+func (sh *strictHandler) GetGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	var request GetGroupRequestObject
+
+	request.GroupId = groupId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetGroup(ctx, request.(GetGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetGroupResponseObject); ok {
+		if err := validResponse.VisitGetGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateGroup operation middleware
+func (sh *strictHandler) UpdateGroup(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	var request UpdateGroupRequestObject
+
+	request.GroupId = groupId
+
+	var body UpdateGroupJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateGroup(ctx, request.(UpdateGroupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateGroup")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateGroupResponseObject); ok {
+		if err := validResponse.VisitUpdateGroupResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroupMembers operation middleware
+func (sh *strictHandler) ListGroupMembers(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	var request ListGroupMembersRequestObject
+
+	request.GroupId = groupId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroupMembers(ctx, request.(ListGroupMembersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroupMembers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupMembersResponseObject); ok {
+		if err := validResponse.VisitListGroupMembersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AddGroupMember operation middleware
+func (sh *strictHandler) AddGroupMember(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID) {
+	var request AddGroupMemberRequestObject
+
+	request.GroupId = groupId
+
+	var body AddGroupMemberJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AddGroupMember(ctx, request.(AddGroupMemberRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AddGroupMember")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AddGroupMemberResponseObject); ok {
+		if err := validResponse.VisitAddGroupMemberResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RemoveGroupMember operation middleware
+func (sh *strictHandler) RemoveGroupMember(w http.ResponseWriter, r *http.Request, groupId openapi_types.UUID, userId openapi_types.UUID) {
+	var request RemoveGroupMemberRequestObject
+
+	request.GroupId = groupId
+	request.UserId = userId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveGroupMember(ctx, request.(RemoveGroupMemberRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveGroupMember")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RemoveGroupMemberResponseObject); ok {
+		if err := validResponse.VisitRemoveGroupMemberResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListIdentityProviders operation middleware
+func (sh *strictHandler) ListIdentityProviders(w http.ResponseWriter, r *http.Request) {
+	var request ListIdentityProvidersRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListIdentityProviders(ctx, request.(ListIdentityProvidersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListIdentityProviders")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListIdentityProvidersResponseObject); ok {
+		if err := validResponse.VisitListIdentityProvidersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateIdentityProvider operation middleware
+func (sh *strictHandler) CreateIdentityProvider(w http.ResponseWriter, r *http.Request) {
+	var request CreateIdentityProviderRequestObject
+
+	var body CreateIdentityProviderJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateIdentityProvider(ctx, request.(CreateIdentityProviderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateIdentityProvider")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateIdentityProviderResponseObject); ok {
+		if err := validResponse.VisitCreateIdentityProviderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteIdentityProvider operation middleware
+func (sh *strictHandler) DeleteIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	var request DeleteIdentityProviderRequestObject
+
+	request.ProviderId = providerId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteIdentityProvider(ctx, request.(DeleteIdentityProviderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteIdentityProvider")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteIdentityProviderResponseObject); ok {
+		if err := validResponse.VisitDeleteIdentityProviderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetIdentityProvider operation middleware
+func (sh *strictHandler) GetIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	var request GetIdentityProviderRequestObject
+
+	request.ProviderId = providerId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetIdentityProvider(ctx, request.(GetIdentityProviderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetIdentityProvider")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetIdentityProviderResponseObject); ok {
+		if err := validResponse.VisitGetIdentityProviderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateIdentityProvider operation middleware
+func (sh *strictHandler) UpdateIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	var request UpdateIdentityProviderRequestObject
+
+	request.ProviderId = providerId
+
+	var body UpdateIdentityProviderJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateIdentityProvider(ctx, request.(UpdateIdentityProviderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateIdentityProvider")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateIdentityProviderResponseObject); ok {
+		if err := validResponse.VisitUpdateIdentityProviderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListGroupMappings operation middleware
+func (sh *strictHandler) ListGroupMappings(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	var request ListGroupMappingsRequestObject
+
+	request.ProviderId = providerId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListGroupMappings(ctx, request.(ListGroupMappingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListGroupMappings")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListGroupMappingsResponseObject); ok {
+		if err := validResponse.VisitListGroupMappingsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateGroupMapping operation middleware
+func (sh *strictHandler) CreateGroupMapping(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	var request CreateGroupMappingRequestObject
+
+	request.ProviderId = providerId
+
+	var body CreateGroupMappingJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateGroupMapping(ctx, request.(CreateGroupMappingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateGroupMapping")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateGroupMappingResponseObject); ok {
+		if err := validResponse.VisitCreateGroupMappingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteGroupMapping operation middleware
+func (sh *strictHandler) DeleteGroupMapping(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID, mappingId openapi_types.UUID) {
+	var request DeleteGroupMappingRequestObject
+
+	request.ProviderId = providerId
+	request.MappingId = mappingId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteGroupMapping(ctx, request.(DeleteGroupMappingRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteGroupMapping")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteGroupMappingResponseObject); ok {
+		if err := validResponse.VisitDeleteGroupMappingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TestIdentityProvider operation middleware
+func (sh *strictHandler) TestIdentityProvider(w http.ResponseWriter, r *http.Request, providerId openapi_types.UUID) {
+	var request TestIdentityProviderRequestObject
+
+	request.ProviderId = providerId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TestIdentityProvider(ctx, request.(TestIdentityProviderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TestIdentityProvider")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TestIdentityProviderResponseObject); ok {
+		if err := validResponse.VisitTestIdentityProviderResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetInvitationPreview operation middleware
+func (sh *strictHandler) GetInvitationPreview(w http.ResponseWriter, r *http.Request, token string) {
+	var request GetInvitationPreviewRequestObject
+
+	request.Token = token
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetInvitationPreview(ctx, request.(GetInvitationPreviewRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetInvitationPreview")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetInvitationPreviewResponseObject); ok {
+		if err := validResponse.VisitGetInvitationPreviewResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptInvitation operation middleware
+func (sh *strictHandler) AcceptInvitation(w http.ResponseWriter, r *http.Request, token string) {
+	var request AcceptInvitationRequestObject
+
+	request.Token = token
+
+	var body AcceptInvitationJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AcceptInvitation(ctx, request.(AcceptInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AcceptInvitationResponseObject); ok {
+		if err := validResponse.VisitAcceptInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListInvitations operation middleware
+func (sh *strictHandler) ListInvitations(w http.ResponseWriter, r *http.Request, params ListInvitationsParams) {
+	var request ListInvitationsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListInvitations(ctx, request.(ListInvitationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListInvitations")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListInvitationsResponseObject); ok {
+		if err := validResponse.VisitListInvitationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateInvitation operation middleware
+func (sh *strictHandler) CreateInvitation(w http.ResponseWriter, r *http.Request) {
+	var request CreateInvitationRequestObject
+
+	var body CreateInvitationJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateInvitation(ctx, request.(CreateInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateInvitationResponseObject); ok {
+		if err := validResponse.VisitCreateInvitationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeInvitation operation middleware
+func (sh *strictHandler) RevokeInvitation(w http.ResponseWriter, r *http.Request, invitationId openapi_types.UUID) {
+	var request RevokeInvitationRequestObject
+
+	request.InvitationId = invitationId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevokeInvitation(ctx, request.(RevokeInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeInvitation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevokeInvitationResponseObject); ok {
+		if err := validResponse.VisitRevokeInvitationResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -6679,6 +12196,232 @@ func (sh *strictHandler) UpdateRole(w http.ResponseWriter, r *http.Request, role
 	}
 }
 
+// ListServiceAccounts operation middleware
+func (sh *strictHandler) ListServiceAccounts(w http.ResponseWriter, r *http.Request) {
+	var request ListServiceAccountsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListServiceAccounts(ctx, request.(ListServiceAccountsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListServiceAccounts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListServiceAccountsResponseObject); ok {
+		if err := validResponse.VisitListServiceAccountsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateServiceAccount operation middleware
+func (sh *strictHandler) CreateServiceAccount(w http.ResponseWriter, r *http.Request) {
+	var request CreateServiceAccountRequestObject
+
+	var body CreateServiceAccountJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateServiceAccount(ctx, request.(CreateServiceAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateServiceAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateServiceAccountResponseObject); ok {
+		if err := validResponse.VisitCreateServiceAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteServiceAccount operation middleware
+func (sh *strictHandler) DeleteServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	var request DeleteServiceAccountRequestObject
+
+	request.ServiceAccountId = serviceAccountId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteServiceAccount(ctx, request.(DeleteServiceAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteServiceAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteServiceAccountResponseObject); ok {
+		if err := validResponse.VisitDeleteServiceAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetServiceAccount operation middleware
+func (sh *strictHandler) GetServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	var request GetServiceAccountRequestObject
+
+	request.ServiceAccountId = serviceAccountId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetServiceAccount(ctx, request.(GetServiceAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetServiceAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetServiceAccountResponseObject); ok {
+		if err := validResponse.VisitGetServiceAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateServiceAccount operation middleware
+func (sh *strictHandler) UpdateServiceAccount(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	var request UpdateServiceAccountRequestObject
+
+	request.ServiceAccountId = serviceAccountId
+
+	var body UpdateServiceAccountJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateServiceAccount(ctx, request.(UpdateServiceAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateServiceAccount")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateServiceAccountResponseObject); ok {
+		if err := validResponse.VisitUpdateServiceAccountResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListApiKeys operation middleware
+func (sh *strictHandler) ListApiKeys(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	var request ListApiKeysRequestObject
+
+	request.ServiceAccountId = serviceAccountId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListApiKeys(ctx, request.(ListApiKeysRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListApiKeys")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListApiKeysResponseObject); ok {
+		if err := validResponse.VisitListApiKeysResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateApiKey operation middleware
+func (sh *strictHandler) CreateApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID) {
+	var request CreateApiKeyRequestObject
+
+	request.ServiceAccountId = serviceAccountId
+
+	var body CreateApiKeyJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateApiKey(ctx, request.(CreateApiKeyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateApiKey")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateApiKeyResponseObject); ok {
+		if err := validResponse.VisitCreateApiKeyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeApiKey operation middleware
+func (sh *strictHandler) RevokeApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID, keyId openapi_types.UUID) {
+	var request RevokeApiKeyRequestObject
+
+	request.ServiceAccountId = serviceAccountId
+	request.KeyId = keyId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RevokeApiKey(ctx, request.(RevokeApiKeyRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeApiKey")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RevokeApiKeyResponseObject); ok {
+		if err := validResponse.VisitRevokeApiKeyResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetSystemInfo operation middleware
 func (sh *strictHandler) GetSystemInfo(w http.ResponseWriter, r *http.Request) {
 	var request GetSystemInfoRequestObject
@@ -6720,6 +12463,91 @@ func (sh *strictHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(ListUsersResponseObject); ok {
 		if err := validResponse.VisitListUsersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RemoveUser operation middleware
+func (sh *strictHandler) RemoveUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+	var request RemoveUserRequestObject
+
+	request.UserId = userId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveUser(ctx, request.(RemoveUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(RemoveUserResponseObject); ok {
+		if err := validResponse.VisitRemoveUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUser operation middleware
+func (sh *strictHandler) GetUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+	var request GetUserRequestObject
+
+	request.UserId = userId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUser(ctx, request.(GetUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetUserResponseObject); ok {
+		if err := validResponse.VisitGetUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateUser operation middleware
+func (sh *strictHandler) UpdateUser(w http.ResponseWriter, r *http.Request, userId openapi_types.UUID) {
+	var request UpdateUserRequestObject
+
+	request.UserId = userId
+
+	var body UpdateUserJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateUser(ctx, request.(UpdateUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateUserResponseObject); ok {
+		if err := validResponse.VisitUpdateUserResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -6986,109 +12814,183 @@ func (sh *strictHandler) RestoreWorkspace(w http.ResponseWriter, r *http.Request
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7H37btw4lverEPoGaPtbucpJu3smDhYLtzs9bWxnY9jp7V0k3gotnariRCI1JOWkxjCwD7FPuE+yIKkL",
-	"KVEq1T3dyH92Sbydc3j4OxcePQYRSzNGgUoRnD8GGeY4BQlc/3eZc8G4+ovQ4Dz4ew58EYQBxSkE50Fk",
-	"noaBiOaQYvVaij//AnQm58H5d8+eh4FcZOpNITmhs+DpKQx+ISmRXT0m+qHdYQxTnCcyOP/uNFS9kzRP",
-	"g/Pnp+o/Qs1/z6pxCJUwA64H+o3xjyLDEdwm+cx0JSJOMkmYGrl6jHAccxACHYkknx2PgtBMLcNyXs/s",
-	"U/l6EAYc/p4TDnFwLnkOHcs/O22v/km1FRmjAjR5rxNMrzm7TyBV/0aMSqCaODjLEhJhNddxZt74p78J",
-	"NfFHa7g/cZgG58H/G9c8HJunYmz3rUd2l/92DojxGabkH3qUbwTKEkxRzEAgyiTCScI+ITknAh1NAcuc",
-	"w4QyOSF0ol9kXDeYaJZNOOBoDvHxKHgKg50tqXs5rzhnHB3d/HSJXpx992dUDIBikJgkQs3rqWSUJv1F",
-	"FIEQP0JEBDFzyDjLgEtiWKOXr1j8WHLxnrEEMFULTLFUq53wPDFvEwmpsN4tOV6JAOYcL9T/GUtItJg8",
-	"AC/HnTKeYmmE9/uzoC3LSmhwQaj2fqqF8V016apFc6qt8e+q4dj93yCSarSLPCby1UPBtgZZIllMGz7j",
-	"NEt0S0uMRnkWY6mn0CIFjiTjE0gxSbykMs9J7BAlz0lPZ+bnxwCo0gPvglyA1kfAH0gEExxFLKdaoSyE",
-	"hDQIA0wZXaQsF8Gdp9dCXPRK45ioFeHk2qKA2fAtkg2cNMm8C2dRlHMO8QRLpxtFyRNJUvD1xXIZsdRZ",
-	"vci1UAdhMMUkyblqFwMlEHsXqyQHhCwo7nksWM4jWPq8ZELrjUpnDmNqQ5j1KzZpHKaHpSg2J1JTpmZn",
-	"v5Rf4xm0JT3GEjtbu08z1Z359jyFz3ISVUdp/7L1uP4Jy/lNcXq0p2tvwmWzfWO9e5unKeZ6mgKEGND6",
-	"1rxmNdS7bkmrXwXw1lqL7erMvZ6Hjwg/EBoTOruNWOYhQkNkrdNYA4Y1RLipYBifBWEDDJg+vFtssx2g",
-	"n/qo8CNkmMvUq6EjDliaDTNYlzhnqYcKA9WbgUqe9qJAYK0HxWmx0mRrmhrlPuQI9akWPali0i4J2mOE",
-	"Nlmdafez51K38igXl+A2avYKaklZ68Vn3hdLSi8Boi45bEr0r+dXvfC9racxz84JvppOIZLkAa6Bp0Rr",
-	"D7FcRTqTDqymSM6xRAqvLhA8AF98mgMHRCiSDdSsjYXB2K+Sqh6AsQqWbEDgz5JjlFnLyICjakxEYnQ0",
-	"5Sy1fuIsAaEtngZJG4RvKGhrHV5uUElkAkpefjKGQwGo30yD83f9x0TR4EeYEqqpEzyFTT4CxfdJFzRP",
-	"SvPSJc7FvQAq0T+jnOo3IEZH+g9U2DaGDAOwOHsAzkkcg0eG/soxVV2LDCIyJRFOkgWaMm7MqKbgtCef",
-	"C4jX0WclRZzZtVlz5zLHs0U02KJykgEnLJ4AjYfr5ZKQg0GTR058BlOCPebZR1h4t0jHEdSgl2rdo++E",
-	"xDIX9rGPtXZRq+YEJ6rLMMiwkJM4V79GmEaQeGF2Y2S9mmoEi2j+jfRAOKPbO+dhxkGIiTYTEyI8++SK",
-	"SuAUJ+jy6scbxDGdgUAsl/cspzFSAi1QihdI2/voKMMkLnfQ8WrKcKjJJCYZZ3EeNcCJtWv2ATuWAwh3",
-	"oh5ar4YhLN53gQgfNyv6Wyfr92ceuqb485V51z54a+4MJ/thMIlFny5Q8vugjw/jNPv3EuABJzmWcGOs",
-	"+D5XzTLTfgt2krLkhrpuNjOKypHadj/uJlYbViyDsK1Zd504HwmN7aNimmAluAaH3K1iJeWUSM+D7rOr",
-	"abXoqRT9eKlAIIm1p9RznLDYP6upauR9koIQheukf8qmi9CMUbfzTfFnwIlyc2SM+868OUQfe8Gz+z6U",
-	"a23rpNYRzz4WfrPlh3jR2Df/AVhiOwP9wmYziHv81927v9e1PXAPb+ABX8vbmXFCI5LhpMd/XL8zcBGd",
-	"bvXfo2/UWX2Pd3RpjKBD2gjtPGkqltgHyXe+U9U2gSbDcIEG2uIT4y6Zqh/DATFHx1bSk7V69a33tQdO",
-	"pJDeAxdzkrWfETFhn6jxgnoANUlRTiVJ0M0PF5fo6Pbb43Ok3xdozpJYxdpsw91vHP6NEboRZi3naHfl",
-	"W/wfyJVs8azfr/xav+hRo3G8qi+ViCzBi0nnMd+twIabRJWwbUFMwkC7gdqie8MSQB9hIdCRTdaTBB4g",
-	"Ud6wsSK6CGuHUv2o+gkZFiAFwMWKJmJ9dg7QhuW+duhvWdoV1Xzsf9MQ+c1N7Y1d5iAloTOx0gYs2/TZ",
-	"vj3ODZGLDGjcES7chdFccada7mpWsr36yzkjkUdvr+oeWNEQbU/BSn8Y5vQsG7Rdnfa+G+5Y81Cltbt6",
-	"PLyiw3XoFbUWuQstO8H3giW5hImSDZbLyZzlvDS9Td7On58vyeKpdPaExEndU0poLsHt69nZmd3Zd0t9",
-	"pr09h8uWsUwSyiOtjRR2E0pbttV88732elaNCzjyG7vLjGRoeJcHmmmDHPrrOsUHmWkr+pM13I5gkjIq",
-	"58liEpUL7og6RLmQLEWqEaGzQZGG4WZ/xbEG/bt4vkX9ZIaWA9OYpnU0qEXP4WyuQwJLvA7FaMX7fp1m",
-	"0cLvD3EZeiuVTKEUR3NC4YQDjvUP2tGAVJtR0JlW5N8xquVw1W65cDyAaYnV2sJTFk213PSmQNQ6i5Nh",
-	"qQtlr9Y5r8nqE8ybwkx9u/AldhhrdpPwqBdiUUEU9Jms1X2Hae8nhLtjy/F8c/AShyUeotybXJgV0iDC",
-	"Q2aHkDTN9fbpcDyJSZGk5328uoJ2UwGG83U7OLdHX9crtYnizjhscHc1WKzkpciU2lLg8HNGOIhdWEDc",
-	"K9sDG28WBm4yykdKUWaa9WllJyvN8mI0Igw79gwMtop966z9kZ3Tq19ZAYQWfhnN5ZKajjAvkd/O4Oca",
-	"EqkmMdQ3vDbfNw1qFXMsZ9BFnm1llhU7aJkPdnCwt0vtWg3/ctobb33ejrf2YWF7wC5i7TltbT9UGLj+",
-	"wsd6RadsO2eBhfnbx/QODwptqK/Vvz/rPlH5OwKArtSZ3ql45hKgTwGW5Gqc4M7o7cU5lOxha6ef4ctj",
-	"hPd4slfc7Ne7bDKjedYZiWoesc2NmhJa/R/2HMCu1ffvOCEabyF1sQT4iSAxvESEPqgH5f0xEIiDzDlF",
-	"GOmIt7EKR0G4YlysnHx9w+YiSgFd0ZhREAQHYd+6ng8Nu9Xd4yiFE82PDEsJXK35v97hk3+cnry4O/qX",
-	"8+LPk7vHZ+G3f3kqnxz/KdgsWvfs+V9cliwN3rXp5FtcKwgwKOZ3qzG5X0/ijNhXtmrSPTzzqkiWpt5c",
-	"jjAAN6ev9MHHKnDCstRoCiHxrEgytFPKJAh/SsmM2bPrPLbqaf+cz0gKco459s3fv9TT0bPRaTAwgans",
-	"oiKGM0uXDqFDXx9vzAFuO1gtFZASansXn4UdAYAVN81mERifk/HXg5gFvSGfmIiml3T9IJuPc9U1W8+m",
-	"4tGcPKyKPtZyYJT3F4aif6tFJ1u25BYx8dGVnDhfRsKr69RwlrGat6ISkW6bZgn/aJ4kxrPk3M/s5NUX",
-	"ft+mIki33fKFEmTYhR2tXKOcE7m4VUrUCRxeMvaR+Fzv5jGK9HMkQKL7BUrYjNCx0KgQHX2YTH5mQp7M",
-	"8xmZFP19QJ/mQA1yi5G6H4F+fvv2+vZ49J7eSrUBojmm6rhFhftcoDQX6gK8YEgAjdGH/zi5vL356eQt",
-	"+wiqPyLn+iaQysAFxKb6nw960Ejw6YdijqP3tKwlYH6oqwnYE6z3Hs7Iv8LCXG8nBQ5xifArJVMCMfoh",
-	"F4SCEOhNBtwEbdH7/PT0+fdIJRwlCZkBjQBdJ1gq2UAX11ej9/SSUXVHVb9+ZCIPIcoU1tB9hIjEkGZM",
-	"qmhSiHAu58fnKGaRGOOMjKO69SiNzeoSEkFxH7VY2kWmKgGcPNdQIeeJWq2UmTgfjz99+jTC+vGI8dm4",
-	"aCvGv1xdvvq321e6TR2KsEGKmr8FKs4Dg0UUtM2A4owE58G3o9PRtwbDzrVAjec6mfQf6u8ZaM3HSnJd",
-	"xeq6DshfyANQc2faqczw/PS0p3zBamULnJxWT+2Ca84ixUsiEE7IA4ycHRKcv7sLA1HaeUE5Y13iQCtu",
-	"PBNaqxif8p1qPFaRqUXvym8Ax+TQS79IEhSDTjqhEdEWFI4XuojEd6ff7m8aEiWAhUSMQj2fBSKmFEY5",
-	"qR6uVNQ0bEFHzqowjVFKZoYBqJDi4y7ePTwbz2vRH2N1t/wEHsoQc8HQrtuL50g3mOgG52rqygJ12f8L",
-	"EbK+si6C0Cn78u6xdbMQRxKZAJWu+8FhSj6jIxjNRuiDUhMfkMkhFebf0f//UNdRaZR4qRJTvVVT/IfK",
-	"Y1dPjJe+0rKvpX5Xf1/NLFnv5L4/G9yfIDQC/8R6QZe/N508ulZvvl1R83psivEMeLEoBPR0t0Nl0ajI",
-	"4Nmnbyio40qfuWZDaFVxdvqsq+9qslYSQ3B2+u1q7z9/vtL7Vc2iwW2ebF3SLM1jNjSSHJMkRBQ+gZBo",
-	"SriQlgbR73QpEDkfa6CkkSTz3fu7zu8TEo3QG4qKKiIKYQmNbISLvI5+ljJ7Q5PFsdZr6g2FjqrHVVLE",
-	"/UI/VAx7+Z5CNGeISJUc2sBTjCLhB2LHI/SbAm+qm6KWC7qHhNGZQFKBswfgOHlPbWoZbUuVJicCzdRp",
-	"GSJD8ligs9MX6IPjMSrxaoHrMHWfiw86ddWgnYYW1SStsi5+YPFia3vBSbh/cnG1gvRPO92HVqERzy5U",
-	"PliIEaFrbr4XWy8M1Z2D2VH5KhfADcqP5owJQLqglX09W2/7F3vY9h2AQhFZJ1IrodRuFy3XliO13vly",
-	"3r/xWS7tnd+SYvW8JU9nHhPMMJ7l8mWx2wWKEsAc4tFuCMByqRTKA/sIWgkUwZRSJR0PJgPjBWfHcXFl",
-	"aiiWstpqNDWpOujAVU5hMQ+28kKZ6lJOLfDN4NqXeJxvUDKpcYFtR2WTujHEaB0ksOHJbtbsChWq5Akd",
-	"6WIjKAZKsNnuVXqYKcd33H38a6kbIv9Q3BvuwQKd8i9ImidYQlvyy9vIF2UFsl0cis0rz/s+F52d3XW0",
-	"lOwc/Q6Q5qW6T6v8Y3IOHOHyrk7E8iRGGXDtOsK0NP2OCv4TRl9qwzgp5FkgXK37eKBU1j7MYZq4fr/H",
-	"qP3R6vRwqq2exdJ7F4PVVuEpKVe3F7tnU21HhLTnbAlGXUDt7ikcoIYs5pvIwgi9xosy3n52+tw4ebW5",
-	"4aliSmRbXEywwWLVbnRWqxbYIKX1bAfj+6TKzCkupGmI7rGryq6h305ffNH6UJNDKzNLLHxC26/Qxo9O",
-	"hObJCHcCEgaLuXm9LbY/6t8bYrsMuJtG8XpH0unZiu+/2CfLzNKGsMwPxN0qzw7beis9L/Mz3qnhZDQf",
-	"zHATJG0z3MQA96inzID7Blf9esrMaZ966uxL1lOGHGvqqeYdvaXIS+T31aMO7PVXkE5huR0KijOOrxJ4",
-	"WQsS2Qs9hLXXUWI9RHbVNBGiv+dMYuO2zHVhnJqV9yTR1eY6GFmlUA1jpNWgB0O/srs9HIi2prFdFG2T",
-	"7XcDo8Flyro42paA7QLpV04+306s/1ZFvD1DaUciv2LpoVjazfQcfEhVjcT40fpvFThtNVuCp5vS+xVQ",
-	"D+HbEETtsm4PkNpmej+m3qvKOgyqXqKyvsJqP6xeS2WlYIGwFjx+DbsExa+9gdrLIlpGYg2FF2uhnS2A",
-	"YKHjhieE6rhrqNAF4Y0UBx3sqPIhl8b0Uhg37th1En5hF4Xf5V7zFaH3cYXRiCsVay0AYenSQ1/+NBFf",
-	"u4j7aEscUYWcgX8jEFTWkj2bI1Wz/NcrNMOS0NlLDQcvrq+QkCRJqpgQCFMdX/c21O2fwrjgczfXFOJ9",
-	"vbiF7fBsAxvEvju5PRvE0LukQohSJiTiEAGVyUJtkdiE9w61XSvhwO5MzQcQGoXsh+7WspPxY114qQHk",
-	"XCG40VH/SgyCIWCj7npToDEgGcKMhUx2QrymJXm2T+Yakuok1yJpvWK1qDfbcna2qpL155TdNhPJlFqz",
-	"UsYEYlXW2QjdqCO4/EaDUn5RQtQhdnXty8EyVsYbVyB3AeXci6d7tjyXZWTZ60fF1ZuXFoNVJpxoZG3t",
-	"1ng8fO5UnqH//e//KajRzO/SIkikMIrW1GIN9Y+KTIjQ1ffB2LoXv9QTZ7fsdqkW+K0l3TsCMM44Az4Z",
-	"+XtwnjnnWce55fx89zTIynQYWJiZSCcwm3wI3zcRu+zQLjZvX4l1X6Pds106RNQKqu1f5A5jdcrVJdWj",
-	"kpTTth9YX+s3Doep1fi+bL+VPx/k+1TUAIje+80dz+UsRa7qyh/h7ajShuxXA6AIS5ywmf5WlGqLORGM",
-	"Dg0ElZdXTtRqhoWCOEugJwZkV+M7pLDY89ieBXZpqH2ImGDNg4rnRyX7kGafRiFFMcChRrXi5klRMG47",
-	"/K8LcA3MYK4rWG18F0v7PtoXsdb6BGfXGM7nFzazDfe3GWqmbNEbIRTiPViMXK0J4XoOPoEfEtjU8qx2",
-	"gPKkqaNUYj4DafxoxhRSr3wjHD9Xcc87QfeA5qpiz/0CLViuXufQFem02bAbmNYuf7dne9ORtC6ZWTv8",
-	"9UWHLc3aENbioi6ZVVnRWCKMygKGK2vl8WPx1yoBzJZU1zvlG2Hm0hXRbErpMnfWDaTs4Y8Z0TRLK1la",
-	"kxAdKZImuHQAoAhTytQNQ8QNNY471NFSR2TN680ckR1StbUz/qDYjiVbxHR6NQanO1/SOcyRJkoHa5er",
-	"fOWzrczW+U+WKzlFjCYLRGiU5LEbu1Hnl/mokC+k1Heo7fA0O9wxtjxT54+ZdVN8caCouzv0uBLjx6IA",
-	"7WpnVH92TSVcX9NqMEU51SG+JQwKuwu3eKl5uvNd87bA0KMDRK4ueui0/DSuaypvlnyUD1HUlTNYfTms",
-	"bW3c6/hbraZH6KosAa/bC/QRICt8TY1vwvmcxztW3IdJW+oSQTdf6cvSD3tW9DeQJTgqUe03AilZD5FF",
-	"rzJ7xMp9GXIMmFJE47L+WJcWsqql7lAQrFE84vBDThTOobG6B5GwhQb1hJqtXEYLthpZXDbiwJJO+rt5",
-	"gzC8etNgeHT0U54kReUKTPFMu6AR5pw8gM7NuD0bHXuR/q96uMMh/eLjilvD+k64u/jE4yGQvlnXMqy/",
-	"JG2wetwtEG/Mp0IFQJFwVbV5WS5fP1STqLtT/y6KcjlIMr8R+Fs9+iA3b2FxTMrarY7vtCLnFCcC2t8w",
-	"PaTztFro9sSwpt0hMrXq0dEDEeTeeKvqKOIGt0Sq9yur85LlVAqEZ5hQIavrId+I+l1zjQkdVXdIOKhK",
-	"j/Fxl8n5m+PB3z58aZaV3bPxaQnc17siQ63WWpq0b06LH+PoHiKWgrAydozaO15HzY4fq7+fBp3B1ev6",
-	"IEZHqav2q8chYjqr+eQTieF4hN6oMIJAKgxxdnrmzfBx98COQFSvJL61V3AY065m+v1Cs7j4oMLQWydL",
-	"ah1Vy79VZZcH3iKped5/h2RvSuwwhliv6Hy9PeK/PWKHpjfSTuMCZWnos6nMr3DqF8O2Zf7CPDi81iom",
-	"8of0FBZrc0/DKQdQVZZEwqTJw4cm9Nr4MBwXB9sah+IS46IwlP5AJuhrx+o8O5DVuVzXhHtVHMYvMalM",
-	"8pb+iOOGTGxwbLrSoH28xcfsOsy0KqQ/41hFfws+IIiJZPy48aEm72fwNv7An1+2lh3onlBJVcWUiCpF",
-	"4atfVItYK9m/SOAozGNLq1afO5BbU57jx4LVgwNow7ePSWTw7aCv2R3Y7IYpZ6nL5d0oxtAbaLI+47nV",
-	"nI8OkeMgJOMHg4c+r1C3O2iaJ8mxT6b1Gg4PKYuJfMHmzL73laaHLv9ZoO3llo0bOml90+fdnZI18xFF",
-	"I6jmAzFjLYNFj+2kgCrSkoLECqLpCIz5usuo3n1FxOUpbPag7oOd5FmoL3epa+hl3frW9UerN33t6yn0",
-	"nbveaxrVlbLyu3FWX8y57hI+9sUzrGL/zmxiIj1Nay9waJfaDJ2CQXpqxakyJ9nIkwbt6VqJt2gUq9I9",
-	"6Z1tL6+8nNDuQ+dChXYUMmxm4ZUJ7/qbA5EqSCvQ0c0PF5fH9vL14+Dp7un/BgA=",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

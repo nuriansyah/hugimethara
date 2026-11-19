@@ -1,6 +1,7 @@
 // Package identity owns users, local credentials and sessions: signup, login,
-// logout, session resolution and session management. (Invitations, groups,
-// service accounts and OIDC arrive in S4–S5.)
+// logout, session resolution and session management, plus member
+// management, invitations, groups, service accounts, API keys (S4) and OIDC
+// federation (S5).
 package identity
 
 import (
@@ -14,6 +15,7 @@ import (
 	"net/http"
 	"net/mail"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -54,6 +56,15 @@ type Config struct {
 	MaxFailedLogins int           // consecutive failures before lockout; default 10
 	LockoutDuration time.Duration // default 15m
 	TouchInterval   time.Duration // min interval between last_seen updates; default 1m
+
+	// PublicURL is the browser-visible origin; OIDC redirects are built from it.
+	PublicURL string
+	// Sealer protects client secrets and the OIDC state cookie. Required for
+	// OIDC; startup fails fast in production when the key is missing.
+	Sealer interface {
+		Seal([]byte) ([]byte, error)
+		Open([]byte) ([]byte, error)
+	}
 }
 
 // Service implements authentication use cases.
@@ -61,13 +72,17 @@ type Service struct {
 	pool    *sqlx.DB
 	orgs    *organization.Service
 	az      authz.Authorizer
+	acl     *authz.Service
 	limiter *ratelimit.Limiter
 	log     *slog.Logger
 	cfg     Config
 	now     func() time.Time
+
+	discoveryMu sync.Mutex
+	discovery   map[string]discoveryEntry
 }
 
-func NewService(pool *sqlx.DB, orgs *organization.Service, az authz.Authorizer, limiter *ratelimit.Limiter, log *slog.Logger, cfg Config) *Service {
+func NewService(pool *sqlx.DB, orgs *organization.Service, az authz.Authorizer, acl *authz.Service, limiter *ratelimit.Limiter, log *slog.Logger, cfg Config) *Service {
 	if cfg.Hasher == nil {
 		cfg.Hasher = NewHasher(DefaultArgon2)
 	}
@@ -80,7 +95,11 @@ func NewService(pool *sqlx.DB, orgs *organization.Service, az authz.Authorizer, 
 	if cfg.TouchInterval <= 0 {
 		cfg.TouchInterval = time.Minute
 	}
-	return &Service{pool: pool, orgs: orgs, az: az, limiter: limiter, log: log, cfg: cfg, now: time.Now}
+	if cfg.PublicURL == "" {
+		cfg.PublicURL = "http://localhost:3000"
+	}
+	return &Service{pool: pool, orgs: orgs, az: az, acl: acl, limiter: limiter, log: log, cfg: cfg,
+		now: time.Now, discovery: map[string]discoveryEntry{}}
 }
 
 // User is a person's identity.
@@ -430,12 +449,12 @@ type Member struct {
 
 // Me returns the caller's user and membership.
 func (s *Service) Me(ctx context.Context) (Member, error) {
-	p, ok := principal.From(ctx)
-	if !ok {
-		return Member{}, authz.Unauthenticated()
+	p, err := userPrincipal(ctx)
+	if err != nil {
+		return Member{}, err
 	}
 	var m Member
-	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+	err = db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
 		var row memberRow
 		if err := tx.GetContext(ctx, &row, q.Get("GetMember"), p.OrgID, p.ID); err != nil {
 			return err
@@ -467,12 +486,12 @@ type SessionInfo struct {
 
 // ListSessions returns the caller's active sessions in the current organization.
 func (s *Service) ListSessions(ctx context.Context) ([]SessionInfo, error) {
-	p, ok := principal.From(ctx)
-	if !ok {
-		return nil, authz.Unauthenticated()
+	p, err := userPrincipal(ctx)
+	if err != nil {
+		return nil, err
 	}
 	var out []SessionInfo
-	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+	err = db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
 		var rows []sessionRow
 		if err := tx.SelectContext(ctx, &rows, q.Get("ListActiveUserSessions"), p.ID); err != nil {
 			return err
@@ -491,9 +510,9 @@ func (s *Service) ListSessions(ctx context.Context) ([]SessionInfo, error) {
 
 // RevokeSession revokes one of the caller's own sessions.
 func (s *Service) RevokeSession(ctx context.Context, id uuid.UUID) error {
-	p, ok := principal.From(ctx)
-	if !ok {
-		return authz.Unauthenticated()
+	p, err := userPrincipal(ctx)
+	if err != nil {
+		return err
 	}
 	return db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
 		n, err := execRows(ctx, tx, q.Get("RevokeUserSession"), id, p.ID)
@@ -508,6 +527,21 @@ func (s *Service) RevokeSession(ctx context.Context, id uuid.UUID) error {
 			Details: map[string]any{"self": id == p.SessionID},
 		})
 	})
+}
+
+// errNotAUser answers person-only endpoints called with an API key.
+var errNotAUser = httpx.NewProblem(http.StatusForbidden, "not_a_user", "Not available",
+	"This endpoint is about the signed-in person and is not available to service accounts.")
+
+func userPrincipal(ctx context.Context) (principal.Principal, error) {
+	p, ok := principal.From(ctx)
+	if !ok {
+		return p, authz.Unauthenticated()
+	}
+	if p.Type != principal.User {
+		return p, errNotAUser
+	}
+	return p, nil
 }
 
 func (s *Service) auditStandalone(ctx context.Context, e audit.Event) {

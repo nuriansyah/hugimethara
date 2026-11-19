@@ -41,3 +41,35 @@ func TestRejectsBadValues(t *testing.T) {
 	require.Contains(t, msg, "x.test/path")
 	require.NotContains(t, msg, "localhost:3000\"")
 }
+
+func TestMasterKey(t *testing.T) {
+	c, err := Load("hugi-test")
+	require.NoError(t, err)
+	key, defaulted, err := c.MasterKeyBytes()
+	require.NoError(t, err)
+	require.True(t, defaulted)
+	require.Len(t, key, 32)
+
+	t.Setenv("HUGI_MASTER_KEY", "not base64!")
+	_, err = Load("hugi-test")
+	require.ErrorContains(t, err, "HUGI_MASTER_KEY")
+
+	t.Setenv("HUGI_MASTER_KEY", "c2hvcnQ=") // "short"
+	_, err = Load("hugi-test")
+	require.ErrorContains(t, err, "HUGI_MASTER_KEY")
+
+	// 32 bytes, base64.
+	t.Setenv("HUGI_MASTER_KEY", "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=")
+	c, err = Load("hugi-test")
+	require.NoError(t, err)
+	key, defaulted, err = c.MasterKeyBytes()
+	require.NoError(t, err)
+	require.False(t, defaulted)
+	require.Len(t, key, 32)
+}
+
+func TestMasterKeyRequiredInProduction(t *testing.T) {
+	t.Setenv("HUGI_ENV", "production")
+	_, err := Load("hugi-test")
+	require.ErrorContains(t, err, "HUGI_MASTER_KEY")
+}

@@ -10,7 +10,7 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | **Auth & self** ||||
 | POST | /organizations (signup: org + owner) | public, rate-limited | ✅ S1 |
 | POST | /auth/login · /auth/logout | public / session | ✅ S1 |
-| GET | /auth/oidc/{idp_id}/start · /auth/oidc/callback | public | S5 |
+| GET | /auth/oidc/providers · /auth/oidc/{idp_id}/start · /auth/oidc/callback | public | ✅ S5 |
 | GET | /me · /me/sessions; DELETE /me/sessions/{id} · /me/permissions | session | ✅ S1/S3 |
 | **Organization** ||||
 | GET/PATCH | /organizations/current | organization:read / :update | ✅ S1 |
@@ -19,16 +19,16 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | CRUD | /workspaces | workspace:create/read/update/archive | S2 |
 | GET/POST/DELETE | /workspaces/{id}/members | workspace:manage_members | S2 |
 | **Identity** ||||
-| GET/PATCH | /users, /users/{id} (status, profile) | user:read / :update | S4 |
-| POST/GET/DELETE | /invitations; POST /invitations/{token}/accept | user:invite | S4 |
-| CRUD | /groups, /groups/{id}/members | group:* | S4 |
-| CRUD | /service-accounts; POST/DELETE /service-accounts/{id}/keys | service_account:* | S4 |
-| CRUD | /identity/providers; POST /identity/providers/{id}/test | identity_provider:* | S5 |
-| CRUD | /identity/providers/{id}/group-mappings | identity_provider:update | S5 |
+| GET/PATCH/DELETE | /users, /users/{id} (membership status; remove from org) | user:read / :update / :remove | ✅ S4 |
+| POST/GET/DELETE | /invitations; GET /invitation-tokens/{token} · POST /invitation-tokens/{token}/accept (public) | user:invite | ✅ S4 |
+| CRUD | /groups, /groups/{id}/members | group:* | ✅ S4 |
+| CRUD | /service-accounts; GET/POST/DELETE /service-accounts/{id}/keys | service_account:* | ✅ S4 |
+| CRUD | /identity/providers; POST /identity/providers/{id}/test | identity_provider:* | ✅ S5 |
+| CRUD | /identity/providers/{id}/group-mappings | identity_provider:update | ✅ S5 |
 | **Authorization** ||||
 | GET | /resource-types | role:read | ✅ S3 |
 | CRUD | /roles (+ permissions in body; PUT replaces) | role:* | ✅ S3 |
-| GET/POST/DELETE | /role-bindings | role:read / role:bind | ✅ S3 |
+| GET/POST/DELETE | /role-bindings (users, groups, service accounts) | role:read / role:bind | ✅ S3/S4 |
 | POST | /authorization/evaluate (simulation, not logged) | authorization:simulate | ✅ S3 |
 | GET | /authorization/decisions | authorization:read_decisions | ✅ S3 |
 | **Audit** ||||

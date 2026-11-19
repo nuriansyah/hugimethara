@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/nuriansyah/hugimethara/backend/internal/api/apigen"
@@ -60,8 +61,35 @@ func NewHTTP(svc *Service, cookies Cookies) *HTTP { return &HTTP{svc: svc, cooki
 
 // Middleware resolves the session cookie into a principal and enforces the
 // CSRF token on state-changing requests made with a session.
+//
+// A request carrying an Authorization header is authenticated by API key only
+// (service accounts). Bearer credentials are never sent automatically by
+// browsers, so those requests need no CSRF token.
 func (h *HTTP) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// The OIDC callback is public and needs the browser-bound flow cookie;
+		// the generated strict handler has no *http.Request, so carry it here.
+		if ck, err := r.Cookie(h.cookies.OIDCStateName()); err == nil && ck.Value != "" {
+			r = r.WithContext(withOIDCStateCookie(r.Context(), ck.Value))
+		}
+		if authz := r.Header.Get("Authorization"); authz != "" {
+			key, ok := strings.CutPrefix(authz, "Bearer ")
+			if !ok {
+				httpx.WriteError(w, r, ErrAPIKeyRejected)
+				return
+			}
+			p, err := h.svc.AuthenticateAPIKey(r.Context(), strings.TrimSpace(key))
+			if errors.Is(err, errInvalidAPIKey) {
+				httpx.WriteError(w, r, ErrAPIKeyRejected)
+				return
+			}
+			if err != nil {
+				httpx.WriteError(w, r, err)
+				return
+			}
+			next.ServeHTTP(w, r.WithContext(principal.With(r.Context(), p)))
+			return
+		}
 		c, err := r.Cookie(h.cookies.SessionName())
 		if err != nil || c.Value == "" {
 			next.ServeHTTP(w, r)

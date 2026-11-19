@@ -203,18 +203,13 @@ func (h *HTTP) RestoreWorkspace(ctx context.Context, req apigen.RestoreWorkspace
 	return apigen.RestoreWorkspace200JSONResponse(apiWorkspace(w)), nil
 }
 
-func apiMembers(ms []Member, workspace bool) []apigen.Member {
+func apiMembers(ms []Member) []apigen.Member {
 	out := make([]apigen.Member, len(ms))
 	for i, m := range ms {
 		roles := m.Roles
 		am := apigen.Member{Id: m.ID, Email: m.Email, DisplayName: m.DisplayName, Status: m.Status, IsOwner: m.IsOwner, Roles: &roles}
-		if workspace {
-			t := m.AddedAt
-			am.AddedAt = &t
-		} else {
-			t := m.JoinedAt
-			am.JoinedAt = &t
-		}
+		t := m.AddedAt
+		am.AddedAt = &t
 		out[i] = am
 	}
 	return out
@@ -225,7 +220,7 @@ func (h *HTTP) ListWorkspaceMembers(ctx context.Context, req apigen.ListWorkspac
 	if err != nil {
 		return nil, err
 	}
-	return apigen.ListWorkspaceMembers200JSONResponse{Data: apiMembers(ms, true)}, nil
+	return apigen.ListWorkspaceMembers200JSONResponse{Data: apiMembers(ms)}, nil
 }
 
 func (h *HTTP) AddWorkspaceMember(ctx context.Context, req apigen.AddWorkspaceMemberRequestObject) (apigen.AddWorkspaceMemberResponseObject, error) {
@@ -243,12 +238,4 @@ func (h *HTTP) RemoveWorkspaceMember(ctx context.Context, req apigen.RemoveWorks
 		return nil, err
 	}
 	return apigen.RemoveWorkspaceMember204Response{}, nil
-}
-
-func (h *HTTP) ListUsers(ctx context.Context, _ apigen.ListUsersRequestObject) (apigen.ListUsersResponseObject, error) {
-	ms, err := h.svc.ListOrgMembers(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return apigen.ListUsers200JSONResponse{Data: apiMembers(ms, false)}, nil
 }

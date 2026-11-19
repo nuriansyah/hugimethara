@@ -52,25 +52,35 @@ func SeedOrganization(ctx context.Context, tx *sqlx.Tx, org, owner uuid.UUID) er
 		return fmt.Errorf("authz: seed permissions: %w", err)
 	}
 	for _, key := range []string{OwnerRoleKey, MemberRoleKey} {
-		if err := insertBindingByKey(ctx, tx, org, owner, key, ScopeRef{Type: ScopeOrg}, uuid.Nil); err != nil {
+		if err := insertBindingByKey(ctx, tx, org, UserRef(owner), key, ScopeRef{Type: ScopeOrg}, uuid.Nil); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func insertBindingByKey(ctx context.Context, tx *sqlx.Tx, org, user uuid.UUID, roleKey string, scope ScopeRef, by uuid.UUID) error {
+func insertBindingByKey(ctx context.Context, tx *sqlx.Tx, org uuid.UUID, who PrincipalRef, roleKey string, scope ScopeRef, by uuid.UUID) error {
 	var role roleRow
 	if err := tx.GetContext(ctx, &role, q.Get("GetRoleByKey"), roleKey); err != nil {
 		return fmt.Errorf("authz: role %s: %w", roleKey, err)
 	}
-	_, err := insertBinding(ctx, tx, org, user, role.ID, scope, by, nil)
+	_, err := insertBinding(ctx, tx, org, who, role.ID, scope, by, nil)
 	return err
 }
 
-func insertBinding(ctx context.Context, tx *sqlx.Tx, org, user, role uuid.UUID, scope ScopeRef, by uuid.UUID, expires *time.Time) (uuid.UUID, error) {
+func insertBinding(ctx context.Context, tx *sqlx.Tx, org uuid.UUID, who PrincipalRef, role uuid.UUID, scope ScopeRef, by uuid.UUID, expires *time.Time) (uuid.UUID, error) {
 	id := uuid.Must(uuid.NewV7())
-	var ws, rt, rid, createdBy, exp any
+	var user, group, sa, ws, rt, rid, createdBy, exp any
+	switch who.Type {
+	case PrincipalUser:
+		user = who.ID
+	case PrincipalGroup:
+		group = who.ID
+	case PrincipalServiceAccount:
+		sa = who.ID
+	default:
+		return uuid.Nil, fmt.Errorf("authz: unknown principal type %q", who.Type)
+	}
 	switch scope.Type {
 	case ScopeWorkspace:
 		ws = scope.WorkspaceID
@@ -83,7 +93,7 @@ func insertBinding(ctx context.Context, tx *sqlx.Tx, org, user, role uuid.UUID, 
 	if expires != nil {
 		exp = *expires
 	}
-	res, err := tx.ExecContext(ctx, q.Get("InsertBinding"), id, org, role, user, scope.Type, ws, rt, rid, createdBy, exp)
+	res, err := tx.ExecContext(ctx, q.Get("InsertBinding"), id, org, role, who.Type, user, group, sa, scope.Type, ws, rt, rid, createdBy, exp)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -370,7 +380,7 @@ func (s *Service) DeleteRole(ctx context.Context, id uuid.UUID) error {
 
 // BindingFilter narrows ListBindings.
 type BindingFilter struct {
-	UserID      uuid.UUID
+	Principal   PrincipalRef // zero = everyone; Type alone filters by kind
 	ScopeType   string
 	WorkspaceID uuid.UUID
 }
@@ -396,7 +406,8 @@ func (s *Service) ListBindings(ctx context.Context, f BindingFilter) ([]Binding,
 	}
 	var rows []bindingRow
 	err = s.tx(ctx, p.OrgID, func(tx *sqlx.Tx) error {
-		return tx.SelectContext(ctx, &rows, q.Get("ListBindings"), nullUUID(f.UserID), nullStr(f.ScopeType), nullUUID(f.WorkspaceID))
+		return tx.SelectContext(ctx, &rows, q.Get("ListBindings"), nullStr(f.Principal.Type), nullUUID(f.Principal.ID),
+			nullStr(f.ScopeType), nullUUID(f.WorkspaceID))
 	})
 	out := make([]Binding, len(rows))
 	for i, r := range rows {
@@ -407,7 +418,7 @@ func (s *Service) ListBindings(ctx context.Context, f BindingFilter) ([]Binding,
 
 // BindingInput assigns a role.
 type BindingInput struct {
-	UserID    uuid.UUID
+	Principal PrincipalRef
 	RoleID    uuid.UUID // or RoleKey
 	RoleKey   string
 	Scope     ScopeRef
@@ -505,10 +516,19 @@ func (s *Service) BindInTx(ctx context.Context, tx *sqlx.Tx, caller principal.Pr
 	if in.ExpiresAt != nil && !in.ExpiresAt.After(time.Now()) {
 		return uuid.Nil, httpx.Validation(httpx.FieldError{Field: "expires_at", Code: "in_past", Message: "Expiry must be in the future."})
 	}
-	id, err := insertBinding(ctx, tx, caller.OrgID, in.UserID, role.ID, in.Scope, caller.ID, in.ExpiresAt)
+	if in.Principal.ID == uuid.Nil {
+		return uuid.Nil, httpx.Validation(httpx.FieldError{Field: "principal", Code: "required", Message: "Choose who gets the role."})
+	}
+	id, err := insertBinding(ctx, tx, caller.OrgID, in.Principal, role.ID, in.Scope, caller.ID, in.ExpiresAt)
 	if db.IsForeignKeyViolation(err) {
-		return uuid.Nil, httpx.Validation(httpx.FieldError{Field: "user_id", Code: "not_a_member",
-			Message: "This user is not a member of the organization (or the workspace does not exist)."})
+		field, msg := "user_id", "This user is not a member of the organization (or the workspace does not exist)."
+		switch in.Principal.Type {
+		case PrincipalGroup:
+			field, msg = "group_id", "This group does not exist (or the workspace does not exist)."
+		case PrincipalServiceAccount:
+			field, msg = "service_account_id", "This service account does not exist (or the workspace does not exist)."
+		}
+		return uuid.Nil, httpx.Validation(httpx.FieldError{Field: field, Code: "not_found", Message: msg})
 	}
 	if err != nil || id == uuid.Nil {
 		return id, err
@@ -517,7 +537,11 @@ func (s *Service) BindInTx(ctx context.Context, tx *sqlx.Tx, caller principal.Pr
 		return uuid.Nil, err
 	}
 	return id, s.audit(ctx, tx, caller.OrgID, "role.assigned", RoleResource, role.ID.String(), map[string]any{
-		"binding_id": id, "user_id": in.UserID, "role": model.Key, "scope": scopeDetails(in.Scope)})
+		"binding_id": id, "principal": principalDetails(in.Principal), "role": model.Key, "scope": scopeDetails(in.Scope)})
+}
+
+func principalDetails(pr PrincipalRef) map[string]any {
+	return map[string]any{"type": pr.Type, "id": pr.ID}
 }
 
 func scopeDetails(sc ScopeRef) map[string]any {
@@ -561,7 +585,7 @@ func (s *Service) DeleteBinding(ctx context.Context, id uuid.UUID) error {
 			return err
 		}
 		return s.audit(ctx, tx, p.OrgID, "role.unassigned", RoleResource, model.RoleID.String(), map[string]any{
-			"binding_id": id, "user_id": model.UserID, "role": model.RoleKey, "scope": scopeDetails(model.Scope)})
+			"binding_id": id, "principal": principalDetails(model.Principal), "role": model.RoleKey, "scope": scopeDetails(model.Scope)})
 	})
 	if err == nil {
 		s.Invalidate(ctx, p.OrgID)
@@ -570,18 +594,73 @@ func (s *Service) DeleteBinding(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s *Service) guardLastOwner(ctx context.Context, tx *sqlx.Tx, b Binding) error {
-	if b.RoleKey != OwnerRoleKey || b.Scope.Type != ScopeOrg {
+	if b.RoleKey != OwnerRoleKey || b.Scope.Type != ScopeOrg || b.Principal.Type != PrincipalUser {
 		return nil
 	}
+	return ensureOwnerRemains(ctx, tx, b.ID, nil)
+}
+
+var errLastOwner = httpx.NewProblem(http.StatusConflict, "last_owner", "Conflict",
+	"An organization needs at least one owner. Make someone else an owner first.")
+
+func ensureOwnerRemains(ctx context.Context, tx *sqlx.Tx, excludeBinding uuid.UUID, excludeUsers []uuid.UUID) error {
+	if excludeUsers == nil {
+		excludeUsers = []uuid.UUID{}
+	}
 	var others int64
-	if err := tx.GetContext(ctx, &others, q.Get("CountOtherOwners"), b.ID); err != nil {
+	if err := tx.GetContext(ctx, &others, q.Get("CountOtherOwners"), excludeBinding, excludeUsers); err != nil {
 		return err
 	}
 	if others == 0 {
-		return httpx.NewProblem(http.StatusConflict, "last_owner", "Conflict",
-			"An organization needs at least one owner. Make someone else an owner first.")
+		return errLastOwner
 	}
 	return nil
+}
+
+// EnsureOwnerRemainsWithout fails with 409 last_owner when no active direct
+// owner would remain once user loses access (removal or suspension).
+func EnsureOwnerRemainsWithout(ctx context.Context, tx *sqlx.Tx, user uuid.UUID) error {
+	return ensureOwnerRemains(ctx, tx, uuid.Nil, []uuid.UUID{user})
+}
+
+// CheckCanHandOut enforces the no-escalation rule for indirect grants: before
+// a user joins a group, the caller must be able to grant every role the group
+// holds, at the scope it holds it.
+func (s *Service) CheckCanHandOut(ctx context.Context, tx *sqlx.Tx, caller principal.Principal, target PrincipalRef) error {
+	var rows []grantRow
+	if err := tx.SelectContext(ctx, &rows, q.Get("PrincipalBindingGrants"), target.Type, target.ID); err != nil {
+		return err
+	}
+	if len(rows) == 0 {
+		return nil
+	}
+	grants, _, err := s.rbac.Grants(ctx, caller)
+	if err != nil {
+		return err
+	}
+	var missing []string
+	for _, r := range rows {
+		g := r.toGrant()
+		if ok, m := CanGrant(grants, []string{g.Permission}, g.Scope); !ok {
+			for _, p := range m {
+				if !slices.Contains(missing, p) {
+					missing = append(missing, p)
+				}
+			}
+		}
+	}
+	if len(missing) > 0 {
+		return escalation(missing)
+	}
+	return nil
+}
+
+// RefOf converts a request principal into a binding principal.
+func RefOf(p principal.Principal) PrincipalRef {
+	if p.Type == principal.ServiceAccount {
+		return PrincipalRef{Type: PrincipalServiceAccount, ID: p.ID}
+	}
+	return UserRef(p.ID)
 }
 
 // RemoveWorkspaceAccessInTx removes all of a user's workspace-scope bindings
@@ -671,7 +750,7 @@ func (s *Service) MyPermissions(ctx context.Context) (Effective, error) {
 
 // Simulate answers "could user U do action A on resource R?" without logging
 // the answer as a real decision (permission authorization:simulate).
-func (s *Service) Simulate(ctx context.Context, user uuid.UUID, action string, res Resource) (AuthorizationDecision, error) {
+func (s *Service) Simulate(ctx context.Context, who PrincipalRef, action string, res Resource) (AuthorizationDecision, error) {
 	p, err := s.require(ctx, "simulate", Resource{Type: AuthorizationResource})
 	if err != nil {
 		return AuthorizationDecision{}, err
@@ -685,7 +764,11 @@ func (s *Service) Simulate(ctx context.Context, user uuid.UUID, action string, r
 			Message: fmt.Sprintf("%s:%s is not a known permission.", res.Type, action)})
 	}
 	res.OrgID = p.OrgID
-	return s.rbac.Check(ctx, AuthorizationInput{Principal: principal.Principal{ID: user, Type: principal.User, OrgID: p.OrgID},
+	kind := principal.User
+	if who.Type == PrincipalServiceAccount {
+		kind = principal.ServiceAccount
+	}
+	return s.rbac.Check(ctx, AuthorizationInput{Principal: principal.Principal{ID: who.ID, Type: kind, OrgID: p.OrgID},
 		Action: action, Resource: res})
 }
 
@@ -694,6 +777,7 @@ type Decision struct {
 	ID             uuid.UUID      `db:"id"`
 	OccurredAt     time.Time      `db:"occurred_at"`
 	PrincipalID    uuid.UUID      `db:"principal_id"`
+	PrincipalType  string         `db:"principal_type"`
 	PrincipalEmail sql.NullString `db:"principal_email"`
 	Action         string         `db:"action"`
 	ResourceType   string         `db:"resource_type"`
@@ -749,12 +833,48 @@ func (s *Service) ListDecisions(ctx context.Context, allowed *bool, page httpx.P
 	return rows, next, nil
 }
 
-// GrantCreatorInTx makes the creator of a workspace its workspace_admin
-// (creation itself was authorized by workspace:create).
-func GrantCreatorInTx(ctx context.Context, tx *sqlx.Tx, org, user, workspace uuid.UUID) error {
-	if err := insertBindingByKey(ctx, tx, org, user, "workspace_admin",
-		ScopeRef{Type: ScopeWorkspace, WorkspaceID: workspace}, user); err != nil {
+// GrantCreatorInTx makes the creator of a workspace (a user or a service
+// account) its workspace_admin (creation itself was authorized by workspace:create).
+func GrantCreatorInTx(ctx context.Context, tx *sqlx.Tx, creator principal.Principal, workspace uuid.UUID) error {
+	if err := insertBindingByKey(ctx, tx, creator.OrgID, RefOf(creator), "workspace_admin",
+		ScopeRef{Type: ScopeWorkspace, WorkspaceID: workspace}, creator.ID); err != nil {
 		return err
 	}
-	return BumpVersion(ctx, tx, org)
+	return BumpVersion(ctx, tx, creator.OrgID)
+}
+
+// CheckGrantRole loads role id and verifies the caller could grant it at
+// scope (no escalation). Used to validate grants that are applied later, such
+// as the roles an invitation hands out when it is accepted.
+func (s *Service) CheckGrantRole(ctx context.Context, tx *sqlx.Tx, caller principal.Principal, roleID uuid.UUID, scope ScopeRef) (Role, error) {
+	var row roleRow
+	if err := tx.GetContext(ctx, &row, q.Get("GetRole"), roleID); err != nil {
+		if db.IsNoRows(err) {
+			return Role{}, httpx.Validation(httpx.FieldError{Field: "role_id", Code: "not_found", Message: "Role not found."})
+		}
+		return Role{}, err
+	}
+	role := row.toModel()
+	grants, _, err := s.rbac.Grants(ctx, caller)
+	if err != nil {
+		return Role{}, err
+	}
+	if ok, missing := CanGrant(grants, role.Permissions, scope); !ok {
+		return Role{}, escalation(missing)
+	}
+	return role, nil
+}
+
+// BindPreauthorizedInTx inserts a binding whose grant was authorized earlier
+// (e.g. by CheckGrantRole when an invitation was created). by is recorded as
+// the creator. Idempotent. The caller bumps the version and invalidates.
+func BindPreauthorizedInTx(ctx context.Context, tx *sqlx.Tx, org uuid.UUID, who PrincipalRef, roleID uuid.UUID, scope ScopeRef, by uuid.UUID) error {
+	_, err := insertBinding(ctx, tx, org, who, roleID, scope, by, nil)
+	return err
+}
+
+// BindRoleKeyInTx is BindPreauthorizedInTx for a role identified by key
+// (e.g. the baseline "member" role every member holds).
+func BindRoleKeyInTx(ctx context.Context, tx *sqlx.Tx, org uuid.UUID, who PrincipalRef, roleKey string, scope ScopeRef, by uuid.UUID) error {
+	return insertBindingByKey(ctx, tx, org, who, roleKey, scope, by)
 }

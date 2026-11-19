@@ -3,6 +3,8 @@ package authz
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/nuriansyah/hugimethara/backend/internal/api/apigen"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/httpx"
 )
@@ -54,7 +56,15 @@ func opt(s string) *string {
 func apiBinding(b Binding) apigen.RoleBinding {
 	out := apigen.RoleBinding{Id: b.ID, Scope: apiScope(b.Scope), CreatedAt: b.CreatedAt, ExpiresAt: b.ExpiresAt,
 		WorkspaceSlug: opt(b.WorkspaceSlug), WorkspaceName: opt(b.WorkspaceName)}
-	out.User.Id, out.User.Email, out.User.DisplayName = b.UserID, b.UserEmail, b.UserName
+	out.Principal.Type, out.Principal.Id, out.Principal.Name = apigen.PrincipalType(b.Principal.Type), b.Principal.ID, b.PrincipalName
+	out.Principal.Email = opt(b.PrincipalEmail)
+	if b.Principal.Type == PrincipalUser {
+		out.User = &struct {
+			DisplayName string    `json:"display_name"`
+			Email       string    `json:"email"`
+			Id          uuid.UUID `json:"id"`
+		}{DisplayName: b.PrincipalName, Email: b.PrincipalEmail, Id: b.Principal.ID}
+	}
 	out.Role.Id, out.Role.Key, out.Role.Name = b.RoleID, b.RoleKey, b.RoleName
 	return out
 }
@@ -141,8 +151,16 @@ func (h *HTTP) DeleteRole(ctx context.Context, req apigen.DeleteRoleRequestObjec
 
 func (h *HTTP) ListRoleBindings(ctx context.Context, req apigen.ListRoleBindingsRequestObject) (apigen.ListRoleBindingsResponseObject, error) {
 	var f BindingFilter
-	if req.Params.UserId != nil {
-		f.UserID = *req.Params.UserId
+	if req.Params.PrincipalType != nil {
+		f.Principal.Type = string(*req.Params.PrincipalType)
+	}
+	switch {
+	case req.Params.UserId != nil:
+		f.Principal = UserRef(*req.Params.UserId)
+	case req.Params.GroupId != nil:
+		f.Principal = PrincipalRef{Type: PrincipalGroup, ID: *req.Params.GroupId}
+	case req.Params.ServiceAccountId != nil:
+		f.Principal = PrincipalRef{Type: PrincipalServiceAccount, ID: *req.Params.ServiceAccountId}
 	}
 	if req.Params.ScopeType != nil {
 		f.ScopeType = string(*req.Params.ScopeType)
@@ -165,7 +183,11 @@ func (h *HTTP) CreateRoleBinding(ctx context.Context, req apigen.CreateRoleBindi
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
-	b, err := h.svc.CreateBinding(ctx, BindingInput{UserID: req.Body.UserId, RoleID: req.Body.RoleId,
+	who, err := principalFrom(req.Body.UserId, req.Body.GroupId, req.Body.ServiceAccountId)
+	if err != nil {
+		return nil, err
+	}
+	b, err := h.svc.CreateBinding(ctx, BindingInput{Principal: who, RoleID: req.Body.RoleId,
 		Scope: fromAPIScope(req.Body.Scope), ExpiresAt: req.Body.ExpiresAt})
 	if err != nil {
 		return nil, err
@@ -189,7 +211,11 @@ func (h *HTTP) EvaluateAccess(ctx context.Context, req apigen.EvaluateAccessRequ
 		ws := *req.Body.WorkspaceId
 		res.WorkspaceID = &ws
 	}
-	d, err := h.svc.Simulate(ctx, req.Body.UserId, req.Body.Action, res)
+	who, err := principalFrom(req.Body.UserId, nil, req.Body.ServiceAccountId)
+	if err != nil {
+		return nil, err
+	}
+	d, err := h.svc.Simulate(ctx, who, req.Body.Action, res)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +244,7 @@ func (h *HTTP) ListAccessDecisions(ctx context.Context, req apigen.ListAccessDec
 	}
 	for i, d := range ds {
 		ld := apigen.LoggedDecision{Id: d.ID, OccurredAt: d.OccurredAt, PrincipalId: d.PrincipalID, Action: d.Action,
-			ResourceType: d.ResourceType, Allowed: d.Allowed, Reason: d.Reason, MatchedRules: d.MatchedRules,
+			ResourceType: d.ResourceType, Allowed: d.Allowed, PrincipalType: ptr(apigen.PrincipalType(d.PrincipalType)), Reason: d.Reason, MatchedRules: d.MatchedRules,
 			PrincipalEmail: opt(d.PrincipalEmail.String), ResourceId: opt(d.ResourceID.String), RequestId: opt(d.RequestID.String)}
 		if ld.MatchedRules == nil {
 			ld.MatchedRules = []string{}
@@ -230,4 +256,25 @@ func (h *HTTP) ListAccessDecisions(ctx context.Context, req apigen.ListAccessDec
 		out.Data[i] = ld
 	}
 	return out, nil
+}
+
+func ptr[T any](v T) *T { return &v }
+
+// principalFrom accepts exactly one principal id.
+func principalFrom(user, group, sa *uuid.UUID) (PrincipalRef, error) {
+	var out []PrincipalRef
+	if user != nil {
+		out = append(out, UserRef(*user))
+	}
+	if group != nil {
+		out = append(out, PrincipalRef{Type: PrincipalGroup, ID: *group})
+	}
+	if sa != nil {
+		out = append(out, PrincipalRef{Type: PrincipalServiceAccount, ID: *sa})
+	}
+	if len(out) != 1 {
+		return PrincipalRef{}, httpx.Validation(httpx.FieldError{Field: "principal", Code: "invalid",
+			Message: "Give exactly one of user_id, group_id or service_account_id."})
+	}
+	return out[0], nil
 }

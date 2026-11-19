@@ -1,17 +1,77 @@
 # Implementation Status
 
-_Last updated: 2026-11-18_
+_Last updated: 2026-11-19_
 
-## Current stage: Phase 1 — S3 Dynamic RBAC (done)
+## Current stage: Phase 1 — S5 OIDC federation (code complete; Keycloak E2E pending)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | ~27% — S0–S3 implemented and integration-tested; compose E2E not yet run |
+| Phase 1 | In progress | ~40% — S0–S5 implemented and integration-tested; compose E2E not yet run |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-19 — S5 OIDC federation
+- **Implemented:** OIDC Authorization Code + PKCE sign-in with Entra ID, Google Workspace, Keycloak and generic
+  presets. Per-organization providers with write-only client secrets sealed AES-256-GCM (`HUGI_MASTER_KEY`,
+  dev fallback), issuer discovery cached per process for 15 minutes, exact redirect URI. Public provider lookup by
+  org slug, SSO start and callback, sealed state cookie (state/nonce/verifier, 10 min) and stable `sso_error`
+  codes. Linking by `(provider, subject)`, JIT provisioning or pre-invited members only; verified-email and
+  allowed-domain checks; an existing account in another tenant is never auto-linked (`account_exists`).
+  Email/name/groups claim mapping; IdP groups sync exactly to mapped groups (mapping omitted `group_id` creates
+  an `idp`-sourced group), escalation-checked via `CheckCanHandOut`, manual edits blocked on IdP groups.
+  Suspended/disabled members are refused; JIT joins are audited (`user.joined`, outbox event).
+- **Database:** `00008_identity_providers` — `identity_providers`, `identity_links`, `group_mappings`, RLS,
+  pre-tenant `SECURITY DEFINER` lookups (`hugi_auth_oidc_provider(s)`, `hugi_auth_user_by_email`,
+  `hugi_auth_identity_link`, `hugi_auth_membership_status`), `identity_provider` resource type and `org_admin`
+  grant. Down migration written.
+- **API:** public `GET /auth/oidc/providers`, `GET /auth/oidc/{id}/start`, `GET /auth/oidc/callback`;
+  `GET/POST /identity/providers`, `GET/PATCH/DELETE /identity/providers/{id}`,
+  `POST /identity/providers/{id}/test`, `GET/POST /identity/providers/{id}/group-mappings`,
+  `DELETE /identity/providers/{id}/group-mappings/{mapping_id}`.
+- **UI:** Settings → Single sign-on provider manager (CRUD, enable/disable, discovery test, redirect URI,
+  claim map, domains, JIT, group mappings) and a "Continue with SSO" flow on the sign-in page with friendly
+  `sso_error` messages.
+- **Tests:** 4 new integration tests with an in-process mock IdP covering provider security/lifecycle, public
+  discovery scoping, JIT login + group sync + suspension + invalid signature, and linking rules (existing member,
+  no account, cross-tenant conflict, email-domain allowlist). Full integration suite (83) and unit suite green;
+  web lint/typecheck green.
+- **Known limitations:** the Keycloak compose `sso` profile and browser E2E have not been run (Docker daemon was
+  unavailable); discovery cache is per process; SAML is reserved but not implemented; SSO-only enforcement and
+  domain-based provider discovery are not built; IdP group sync applies on sign-in, not as a background job.
+
+### 2026-11-19 — S4 Users, groups, invitations, service accounts
+- **Implemented:** invitations by email with an optional org role and per-workspace roles (authorized and
+  escalation-checked at invite time, applied on accept), public invitation preview + accept (session for the
+  invited address, existing password, or new account; single use, expiring, revocable, rate limited); member
+  management (suspend/reactivate ends sessions and access; remove from org; last-owner and self guards); groups
+  with members and role bindings (grants flow to members; adding members requires being able to grant the group's
+  roles); service accounts with API keys (`Authorization: Bearer hugi_…`, hashed, prefix lookup, expiry,
+  revocation, disable) authenticated as `service_account` principals; role bindings, simulation, decision log and
+  audit trail understand all three principal kinds. Workspaces created by a service account make it their admin.
+- **Database:** `00007_groups_invitations_service_accounts` — new tables, `role_bindings.principal_type` +
+  `group_id`/`service_account_id` with a one-principal check, membership views restricted to direct user bindings,
+  `authz_decisions.principal_type`, catalog types `group`/`service_account` and `user:invite|update|remove`
+  (org_admin template and existing system admin roles extended), `hugi_auth_resolve_api_key`,
+  `hugi_auth_invitation_lookup`. Down migration written.
+- **API:** `/users/{id}` (GET/PATCH/DELETE), `/invitations` (+ revoke), `/invitation-tokens/{token}` (+ `/accept`,
+  public), `/groups` (+ members), `/service-accounts` (+ keys); `/role-bindings` takes `group_id` /
+  `service_account_id` and returns `principal`; `/authorization/evaluate` takes `service_account_id`.
+- **UI:** People → Members (status, suspend/remove, invite dialog with workspace roles, one-time link, pending
+  invitations), Groups (CRUD, members), Service accounts (CRUD, enable/disable, keys with one-time secret);
+  `/invite/[token]` accept page; Access assigns roles to members, groups or service accounts.
+- **Tests:** 5 new integration tests (invite → join with workspace role, existing-account and signed-in accept,
+  single use / revoke / expiry / validation, invite escalation; API key auth incl. roles, CSRF-free writes, bad
+  keys, disable/revoke/expiry, cross-tenant, deletion; group-granted access, via-group simulation, group escalation;
+  suspend/remove with last-owner guard and re-invite). Full suite (73) green with `-race`; golangci-lint 0 issues;
+  web lint, typecheck, build green. Browser-checked against the real API: invite → accept as a new account →
+  workspace visible; group membership; key creation with one-time secret; Access table with group assignment.
+- **Known limitations:** invitation links are copied by the inviter (no email until the S6 SMTP connector);
+  workspace member lists show direct members only (group-derived access shows in Access and simulation); the
+  "check access" UI simulates members only (the API also accepts service accounts); no per-plan member quota yet;
+  no self-service profile/password change yet.
 
 ### 2026-11-19 — S3 Dynamic RBAC
 - **Implemented:** roles/permissions as data (catalog of 9 resource types), per-org role templates (owner, admin,
@@ -160,8 +220,8 @@ _Last updated: 2026-11-18_
 | S1 Org bootstrap, sessions, audit | ✅ | integration suite green (local Postgres/Redis) |
 | S2 Workspaces & environments | ✅ (+ paid features) | integration + browser smoke |
 | S3 Dynamic RBAC | ✅ | 8 RBAC integration tests + unit tests; browser check |
-| S4 Users, groups, invitations, service accounts | ☐ | |
-| S5 OIDC federation | ☐ | |
+| S4 Users, groups, invitations, service accounts | ✅ | 5 integration tests + browser check |
+| S5 OIDC federation | ◐ code + tests complete; Keycloak browser E2E pending | 4 integration tests; web UI added |
 | S6 Secrets & connectors | ☐ | |
 | S7 Service registry & API explorer | ☐ | |
 | S8 Mapping engine & studio | ☐ | |
