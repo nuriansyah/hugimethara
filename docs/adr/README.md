@@ -16,3 +16,5 @@ All records below are **Proposed** until the blueprint review; accepting them is
 | [0009](0009-frontend-architecture.md) | Next.js client app, OpenAPI-first contracts | Proposed |
 | [0010](0010-expression-language-cel.md) | CEL for conditions, mapping expressions, policies | Proposed |
 | [0011](0011-secrets-envelope-encryption.md) | Envelope encryption for secrets | Proposed |
+| [0012](0012-data-access-sqlx.md) | sqlx + plain .sql files (replaces sqlc) | Accepted |
+| [0013](0013-entitlements.md) | Plans, paid features and quotas | Accepted |

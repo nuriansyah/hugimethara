@@ -50,7 +50,30 @@ type ScopeResolver interface {
 
 Repositories turn `Scopes` into a SQL predicate (`workspace_id = ANY($1) OR id = ANY($2)`).
 
-## 1a. Interim implementation (S1–S2)
+## 1a. Status
+
+Implemented in S3 (`internal/authz`): `RBAC` (Authorizer + ScopeResolver), `Service` (roles, bindings,
+simulation, effective permissions), version-stamped grant cache, decision log. The S1–S2 `InterimAuthorizer`
+and `org_memberships.is_owner` were removed by migration `00006_rbac` (owners → `org_owner` binding;
+workspace members → workspace-scope bindings: creator `workspace_admin`, others `editor`).
+
+**Workspace membership = holding any workspace-scope binding** in that workspace (one source of truth; per-
+workspace roles). The organization domain reads it through the `workspace_access` and `org_member_roles` views
+(`security_invoker`, so RLS applies) instead of authz's tables.
+
+**Baseline access:** every member receives the `member` role at org scope (organization/department/environment/
+subscription read). It is an ordinary editable role, not hidden logic.
+
+**No escalation (`CanGrant`):** creating or widening a role, or assigning one, requires the caller to hold every
+permission involved at the target scope (wildcards included: only `*:*` covers `*:*`). The last `org_owner`
+binding cannot be removed. Creators of a workspace become its `workspace_admin` automatically.
+
+**Cache:** grants are cached per (org, user) keyed by `organizations.authz_version`. Every role/binding change
+bumps the version in the same transaction and, after commit, drops the Redis stamp `authz:ver:{org}` and local
+entries; other instances re-read the version on their next request. Without Redis the version is read from
+Postgres; cached grants are never trusted longer than 30s (`MaxStaleness`).
+
+## 1b. Interim implementation (S1–S2, removed)
 
 Until S3 lands, `authz.InterimAuthorizer` implements the same contract, deny-by-default:
 tenant mismatch → deny (rendered as 404); organization owner → allow; other members → only an explicit allowlist

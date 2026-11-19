@@ -6,12 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
 
-	"github.com/nuriansyah/hugimethara/backend/internal/audit/auditdb"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
+	"github.com/nuriansyah/hugimethara/backend/internal/entitlement"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/db"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/httpx"
 )
@@ -51,11 +49,11 @@ type cursor struct {
 
 // Service lists audit events for authorized principals.
 type Service struct {
-	pool *pgxpool.Pool
+	pool *sqlx.DB
 	az   authz.Authorizer
 }
 
-func NewService(pool *pgxpool.Pool, az authz.Authorizer) *Service {
+func NewService(pool *sqlx.DB, az authz.Authorizer) *Service {
 	return &Service{pool: pool, az: az}
 }
 
@@ -69,36 +67,31 @@ func (s *Service) List(ctx context.Context, f Filter, page httpx.Page) ([]Entry,
 		return nil, "", err
 	}
 	limit := min(max(page.Limit, 1), httpx.MaxPageLimit)
-	params := auditdb.ListAuditEventsParams{PageLimit: int32(limit + 1)} //nolint:gosec // G115: bounded to 201
-	if f.Action != "" {
-		params.Action = pgtype.Text{String: f.Action, Valid: true}
-	}
-	if f.ActorID != uuid.Nil {
-		params.ActorID = uuid.NullUUID{UUID: f.ActorID, Valid: true}
-	}
-	if f.ResourceType != "" {
-		params.ResourceType = pgtype.Text{String: f.ResourceType, Valid: true}
-	}
-	if !f.Since.IsZero() {
-		params.Since = pgtype.Timestamptz{Time: f.Since, Valid: true}
-	}
-	if !f.Until.IsZero() {
-		params.Until = pgtype.Timestamptz{Time: f.Until, Valid: true}
-	}
+	var curT, curID any
 	if page.Cursor != "" {
 		var c cursor
 		if err := httpx.DecodeCursor(page.Cursor, &c); err != nil {
 			return nil, "", err
 		}
-		params.CursorTime = pgtype.Timestamptz{Time: c.T, Valid: true}
-		params.CursorID = uuid.NullUUID{UUID: c.ID, Valid: true}
+		curT, curID = c.T, c.ID
 	}
 
-	var rows []auditdb.ListAuditEventsRow
-	err := db.InTenantTx(ctx, s.pool, p, func(tx pgx.Tx) error {
-		var err error
-		rows, err = auditdb.New(tx).ListAuditEvents(ctx, params)
-		return err
+	var rows []eventRow
+	err := db.InTenantTx(ctx, s.pool, p, func(tx *sqlx.Tx) error {
+		// The plan decides how far back the log can be viewed.
+		ent, err := entitlement.Load(ctx, tx, p)
+		if err != nil {
+			return err
+		}
+		if days, limited := ent.Limit(entitlement.AuditLogRetentionDays); limited {
+			floor := time.Now().Add(-time.Duration(days) * 24 * time.Hour)
+			if f.Since.Before(floor) {
+				f.Since = floor
+			}
+		}
+		return tx.SelectContext(ctx, &rows, q.Get("ListAuditEvents"),
+			nullStr(f.Action), nullUUID(f.ActorID), nullStr(f.ResourceType), nullTime(f.Since), nullTime(f.Until),
+			curT, curID, limit+1)
 	})
 	if err != nil {
 		return nil, "", err
@@ -108,12 +101,12 @@ func (s *Service) List(ctx context.Context, f Filter, page httpx.Page) ([]Entry,
 	if len(rows) > limit {
 		rows = rows[:limit]
 		last := rows[len(rows)-1]
-		next, _ = httpx.EncodeCursor(cursor{T: last.OccurredAt.Time, ID: last.ID})
+		next, _ = httpx.EncodeCursor(cursor{T: last.OccurredAt, ID: last.ID})
 	}
 	out := make([]Entry, len(rows))
 	for i, r := range rows {
 		e := Entry{
-			ID: r.ID, OccurredAt: r.OccurredAt.Time, ActorType: r.ActorType, ActorEmail: r.ActorEmail.String,
+			ID: r.ID, OccurredAt: r.OccurredAt, ActorType: r.ActorType, ActorEmail: r.ActorEmail.String,
 			Action: r.Action, ResourceType: r.ResourceType, ResourceID: r.ResourceID.String,
 			Outcome: r.Outcome, RequestID: r.RequestID.String,
 		}
@@ -125,9 +118,7 @@ func (s *Service) List(ctx context.Context, f Filter, page httpx.Page) ([]Entry,
 			id := r.WorkspaceID.UUID
 			e.WorkspaceID = &id
 		}
-		if r.Ip != nil {
-			e.IP = r.Ip.String()
-		}
+		e.IP = r.IP.String
 		_ = json.Unmarshal(r.Details, &e.Details)
 		out[i] = e
 	}

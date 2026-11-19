@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/jmoiron/sqlx"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -39,7 +39,7 @@ func TestRelayPublishesCommittedEventsExactlyOncePerRow(t *testing.T) {
 	pg.CreateOrg(t, org)
 	const total = 120
 	reqCtx := logging.WithRequestID(ctx, "req-relay-test")
-	require.NoError(t, db.InTenantTx(reqCtx, pg.App, org, func(tx pgx.Tx) error {
+	require.NoError(t, db.InTenantTx(reqCtx, pg.App, org, func(tx *sqlx.Tx) error {
 		for i := range total {
 			if _, err := event.Publish(reqCtx, tx, event.Event{
 				OrgID: org, Subject: "hugi.events.test.created", Payload: map[string]int{"n": i},
@@ -50,7 +50,7 @@ func TestRelayPublishesCommittedEventsExactlyOncePerRow(t *testing.T) {
 		return nil
 	}))
 	// A rolled-back transaction must never be relayed.
-	_ = db.InTenantTx(ctx, pg.App, org, func(tx pgx.Tx) error {
+	_ = db.InTenantTx(ctx, pg.App, org, func(tx *sqlx.Tx) error {
 		_, _ = event.Publish(ctx, tx, event.Event{OrgID: org, Subject: "hugi.events.test.rolledback", Payload: 0})
 		return io.ErrUnexpectedEOF
 	})
@@ -81,7 +81,7 @@ func TestRelayPublishesCommittedEventsExactlyOncePerRow(t *testing.T) {
 	require.EqualValues(t, total, info.State.Msgs, "each committed row published once")
 
 	var pending int
-	require.NoError(t, pg.System.QueryRow(ctx, "SELECT count(*) FROM outbox WHERE sent_at IS NULL").Scan(&pending))
+	require.NoError(t, pg.System.GetContext(ctx, &pending, "SELECT count(*) FROM outbox WHERE sent_at IS NULL"))
 	require.Zero(t, pending)
 
 	// Headers carry tenant and correlation for consumers.

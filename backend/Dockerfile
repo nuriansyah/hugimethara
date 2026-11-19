@@ -11,7 +11,7 @@ ARG COMMIT=unknown
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
     LDFLAGS="-s -w -X github.com/nuriansyah/hugimethara/backend/internal/platform/buildinfo.Version=${VERSION} \
              -X github.com/nuriansyah/hugimethara/backend/internal/platform/buildinfo.Commit=${COMMIT}" && \
-    go build -ldflags "$LDFLAGS" -o /out/ ./cmd/hugi-api ./cmd/hugi-worker ./cmd/hugi-migrate
+    go build -ldflags "$LDFLAGS" -o /out/ ./cmd/hugi-api ./cmd/hugi-worker ./cmd/hugi-migrate ./cmd/hugi-admin
 
 FROM gcr.io/distroless/static-debian12:nonroot
 COPY --from=build /out/ /usr/local/bin/

@@ -28,3 +28,11 @@ export function safeNext(next: string | null | undefined): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return "/";
   return next;
 }
+
+/**
+ * For dialogs that contain forms: ignore clicks and focus moves outside the
+ * dialog so typed input is never lost by accident (Escape and Cancel still close).
+ */
+export function keepOpen(e: Event) {
+  e.preventDefault();
+}

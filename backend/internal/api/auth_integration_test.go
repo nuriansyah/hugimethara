@@ -16,12 +16,14 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 
 	"github.com/nuriansyah/hugimethara/backend/internal/api"
 	"github.com/nuriansyah/hugimethara/backend/internal/audit"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
+	"github.com/nuriansyah/hugimethara/backend/internal/entitlement"
 	"github.com/nuriansyah/hugimethara/backend/internal/identity"
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/health"
@@ -43,8 +45,11 @@ func setup(t *testing.T) *env {
 	t.Helper()
 	pg := testsupport.StartPostgres(t)
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
-	az := authz.InterimAuthorizer{}
-	orgs := organization.NewService(pg.App, az)
+	az := authz.NewRBAC(pg.App, nil, log)
+	acl := authz.NewService(pg.App, az, func(ctx context.Context, tx *sqlx.Tx, org uuid.UUID, action, rt, rid string, details map[string]any) error {
+		return audit.Record(ctx, tx, audit.Event{OrgID: org, Action: action, ResourceType: rt, ResourceID: rid, Details: details})
+	})
+	orgs := organization.NewService(pg.App, az, acl)
 	ids := identity.NewService(pg.App, orgs, az, nil, log, identity.Config{
 		Hasher: identity.NewHasher(testArgon), MaxFailedLogins: 3,
 	})
@@ -53,11 +58,21 @@ func setup(t *testing.T) *env {
 		Identity:     identity.NewHTTP(ids, identity.Cookies{Secure: false}),
 		Organization: organization.NewHTTP(orgs),
 		Audit:        audit.NewHTTP(audit.NewService(pg.App, az)),
+		Entitlement:  entitlement.NewHTTP(entitlement.NewService(pg.App, az, usage())),
+		Access:       authz.NewHTTP(acl),
 	})
 	require.NoError(t, err)
 	srv := httptest.NewServer(router)
 	t.Cleanup(srv.Close)
 	return &env{t: t, pg: pg, srv: srv}
+}
+
+func usage() map[string]entitlement.UsageFunc {
+	out := map[string]entitlement.UsageFunc{}
+	for k, fn := range organization.UsageCounters() {
+		out[k] = fn
+	}
+	return out
 }
 
 // client is a browser-like client with its own cookie jar.
@@ -209,10 +224,10 @@ func TestSignupValidationAndConflicts(t *testing.T) {
 	// Failed signups left nothing behind: no orphan orgs, users, audit or outbox rows.
 	var orgs, users, audits, outbox int
 	ctx := context.Background()
-	require.NoError(t, e.pg.Owner.QueryRow(ctx, `SELECT
+	require.NoError(t, e.pg.Owner.QueryRowContext(ctx, `SELECT
 		(SELECT count(*) FROM organizations), (SELECT count(*) FROM users),
 		(SELECT count(*) FROM audit_events), (SELECT count(*) FROM outbox)`).Scan(&orgs, &users, &audits, &outbox))
-	require.Equal(t, []int{1, 1, 2, 1}, []int{orgs, users, audits, outbox})
+	require.Equal(t, []int{1, 1, 2, 1}, []int{orgs, users, audits, outbox}, "orgs, users, audit rows, outbox rows")
 }
 
 func TestLoginFailuresLockoutAndAudit(t *testing.T) {
@@ -245,7 +260,7 @@ func TestLoginFailuresLockoutAndAudit(t *testing.T) {
 	require.Equal(t, 4, failures, "3 wrong passwords + 1 attempt while locked")
 
 	// Lockout expires.
-	_, err := e.pg.Owner.Exec(context.Background(), `UPDATE user_credentials SET locked_until = now() - interval '1 second'`)
+	_, err := e.pg.Owner.ExecContext(context.Background(), `UPDATE user_credentials SET locked_until = now() - interval '1 second'`)
 	require.NoError(t, err)
 	require.Equal(t, 200, e.client().do("POST", base+"/auth/login", good, false).Status)
 }
@@ -254,10 +269,11 @@ func TestMultiOrgLoginRequiresChoice(t *testing.T) {
 	e := setup(t)
 	require.Equal(t, 201, e.client().do("POST", base+"/organizations", signupBody("org-one", "carol@multi.test"), false).Status)
 	require.Equal(t, 201, e.client().do("POST", base+"/organizations", signupBody("org-two", "dave@multi.test"), false).Status)
-	// Fixture: carol is also a (non-owner) member of org-two.
-	_, err := e.pg.Owner.Exec(context.Background(), `INSERT INTO org_memberships (org_id, user_id)
+	// Fixture: carol is also a (non-owner) member of org-two (invitations arrive in S4).
+	_, err := e.pg.Owner.ExecContext(context.Background(), `INSERT INTO org_memberships (org_id, user_id)
 		SELECT o.id, u.id FROM organizations o, users u WHERE o.slug = 'org-two' AND u.email = 'carol@multi.test'`)
 	require.NoError(t, err)
+	bindMemberRole(t, e, "org-two", "carol@multi.test")
 
 	creds := map[string]any{"email": "carol@multi.test", "password": "correct horse battery"}
 	r := e.client().do("POST", base+"/auth/login", creds, false)
@@ -326,7 +342,19 @@ func TestSessionManagementAndExpiry(t *testing.T) {
 	require.Equal(t, 404, laptop.do("DELETE", base+"/me/sessions/"+uuid.NewString(), nil, true).Status)
 
 	// Idle expiry is enforced server-side.
-	_, err := e.pg.Owner.Exec(context.Background(), `UPDATE sessions SET idle_expires_at = now() - interval '1 second'`)
+	_, err := e.pg.Owner.ExecContext(context.Background(), `UPDATE sessions SET idle_expires_at = now() - interval '1 second'`)
 	require.NoError(t, err)
 	require.Equal(t, 401, laptop.do("GET", base+"/me", nil, false).Status)
+}
+
+// bindMemberRole gives a fixture user the baseline "member" role, as
+// invitations will in S4.
+func bindMemberRole(t *testing.T, e *env, orgSlug, email string) {
+	t.Helper()
+	_, err := e.pg.Owner.ExecContext(context.Background(), `INSERT INTO role_bindings (org_id, role_id, user_id, scope_type)
+		SELECT o.id, r.id, u.id, 'org' FROM organizations o
+		JOIN roles r ON r.org_id = o.id AND r.key = 'member'
+		JOIN users u ON u.email = $2
+		WHERE o.slug = $1`, orgSlug, email)
+	require.NoError(t, err)
 }

@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 
@@ -20,11 +21,11 @@ import (
 
 func TestFixedWindowLimit(t *testing.T) {
 	ctx := context.Background()
-	rdb, err := cache.Open(ctx, testsupport.StartRedis(t))
+	rdb, err := cache.Open(ctx, testsupport.RedisURL(t))
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = rdb.Close() })
 	l := ratelimit.New(rdb, slog.New(slog.NewTextHandler(io.Discard, nil)))
-	rule := ratelimit.Rule{Name: "test", Max: 3, Window: time.Minute}
+	rule := ratelimit.Rule{Name: "test-" + uuid.NewString(), Max: 3, Window: time.Minute} // unique per run: Redis may be shared
 
 	for range 3 {
 		require.NoError(t, l.Allow(ctx, rule, "k1"))

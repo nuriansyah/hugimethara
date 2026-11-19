@@ -21,6 +21,12 @@ tags:
     description: The caller's organization and its settings.
   - name: audit
     description: Organization audit trail.
+  - name: workspace
+    description: Workspaces, departments, environments and membership.
+  - name: billing
+    description: Plans, paid features and quotas.
+  - name: access
+    description: Roles, permissions, role assignments and access checks (RBAC).
 paths:
   /healthz:
     get:
@@ -232,6 +238,613 @@ paths:
         "403": { $ref: "#/components/responses/Problem" }
         "422": { $ref: "#/components/responses/Problem" }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/departments:
+    get:
+      tags: [workspace]
+      operationId: listDepartments
+      summary: List departments
+      description: "Permission: department:read."
+      responses:
+        "200":
+          description: All departments.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Department" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [workspace]
+      operationId: createDepartment
+      summary: Create a department
+      description: "Permission: department:create. May return 402 when the plan does not allow it."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DepartmentCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Department" }
+        "402": { $ref: "#/components/responses/PlanProblem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/departments/{department_id}:
+    parameters:
+      - { name: department_id, in: path, required: true, schema: { type: string, format: uuid } }
+    patch:
+      tags: [workspace]
+      operationId: updateDepartment
+      summary: Update a department
+      description: "Permission: department:update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DepartmentUpdate" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Department" }
+        "402": { $ref: "#/components/responses/PlanProblem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [workspace]
+      operationId: deleteDepartment
+      summary: Delete a department
+      description: "Permission: department:delete."
+      responses:
+        "204": { description: Deleted. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/environments:
+    get:
+      tags: [workspace]
+      operationId: listEnvironments
+      summary: List environments
+      description: "Permission: environment:read."
+      responses:
+        "200":
+          description: All environments.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Environment" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [workspace]
+      operationId: createEnvironment
+      summary: Create a environment
+      description: "Permission: environment:create. May return 402 when the plan does not allow it."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EnvironmentCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Environment" }
+        "402": { $ref: "#/components/responses/PlanProblem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/environments/{environment_id}:
+    parameters:
+      - { name: environment_id, in: path, required: true, schema: { type: string, format: uuid } }
+    patch:
+      tags: [workspace]
+      operationId: updateEnvironment
+      summary: Update a environment
+      description: "Permission: environment:update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EnvironmentUpdate" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Environment" }
+        "402": { $ref: "#/components/responses/PlanProblem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [workspace]
+      operationId: deleteEnvironment
+      summary: Delete a environment
+      description: "Permission: environment:delete."
+      responses:
+        "204": { description: Deleted. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/workspaces:
+    get:
+      tags: [workspace]
+      operationId: listWorkspaces
+      summary: Workspaces visible to the caller
+      description: Owners see every workspace; members see the workspaces they belong to.
+      parameters:
+        - { name: include_archived, in: query, schema: { type: boolean, default: false } }
+      responses:
+        "200":
+          description: Workspaces.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Workspace" }
+        "401": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [workspace]
+      operationId: createWorkspace
+      summary: Create a workspace (the creator becomes its first member)
+      description: "Permission: workspace:create. Counts against the plan's workspace quota (402 when reached)."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkspaceCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "402": { $ref: "#/components/responses/PlanProblem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/workspaces/{workspace}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceSlug"
+    get:
+      tags: [workspace]
+      operationId: getWorkspace
+      summary: A workspace by its address
+      description: "Permission: workspace:read (members of the workspace, or org-wide). Others get 404."
+      responses:
+        "200":
+          description: The workspace.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [workspace]
+      operationId: updateWorkspace
+      summary: Update a workspace
+      description: "Permission: workspace:update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkspaceUpdate" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "402": { $ref: "#/components/responses/PlanProblem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/workspaces/{workspace}/archive:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceSlug"
+    post:
+      tags: [workspace]
+      operationId: archiveWorkspace
+      summary: Archive a workspace (frees a slot in the workspace quota)
+      description: "Permission: workspace:archive."
+      responses:
+        "200":
+          description: Archived.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/workspaces/{workspace}/restore:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceSlug"
+    post:
+      tags: [workspace]
+      operationId: restoreWorkspace
+      summary: Restore an archived workspace
+      description: "Permission: workspace:archive. Counts against the workspace quota (402 when full)."
+      responses:
+        "200":
+          description: Restored.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Workspace" }
+        "402": { $ref: "#/components/responses/PlanProblem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/workspaces/{workspace}/members:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceSlug"
+    get:
+      tags: [workspace]
+      operationId: listWorkspaceMembers
+      summary: Members of a workspace
+      description: "Permission: workspace:read."
+      responses:
+        "200":
+          description: Members.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Member" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [workspace]
+      operationId: addWorkspaceMember
+      summary: Add an organization member to the workspace (idempotent)
+      description: "Permission: workspace:manage_members."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_id]
+              properties:
+                user_id: { type: string, format: uuid }
+                role_key: { type: string, description: "Workspace role to grant (default editor).", maxLength: 40 }
+      responses:
+        "204": { description: The user is a member. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/workspaces/{workspace}/members/{user_id}:
+    parameters:
+      - $ref: "#/components/parameters/WorkspaceSlug"
+      - { name: user_id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [workspace]
+      operationId: removeWorkspaceMember
+      summary: Remove a user from the workspace
+      description: "Permission: workspace:manage_members."
+      responses:
+        "204": { description: Removed. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/users:
+    get:
+      tags: [workspace]
+      operationId: listUsers
+      summary: Members of the organization
+      description: "Permission: user:read. (Full user management arrives in S4.)"
+      responses:
+        "200":
+          description: Organization members.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Member" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/entitlements:
+    get:
+      tags: [billing]
+      operationId: getEntitlements
+      summary: The organization's plan, paid features, quotas and usage
+      description: "Permission: subscription:read."
+      responses:
+        "200":
+          description: Effective entitlements.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Entitlements" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/plans:
+    get:
+      tags: [billing]
+      operationId: listPlans
+      summary: Plan catalog for comparison
+      responses:
+        "200":
+          description: Plans with their entitlements.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data, features]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Plan" }
+                  features:
+                    type: array
+                    items: { $ref: "#/components/schemas/FeatureDefinition" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/me/permissions:
+    get:
+      tags: [access]
+      operationId: getMyPermissions
+      summary: The caller's effective permissions (for UI gating; the API still authorizes every call)
+      responses:
+        "200":
+          description: Concrete permissions at organization scope and per workspace.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EffectivePermissions" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/resource-types:
+    get:
+      tags: [access]
+      operationId: listResourceTypes
+      summary: Permission catalog (resource types and actions)
+      description: "Permission: role:read."
+      responses:
+        "200":
+          description: Catalog.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ResourceType" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/roles:
+    get:
+      tags: [access]
+      operationId: listRoles
+      summary: Roles of the organization
+      description: "Permission: role:read."
+      responses:
+        "200":
+          description: Roles with permissions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Role" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [access]
+      operationId: createRole
+      summary: Create a custom role
+      description: "Permission: role:create. You can only include permissions you hold at organization scope."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RoleCreate" }
+      responses:
+        "201":
+          description: Created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Role" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/roles/{role_id}:
+    parameters:
+      - { name: role_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [access]
+      operationId: getRole
+      summary: A role
+      responses:
+        "200":
+          description: The role.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Role" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    put:
+      tags: [access]
+      operationId: updateRole
+      summary: Replace a role's name, description and permissions
+      description: "Permission: role:update. Added permissions must be ones you hold. Immutable roles keep their permissions."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RoleUpdate" }
+      responses:
+        "200":
+          description: Updated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Role" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [access]
+      operationId: deleteRole
+      summary: Delete an unused custom role
+      description: "Permission: role:delete."
+      responses:
+        "204": { description: Deleted. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/role-bindings:
+    get:
+      tags: [access]
+      operationId: listRoleBindings
+      summary: Role assignments
+      description: "Permission: role:read."
+      parameters:
+        - { name: user_id, in: query, schema: { type: string, format: uuid } }
+        - { name: scope_type, in: query, schema: { type: string, enum: [org, workspace, resource] } }
+        - { name: workspace_id, in: query, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Assignments.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/RoleBinding" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [access]
+      operationId: createRoleBinding
+      summary: Assign a role to a member at a scope
+      description: "Permission: role:bind at the target scope; the role's permissions must all be held by you there."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RoleBindingCreate" }
+      responses:
+        "201":
+          description: Assigned.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RoleBinding" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/role-bindings/{binding_id}:
+    parameters:
+      - { name: binding_id, in: path, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [access]
+      operationId: deleteRoleBinding
+      summary: Remove a role assignment (the last owner cannot be removed)
+      description: "Permission: role:bind at the assignment's scope."
+      responses:
+        "204": { description: Removed. }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "409": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/authorization/evaluate:
+    post:
+      tags: [access]
+      operationId: evaluateAccess
+      summary: Check whether a member could perform an action (simulation; not logged as a decision)
+      description: "Permission: authorization:simulate."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EvaluateRequest" }
+      responses:
+        "200":
+          description: The decision.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AccessDecision" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/authorization/decisions:
+    get:
+      tags: [access]
+      operationId: listAccessDecisions
+      summary: Logged authorization decisions (every denial and sensitive allow), newest first
+      description: "Permission: authorization:read_decisions."
+      parameters:
+        - { name: allowed, in: query, schema: { type: boolean } }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/Cursor" }
+      responses:
+        "200":
+          description: One page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/LoggedDecision" }
+                  next_cursor: { type: string }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
 components:
   securitySchemes:
     sessionCookie:
@@ -242,6 +855,12 @@ components:
         Session cookie set by login/signup (`__Host-hugi_session` when served over HTTPS).
         State-changing requests must also send `X-CSRF-Token` with the value of the `hugi_csrf` cookie.
   parameters:
+    WorkspaceSlug:
+      name: workspace
+      in: path
+      required: true
+      description: Workspace address (slug).
+      schema: { type: string, maxLength: 40 }
     Limit:
       name: limit
       in: query
@@ -251,6 +870,11 @@ components:
       in: query
       schema: { type: string, maxLength: 512 }
   responses:
+    PlanProblem:
+      description: The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached).
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/PlanProblem" }
     Problem:
       description: Error (RFC 9457 problem details).
       content:
@@ -277,6 +901,288 @@ components:
         field: { type: string }
         code: { type: string }
         message: { type: string }
+    PlanProblem:
+      allOf:
+        - $ref: "#/components/schemas/Problem"
+        - type: object
+          required: [feature, plan]
+          properties:
+            feature: { type: string }
+            plan: { type: string }
+            limit: { type: integer, format: int64 }
+            current: { type: integer, format: int64 }
+    Department:
+      type: object
+      required: [id, slug, name, description, workspace_count, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+        workspace_count: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    DepartmentCreate:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string, maxLength: 40 }
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+    DepartmentUpdate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+    Environment:
+      type: object
+      required: [id, slug, name, is_production, egress_allowlist, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        is_production: { type: boolean }
+        egress_allowlist:
+          type: array
+          description: Internal CIDR ranges outbound calls may reach (paid feature).
+          items: { type: string }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    EnvironmentCreate:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string, maxLength: 40 }
+        name: { type: string, maxLength: 100 }
+        is_production: { type: boolean }
+        egress_allowlist: { type: array, maxItems: 100, items: { type: string, maxLength: 64 } }
+    EnvironmentUpdate:
+      type: object
+      required: [name, is_production]
+      properties:
+        name: { type: string, maxLength: 100 }
+        is_production: { type: boolean }
+        egress_allowlist: { type: array, maxItems: 100, items: { type: string, maxLength: 64 } }
+    Workspace:
+      type: object
+      required: [id, slug, name, description, member_count, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+        department_id: { type: string, format: uuid }
+        department_name: { type: string }
+        archived_at: { type: string, format: date-time }
+        member_count: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    WorkspaceCreate:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string, maxLength: 40 }
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+        department_id: { type: string, format: uuid, nullable: true }
+    WorkspaceUpdate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+        department_id: { type: string, format: uuid, nullable: true }
+    Member:
+      type: object
+      required: [id, email, display_name, status, is_owner]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        display_name: { type: string }
+        status: { type: string }
+        is_owner: { type: boolean }
+        roles:
+          type: array
+          description: Role keys (organization-level in /users, workspace-level in workspace member lists).
+          items: { type: string }
+        joined_at: { type: string, format: date-time }
+        added_at: { type: string, format: date-time }
+    FeatureDefinition:
+      type: object
+      required: [key, name, description, kind, unit]
+      properties:
+        key: { type: string }
+        name: { type: string }
+        description: { type: string }
+        kind: { type: string, enum: [flag, limit] }
+        unit: { type: string }
+    EntitlementFeature:
+      allOf:
+        - $ref: "#/components/schemas/FeatureDefinition"
+        - type: object
+          required: [enabled, overridden]
+          properties:
+            enabled: { type: boolean }
+            limit: { type: integer, format: int64, description: "Absent = unlimited (limit features)." }
+            used: { type: integer, format: int64 }
+            overridden: { type: boolean, description: "Granted specifically for this organization." }
+    Entitlements:
+      type: object
+      required: [plan, status, features]
+      properties:
+        plan:
+          type: object
+          required: [key, name]
+          properties:
+            key: { type: string }
+            name: { type: string }
+        status: { type: string, enum: [active, trialing, past_due, canceled] }
+        current_period_end: { type: string, format: date-time }
+        features:
+          type: array
+          items: { $ref: "#/components/schemas/EntitlementFeature" }
+    Plan:
+      type: object
+      required: [key, name, description, currency, entitlements]
+      properties:
+        key: { type: string }
+        name: { type: string }
+        description: { type: string }
+        price_monthly_cents: { type: integer, format: int64, description: "Absent = custom pricing." }
+        currency: { type: string }
+        entitlements:
+          type: object
+          additionalProperties:
+            type: object
+            required: [enabled]
+            properties:
+              enabled: { type: boolean }
+              limit: { type: integer, format: int64 }
+    EffectivePermissions:
+      type: object
+      required: [organization, workspaces]
+      properties:
+        organization:
+          type: array
+          description: Permissions that apply everywhere in the organization.
+          items: { type: string }
+        workspaces:
+          type: object
+          description: Extra permissions per workspace id (from workspace roles).
+          additionalProperties:
+            type: array
+            items: { type: string }
+    ResourceType:
+      type: object
+      required: [type, description, actions, sensitive_actions]
+      properties:
+        type: { type: string }
+        description: { type: string }
+        actions: { type: array, items: { type: string } }
+        sensitive_actions: { type: array, items: { type: string } }
+    Role:
+      type: object
+      required: [id, key, name, description, is_system, immutable, permissions, binding_count, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string }
+        name: { type: string }
+        description: { type: string }
+        is_system: { type: boolean }
+        immutable: { type: boolean }
+        permissions: { type: array, items: { type: string } }
+        binding_count: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    RoleCreate:
+      type: object
+      required: [key, name, permissions]
+      properties:
+        key: { type: string, maxLength: 40 }
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+        permissions: { type: array, maxItems: 200, items: { type: string, maxLength: 80 } }
+    RoleUpdate:
+      type: object
+      required: [name, permissions]
+      properties:
+        name: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 500 }
+        permissions: { type: array, maxItems: 200, items: { type: string, maxLength: 80 } }
+    BindingScope:
+      type: object
+      required: [type]
+      properties:
+        type: { type: string, enum: [org, workspace, resource] }
+        workspace_id: { type: string, format: uuid }
+        resource_type: { type: string }
+        resource_id: { type: string, maxLength: 200 }
+    RoleBinding:
+      type: object
+      required: [id, user, role, scope, created_at]
+      properties:
+        id: { type: string, format: uuid }
+        user:
+          type: object
+          required: [id, email, display_name]
+          properties:
+            id: { type: string, format: uuid }
+            email: { type: string }
+            display_name: { type: string }
+        role:
+          type: object
+          required: [id, key, name]
+          properties:
+            id: { type: string, format: uuid }
+            key: { type: string }
+            name: { type: string }
+        scope: { $ref: "#/components/schemas/BindingScope" }
+        workspace_slug: { type: string }
+        workspace_name: { type: string }
+        created_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+    RoleBindingCreate:
+      type: object
+      required: [user_id, role_id, scope]
+      properties:
+        user_id: { type: string, format: uuid }
+        role_id: { type: string, format: uuid }
+        scope: { $ref: "#/components/schemas/BindingScope" }
+        expires_at: { type: string, format: date-time }
+    EvaluateRequest:
+      type: object
+      required: [user_id, resource_type, action]
+      properties:
+        user_id: { type: string, format: uuid }
+        resource_type: { type: string }
+        action: { type: string }
+        resource_id: { type: string, maxLength: 200 }
+        workspace_id: { type: string, format: uuid }
+    AccessDecision:
+      type: object
+      required: [allowed, reason, matched_rules, policy_version]
+      properties:
+        allowed: { type: boolean }
+        reason: { type: string }
+        matched_rules: { type: array, items: { type: string } }
+        policy_version: { type: integer, format: int64 }
+    LoggedDecision:
+      type: object
+      required: [id, occurred_at, principal_id, action, resource_type, allowed, reason, matched_rules]
+      properties:
+        id: { type: string, format: uuid }
+        occurred_at: { type: string, format: date-time }
+        principal_id: { type: string, format: uuid }
+        principal_email: { type: string }
+        action: { type: string }
+        resource_type: { type: string }
+        resource_id: { type: string }
+        workspace_id: { type: string, format: uuid }
+        allowed: { type: boolean }
+        reason: { type: string }
+        matched_rules: { type: array, items: { type: string } }
+        request_id: { type: string }
     SignupRequest:
       type: object
       required: [organization_name, organization_slug, display_name, email, password]
@@ -287,7 +1193,7 @@ components:
           pattern: "^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$"
           example: acme-id
         display_name: { type: string, minLength: 1, maxLength: 100 }
-        email: { type: string, format: email, maxLength: 254 }
+        email: { type: string, maxLength: 254, description: "Validated server-side; invalid addresses return a field error." }
         password: { type: string, minLength: 12, maxLength: 128, format: password }
     LoginRequest:
       type: object

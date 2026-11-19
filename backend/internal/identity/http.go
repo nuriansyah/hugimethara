@@ -132,7 +132,7 @@ func (h *HTTP) CreateOrganization(ctx context.Context, req apigen.CreateOrganiza
 	}
 	g, err := h.svc.Signup(ctx, SignupInput{
 		OrganizationName: req.Body.OrganizationName, OrganizationSlug: req.Body.OrganizationSlug,
-		DisplayName: req.Body.DisplayName, Email: string(req.Body.Email), Password: req.Body.Password,
+		DisplayName: req.Body.DisplayName, Email: req.Body.Email, Password: req.Body.Password,
 	})
 	if err != nil {
 		return nil, err

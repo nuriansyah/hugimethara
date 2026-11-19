@@ -18,13 +18,10 @@ const (
 
 // Principal is an authenticated actor bound to exactly one organization.
 type Principal struct {
-	ID        uuid.UUID
-	Type      Type
-	OrgID     uuid.UUID
-	SessionID uuid.UUID // zero for API-key principals
-	// IsOwner is interim until S3 RBAC: owners hold every permission in their
-	// org. S3 replaces it with role bindings evaluated by authz.
-	IsOwner    bool
+	ID         uuid.UUID
+	Type       Type
+	OrgID      uuid.UUID
+	SessionID  uuid.UUID // zero for API-key principals
 	Groups     []uuid.UUID
 	Attributes map[string]any
 }

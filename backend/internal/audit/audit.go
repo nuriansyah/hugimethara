@@ -11,11 +11,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
 
-	"github.com/nuriansyah/hugimethara/backend/internal/audit/auditdb"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/db"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/httpx"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/logging"
@@ -49,7 +46,7 @@ type Event struct {
 }
 
 // Record inserts e using tx, which must be bound to e.OrgID.
-func Record(ctx context.Context, tx pgx.Tx, e Event) error {
+func Record(ctx context.Context, tx *sqlx.Tx, e Event) error {
 	if e.OrgID == uuid.Nil || e.Action == "" || e.ResourceType == "" {
 		return errors.New("audit: org, action and resource type are required")
 	}
@@ -62,30 +59,21 @@ func Record(ctx context.Context, tx pgx.Tx, e Event) error {
 		return fmt.Errorf("audit: marshal details: %w", err)
 	}
 	ci := httpx.ClientInfoFrom(ctx)
-	params := auditdb.InsertAuditEventParams{
-		ID:           uuid.Must(uuid.NewV7()),
-		OrgID:        e.OrgID,
-		OccurredAt:   pgtype.Timestamptz{Time: time.Now(), Valid: true},
-		ActorType:    actor.Type,
-		Action:       e.Action,
-		ResourceType: e.ResourceType,
-		ResourceID:   text(e.ResourceID),
-		Outcome:      e.Outcome,
-		RequestID:    text(logging.RequestID(ctx)),
-		UserAgent:    text(ci.UserAgent),
-		Details:      details,
-	}
+	var actorID, workspaceID, ip any
 	if actor.ID != uuid.Nil {
-		params.ActorID = uuid.NullUUID{UUID: actor.ID, Valid: true}
+		actorID = actor.ID
 	}
 	if e.WorkspaceID != nil {
-		params.WorkspaceID = uuid.NullUUID{UUID: *e.WorkspaceID, Valid: true}
+		workspaceID = *e.WorkspaceID
 	}
 	if ci.IP.IsValid() {
-		ip := ci.IP
-		params.Ip = &ip
+		ip = ci.IP.String()
 	}
-	if err := auditdb.New(tx).InsertAuditEvent(ctx, params); err != nil {
+	_, err = tx.ExecContext(ctx, q.Get("InsertAuditEvent"),
+		uuid.Must(uuid.NewV7()), e.OrgID, time.Now(), actor.Type, actorID, e.Action, e.ResourceType,
+		nullStr(e.ResourceID), workspaceID, e.Outcome, nullStr(logging.RequestID(ctx)), ip,
+		nullStr(ci.UserAgent), details)
+	if err != nil {
 		return fmt.Errorf("audit: insert: %w", err)
 	}
 	return nil
@@ -93,8 +81,8 @@ func Record(ctx context.Context, tx pgx.Tx, e Event) error {
 
 // RecordStandalone writes an event in its own tenant-bound transaction. Use it
 // for events not tied to a data change (e.g. failed sign-in).
-func RecordStandalone(ctx context.Context, pool *pgxpool.Pool, e Event) error {
-	return db.InTenantTx(ctx, pool, e.OrgID, func(tx pgx.Tx) error { return Record(ctx, tx, e) })
+func RecordStandalone(ctx context.Context, pool *sqlx.DB, e Event) error {
+	return db.InTenantTx(ctx, pool, e.OrgID, func(tx *sqlx.Tx) error { return Record(ctx, tx, e) })
 }
 
 func resolveActor(ctx context.Context, override *Actor) Actor {
@@ -124,5 +112,3 @@ func redact(m map[string]any) map[string]any {
 	}
 	return out
 }
-
-func text(s string) pgtype.Text { return pgtype.Text{String: s, Valid: s != ""} }

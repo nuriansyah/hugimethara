@@ -7,14 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/nuriansyah/hugimethara/backend/internal/event/eventdb"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/db"
 )
 
@@ -34,7 +31,7 @@ type RelayOptions struct {
 // (= outbox id) lets the stream's duplicate window drop re-publishes after a
 // crash between publish and commit.
 type Relay struct {
-	pool      *pgxpool.Pool // connected as hugi_system
+	pool      *sqlx.DB // connected as hugi_system
 	pub       Publisher
 	opts      RelayOptions
 	log       *slog.Logger
@@ -42,7 +39,7 @@ type Relay struct {
 	pending   prometheus.Gauge
 }
 
-func NewRelay(pool *pgxpool.Pool, pub Publisher, reg prometheus.Registerer, log *slog.Logger, o RelayOptions) *Relay {
+func NewRelay(pool *sqlx.DB, pub Publisher, reg prometheus.Registerer, log *slog.Logger, o RelayOptions) *Relay {
 	if o.BatchSize <= 0 {
 		o.BatchSize = 100
 	}
@@ -88,10 +85,9 @@ func (r *Relay) Run(ctx context.Context) error {
 // RelayOnce publishes one batch and returns how many rows were claimed.
 func (r *Relay) RelayOnce(ctx context.Context) (int, error) {
 	var claimed int
-	err := db.InTx(ctx, r.pool, func(tx pgx.Tx) error {
-		q := eventdb.New(tx)
-		rows, err := q.ClaimPendingOutbox(ctx, r.opts.BatchSize)
-		if err != nil {
+	err := db.InTx(ctx, r.pool, func(tx *sqlx.Tx) error {
+		var rows []outboxRow
+		if err := tx.SelectContext(ctx, &rows, q.Get("ClaimPendingOutbox"), r.opts.BatchSize); err != nil {
 			return err
 		}
 		claimed = len(rows)
@@ -100,9 +96,7 @@ func (r *Relay) RelayOnce(ctx context.Context) (int, error) {
 			if err := r.publish(ctx, row); err != nil {
 				r.published.WithLabelValues("error").Inc()
 				r.log.WarnContext(ctx, "outbox publish failed", "outbox_id", row.ID, "subject", row.Subject, "err", err)
-				if err := q.MarkOutboxFailed(ctx, eventdb.MarkOutboxFailedParams{
-					ID: row.ID, LastError: pgtype.Text{String: truncate(err.Error(), 500), Valid: true},
-				}); err != nil {
+				if _, err := tx.ExecContext(ctx, q.Get("MarkOutboxFailed"), row.ID, truncate(err.Error(), 500)); err != nil {
 					return err
 				}
 				continue
@@ -111,14 +105,15 @@ func (r *Relay) RelayOnce(ctx context.Context) (int, error) {
 			sent = append(sent, row.ID)
 		}
 		if len(sent) > 0 {
-			return q.MarkOutboxSent(ctx, sent)
+			_, err := tx.ExecContext(ctx, q.Get("MarkOutboxSent"), sent)
+			return err
 		}
 		return nil
 	})
 	return claimed, err
 }
 
-func (r *Relay) publish(ctx context.Context, row eventdb.ClaimPendingOutboxRow) error {
+func (r *Relay) publish(ctx context.Context, row outboxRow) error {
 	msg := nats.NewMsg(row.Subject)
 	msg.Data = row.Payload
 	var hdr map[string]string
@@ -128,7 +123,7 @@ func (r *Relay) publish(ctx context.Context, row eventdb.ClaimPendingOutboxRow) 
 	for k, v := range hdr {
 		msg.Header.Set(k, v)
 	}
-	msg.Header.Set("Hugi-Org-Id", row.OrgID.String())
+	msg.Header.Set("Hugi-Org-Id", row.OrgID)
 	id := strconv.FormatInt(row.ID, 10)
 	pctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -137,8 +132,8 @@ func (r *Relay) publish(ctx context.Context, row eventdb.ClaimPendingOutboxRow) 
 }
 
 func (r *Relay) updatePending(ctx context.Context) {
-	n, err := eventdb.New(r.pool).CountPendingOutbox(ctx)
-	if err == nil {
+	var n int64
+	if err := r.pool.GetContext(ctx, &n, q.Get("CountPendingOutbox")); err == nil {
 		r.pending.Set(float64(n))
 	}
 }

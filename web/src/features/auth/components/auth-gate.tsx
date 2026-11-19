@@ -9,6 +9,19 @@ import { useMe, type Me } from "../api";
 
 const MeContext = createContext<Me | null>(null);
 
+/** Placeholder shown while the session is being checked. */
+export function GateFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center p-8" aria-busy="true" aria-label="Loading">
+      <div className="flex w-64 flex-col gap-3">
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </div>
+  );
+}
+
 /** The signed-in identity. Only usable below <AuthGate>. */
 export function useCurrentUser(): Me {
   const me = useContext(MeContext);
@@ -30,17 +43,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (unauthenticated) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
   }, [unauthenticated, pathname, router]);
 
-  if (isPending || unauthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-8" aria-busy="true" aria-label="Loading">
-        <div className="flex w-64 flex-col gap-3">
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-        </div>
-      </div>
-    );
-  }
+  if (isPending || unauthenticated) return <GateFallback />;
   if (error) {
     return (
       <div className="mx-auto max-w-md p-8">

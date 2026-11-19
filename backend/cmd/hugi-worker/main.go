@@ -48,7 +48,7 @@ func run() error {
 		log.Error("postgres unavailable", "err", err)
 		return err
 	}
-	defer sysPool.Close()
+	defer func() { _ = sysPool.Close() }()
 
 	nb, err := bus.Connect(cfg.NATSURL, cfg.ServiceName, log)
 	if err != nil {
@@ -65,7 +65,7 @@ func run() error {
 	relay := event.NewRelay(sysPool, nb.JS, reg, log, event.RelayOptions{})
 
 	hc := health.New(0)
-	hc.Add("postgres", func(ctx context.Context) error { return sysPool.Ping(ctx) })
+	hc.Add("postgres", db.Check(sysPool))
 	hc.Add("migrations", migrate.Check(sysPool))
 	hc.Add("nats", nb.Check)
 	probes := http.NewServeMux()

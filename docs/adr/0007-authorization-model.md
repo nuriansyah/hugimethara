@@ -1,6 +1,6 @@
 # ADR-0007: Unified Authorizer; native dynamic RBAC first
 
-**Status:** Proposed
+**Status:** Accepted (implemented in S3, 2026-11-19)
 
 ## Decision
 Every domain calls one `authz.Authorizer` (+ `ScopeResolver` for list filtering). Phase 1 implementation is native

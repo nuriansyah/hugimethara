@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { navigation } from "@/config/navigation";
+import { useCan } from "@/features/access/api";
 import { useLogout } from "@/features/auth/api";
 import { useCurrentUser } from "@/features/auth/components/auth-gate";
 import { cn } from "@/lib/utils";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const me = useCurrentUser();
+  const can = useCan();
   const pathname = usePathname();
   const router = useRouter();
   const logout = useLogout();
@@ -36,7 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const sections = navigation
-    .map((s) => ({ ...s, items: s.items.filter((i) => !i.ownerOnly || me.membership.is_owner) }))
+    .map((s) => ({ ...s, items: s.items.filter((i) => !i.permission || can(i.permission)) }))
     .filter((s) => s.items.length > 0);
 
   return (

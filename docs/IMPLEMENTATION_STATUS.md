@@ -2,16 +2,49 @@
 
 _Last updated: 2026-11-18_
 
-## Current stage: Phase 1 — S1 Org bootstrap, sessions, audit
+## Current stage: Phase 1 — S3 Dynamic RBAC (done)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | ~12% — S0 and S1 code complete; compose E2E not yet run (see below) |
+| Phase 1 | In progress | ~27% — S0–S3 implemented and integration-tested; compose E2E not yet run |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-19 — S3 Dynamic RBAC
+- **Implemented:** roles/permissions as data (catalog of 9 resource types), per-org role templates (owner, admin,
+  member, workspace admin, editor, viewer), custom roles, role bindings at org/workspace/resource scope with
+  optional expiry, workspace membership as workspace-scope bindings (per-workspace roles), no-escalation rule,
+  last-owner protection, version-stamped grant cache (Redis + 30s cap), decision log (all denials + sensitive
+  allows), access simulation, `/me/permissions` for UI gating. Interim authorizer and `is_owner` removed.
+- **Database:** `00006_rbac` with backfill of existing orgs (verified on the dev database with real data).
+- **API:** `/me/permissions`, `/resource-types`, `/roles` (CRUD), `/role-bindings`, `/authorization/evaluate`,
+  `/authorization/decisions`; workspace member add takes `role_key`; member lists include roles.
+- **UI:** Governance → Roles (permission matrix editor), Access (assignments, assign dialog, check access,
+  recent denials); every control gated by permission instead of owner flag; workspace member role picker.
+- **Tests:** grant matching/scope/escalation unit tests; 7 RBAC integration tests (templates & effective perms,
+  custom role grant/revoke immediacy, escalation attempts, last owner, workspace-admin scoping, simulation &
+  decision log, tenant-scoped roles) + cross-instance cache propagation via Redis; whole suite green with `-race`;
+  lint 0 issues; web build green; browser-checked Roles and Access pages on migrated dev data.
+- **Known limitations:** groups and service-account principals arrive in S4 (bindings are user-only); resource-
+  scope bindings are supported by the evaluator but no resource type uses them yet (datasets etc. in Phase 2).
+
+### 2026-11-19 — sqlx migration, UUIDv7, S2, paid features
+- **Data access:** sqlc removed; sqlx + plain embedded `queries.sql` per domain (ADR-0012). All PKs `DEFAULT uuidv7()`.
+- **S2:** departments, environments (egress allowlist, CIDR-validated), workspaces (archive/restore, membership),
+  org member list; members see only their workspaces (404 otherwise); owners manage.
+- **Paid features (ADR-0013):** plans Free/Pro/Enterprise, feature flags + quotas, per-org overrides, 402 errors,
+  advisory-locked quota checks, audit-log retention by plan, `hugi-admin` CLI for plan changes (audited).
+- **Merchant isolation:** integration test proves org A cannot read/modify org B's workspaces, departments,
+  environments, users, plan or audit trail, even with identical slugs or guessed ids.
+- **Tests:** full unit + integration suite green with `-race` (3 consecutive runs) against local Postgres 18 + Redis
+  (`HUGI_TEST_POSTGRES_URL`/`HUGI_TEST_REDIS_URL`), in-process NATS. Found and fixed: down-migration 00003 order,
+  email `format` causing 400 instead of field error, test-harness race on cluster-wide roles (the earlier flake).
+- **Browser-verified (real hugi-api + web):** signup → overview, workspace create, quota message at limit. Fixed a
+  dialog that closed on outside focus after a 402.
+- **Not done:** docker compose E2E; CI not yet run on GitHub; workspace switcher deferred to S6; nothing committed.
 
 ### 2026-11-18 — S1 Org bootstrap, sessions, audit
 - **Implemented**
@@ -124,9 +157,9 @@ _Last updated: 2026-11-18_
 | Slice | Status | Evidence |
 |---|---|---|
 | S0 Foundation | ◐ code complete; compose E2E pending | unit + integration + lint + web build pass (see log) |
-| S1 Org bootstrap, sessions, audit | ◐ code complete; integration run pending Docker | unit + lint + web build pass |
-| S2 Workspaces & environments | ☐ | |
-| S3 Dynamic RBAC | ☐ | |
+| S1 Org bootstrap, sessions, audit | ✅ | integration suite green (local Postgres/Redis) |
+| S2 Workspaces & environments | ✅ (+ paid features) | integration + browser smoke |
+| S3 Dynamic RBAC | ✅ | 8 RBAC integration tests + unit tests; browser check |
 | S4 Users, groups, invitations, service accounts | ☐ | |
 | S5 OIDC federation | ☐ | |
 | S6 Secrets & connectors | ☐ | |

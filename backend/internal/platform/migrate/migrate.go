@@ -12,8 +12,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib" // database/sql driver "pgx"
+	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose/v3"
 
 	"github.com/nuriansyah/hugimethara/backend/migrations"
@@ -61,15 +61,15 @@ func ExpectedVersion() (int64, error) {
 // Check is a readiness check: the database must be migrated to at least the
 // version this binary was built with (older binaries may run against newer
 // schemas during rolling deploys, which is why "at least" and not "equal").
-func Check(pool *pgxpool.Pool) func(context.Context) error {
+func Check(pool *sqlx.DB) func(context.Context) error {
 	want, err := ExpectedVersion()
 	return func(ctx context.Context) error {
 		if err != nil {
 			return errors.New("cannot determine expected migration version")
 		}
 		var got int64
-		err := pool.QueryRow(ctx,
-			`SELECT COALESCE(MAX(version_id), 0) FROM goose_db_version WHERE is_applied`).Scan(&got)
+		err := pool.GetContext(ctx, &got,
+			`SELECT COALESCE(MAX(version_id), 0) FROM goose_db_version WHERE is_applied`)
 		if err != nil {
 			return errors.New("cannot read migration version")
 		}

@@ -17,15 +17,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/nuriansyah/hugimethara/backend/internal/audit"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
+	"github.com/nuriansyah/hugimethara/backend/internal/entitlement"
 	"github.com/nuriansyah/hugimethara/backend/internal/event"
-	"github.com/nuriansyah/hugimethara/backend/internal/identity/identitydb"
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/db"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/httpx"
@@ -61,7 +58,7 @@ type Config struct {
 
 // Service implements authentication use cases.
 type Service struct {
-	pool    *pgxpool.Pool
+	pool    *sqlx.DB
 	orgs    *organization.Service
 	az      authz.Authorizer
 	limiter *ratelimit.Limiter
@@ -70,7 +67,7 @@ type Service struct {
 	now     func() time.Time
 }
 
-func NewService(pool *pgxpool.Pool, orgs *organization.Service, az authz.Authorizer, limiter *ratelimit.Limiter, log *slog.Logger, cfg Config) *Service {
+func NewService(pool *sqlx.DB, orgs *organization.Service, az authz.Authorizer, limiter *ratelimit.Limiter, log *slog.Logger, cfg Config) *Service {
 	if cfg.Hasher == nil {
 		cfg.Hasher = NewHasher(DefaultArgon2)
 	}
@@ -160,21 +157,26 @@ func (s *Service) Signup(ctx context.Context, in SignupInput) (SessionGrant, err
 	actor := &audit.Actor{Type: string(principal.User), ID: userID}
 
 	var grant SessionGrant
-	err = db.InTenantTx(ctx, s.pool, orgID, func(tx pgx.Tx) error {
+	err = db.InTenantTx(ctx, s.pool, orgID, func(tx *sqlx.Tx) error {
 		if err := s.orgs.Create(ctx, tx, organization.NewOrganization{ID: orgID, Slug: org.Slug, Name: org.Name}); err != nil {
 			return err
 		}
-		q := identitydb.New(tx)
-		if err := q.InsertUser(ctx, identitydb.InsertUserParams{ID: userID, Email: user.Email, DisplayName: user.DisplayName}); err != nil {
-			if isUniqueViolation(err) {
+		if err := entitlement.Provision(ctx, tx, orgID); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, q.Get("InsertUser"), userID, user.Email, user.DisplayName); err != nil {
+			if db.IsUniqueViolation(err) {
 				return ErrEmailTaken
 			}
 			return fmt.Errorf("identity: insert user: %w", err)
 		}
-		if err := q.InsertMembership(ctx, identitydb.InsertMembershipParams{OrgID: orgID, UserID: userID, IsOwner: true}); err != nil {
+		if _, err := tx.ExecContext(ctx, q.Get("InsertMembership"), orgID, userID); err != nil {
 			return fmt.Errorf("identity: insert membership: %w", err)
 		}
-		if err := q.InsertCredentials(ctx, identitydb.InsertCredentialsParams{UserID: userID, PasswordHash: hash}); err != nil {
+		if err := authz.SeedOrganization(ctx, tx, orgID, userID); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, q.Get("InsertCredentials"), userID, hash); err != nil {
 			return fmt.Errorf("identity: insert credentials: %w", err)
 		}
 		if err := audit.Record(ctx, tx, audit.Event{
@@ -245,10 +247,10 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (SessionGrant, error
 		choices []orgChoice
 		ok      bool
 	)
-	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+	err := db.InTx(ctx, s.pool, func(tx *sqlx.Tx) error {
 		var err error
 		rec, err = loginLookup(ctx, tx, in.Email)
-		if errors.Is(err, pgx.ErrNoRows) {
+		if db.IsNoRows(err) {
 			s.cfg.Hasher.BurnTime(in.Password)
 			return ErrInvalidCredentials
 		}
@@ -297,7 +299,7 @@ func (s *Service) Login(ctx context.Context, in LoginInput) (SessionGrant, error
 	user := User{ID: rec.UserID, Email: in.Email, DisplayName: rec.DisplayName, Status: rec.UserStatus}
 	org := OrgSummary{ID: target.ID, Slug: target.Slug, Name: target.Name}
 	var grant SessionGrant
-	err = db.InTenantTx(ctx, s.pool, org.ID, func(tx pgx.Tx) error {
+	err = db.InTenantTx(ctx, s.pool, org.ID, func(tx *sqlx.Tx) error {
 		var err error
 		grant, err = s.issueSession(ctx, tx, user, org, target.Settings, "password")
 		return err
@@ -328,7 +330,7 @@ func chooseOrg(choices []orgChoice, slug string) (*orgChoice, error) {
 }
 
 // issueSession inserts a session (tx bound to org) and records the sign-in.
-func (s *Service) issueSession(ctx context.Context, tx pgx.Tx, u User, org OrgSummary, settings organization.Settings, method string) (SessionGrant, error) {
+func (s *Service) issueSession(ctx context.Context, tx *sqlx.Tx, u User, org OrgSummary, settings organization.Settings, method string) (SessionGrant, error) {
 	token, tokenHash := newToken()
 	csrf, csrfHash := newToken()
 	now := s.now()
@@ -338,16 +340,15 @@ func (s *Service) issueSession(ctx context.Context, tx pgx.Tx, u User, org OrgSu
 	}
 	g.IdleExpiresAt = minTime(now.Add(settings.IdleTimeout()), g.ExpiresAt)
 	ci := httpx.ClientInfoFrom(ctx)
-	params := identitydb.InsertSessionParams{
-		ID: g.SessionID, OrgID: org.ID, UserID: u.ID, TokenHash: tokenHash, CsrfHash: csrfHash,
-		IdleExpiresAt: ts(g.IdleExpiresAt), ExpiresAt: ts(g.ExpiresAt),
-		UserAgent: pgtype.Text{String: ci.UserAgent, Valid: ci.UserAgent != ""},
-	}
+	var ip, ua any
 	if ci.IP.IsValid() {
-		ip := ci.IP
-		params.Ip = &ip
+		ip = ci.IP.String()
 	}
-	if err := identitydb.New(tx).InsertSession(ctx, params); err != nil {
+	if ci.UserAgent != "" {
+		ua = ci.UserAgent
+	}
+	if _, err := tx.ExecContext(ctx, q.Get("InsertSession"), g.SessionID, org.ID, u.ID, tokenHash, csrfHash,
+		g.IdleExpiresAt, g.ExpiresAt, ip, ua); err != nil {
 		return SessionGrant{}, fmt.Errorf("identity: insert session: %w", err)
 	}
 	err := audit.Record(ctx, tx, audit.Event{
@@ -364,12 +365,12 @@ func (s *Service) Authenticate(ctx context.Context, token string) (principal.Pri
 		return principal.Principal{}, nil, errNoSession
 	}
 	var rs resolvedSession
-	err := db.InTx(ctx, s.pool, func(tx pgx.Tx) error {
+	err := db.InTx(ctx, s.pool, func(tx *sqlx.Tx) error {
 		var err error
 		rs, err = resolveSession(ctx, tx, hashToken(token))
 		return err
 	})
-	if errors.Is(err, pgx.ErrNoRows) {
+	if db.IsNoRows(err) {
 		return principal.Principal{}, nil, errNoSession
 	}
 	if err != nil {
@@ -380,12 +381,13 @@ func (s *Service) Authenticate(ctx context.Context, token string) (principal.Pri
 		rs.UserStatus != "active" || rs.MembershipStatus != "active" || rs.OrgStatus != "active" {
 		return principal.Principal{}, nil, errNoSession
 	}
-	p := principal.Principal{ID: rs.UserID, Type: principal.User, OrgID: rs.OrgID, SessionID: rs.SessionID, IsOwner: rs.IsOwner}
+	p := principal.Principal{ID: rs.UserID, Type: principal.User, OrgID: rs.OrgID, SessionID: rs.SessionID}
 
 	if now.Sub(rs.LastSeenAt) >= s.cfg.TouchInterval {
 		idle := minTime(now.Add(rs.OrgSettings.IdleTimeout()), rs.ExpiresAt)
-		err := db.InTenantTx(ctx, s.pool, rs.OrgID, func(tx pgx.Tx) error {
-			return identitydb.New(tx).TouchSession(ctx, identitydb.TouchSessionParams{ID: rs.SessionID, IdleExpiresAt: ts(idle)})
+		err := db.InTenantTx(ctx, s.pool, rs.OrgID, func(tx *sqlx.Tx) error {
+			_, err := tx.ExecContext(ctx, q.Get("TouchSession"), rs.SessionID, idle)
+			return err
 		})
 		if err != nil {
 			s.log.WarnContext(ctx, "session touch failed", "err", err) // non-fatal: the session is still valid
@@ -408,8 +410,8 @@ func (s *Service) Logout(ctx context.Context) error {
 	if !ok || p.SessionID == uuid.Nil {
 		return nil // already signed out
 	}
-	return db.InTenantTx(ctx, s.pool, p.OrgID, func(tx pgx.Tx) error {
-		n, err := identitydb.New(tx).RevokeUserSession(ctx, identitydb.RevokeUserSessionParams{ID: p.SessionID, UserID: p.ID})
+	return db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+		n, err := execRows(ctx, tx, q.Get("RevokeUserSession"), p.SessionID, p.ID)
 		if err != nil || n == 0 {
 			return err
 		}
@@ -433,14 +435,18 @@ func (s *Service) Me(ctx context.Context) (Member, error) {
 		return Member{}, authz.Unauthenticated()
 	}
 	var m Member
-	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx pgx.Tx) error {
-		row, err := identitydb.New(tx).GetMember(ctx, identitydb.GetMemberParams{OrgID: p.OrgID, UserID: p.ID})
+	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+		var row memberRow
+		if err := tx.GetContext(ctx, &row, q.Get("GetMember"), p.OrgID, p.ID); err != nil {
+			return err
+		}
+		owner, err := authz.IsOrgOwner(ctx, tx, p.ID)
 		if err != nil {
 			return err
 		}
 		m = Member{
 			User:    User{ID: row.ID, Email: row.Email, DisplayName: row.DisplayName, Status: row.Status},
-			IsOwner: row.IsOwner, JoinedAt: row.JoinedAt.Time,
+			IsOwner: owner, JoinedAt: row.JoinedAt,
 		}
 		return nil
 	})
@@ -466,21 +472,17 @@ func (s *Service) ListSessions(ctx context.Context) ([]SessionInfo, error) {
 		return nil, authz.Unauthenticated()
 	}
 	var out []SessionInfo
-	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx pgx.Tx) error {
-		rows, err := identitydb.New(tx).ListActiveUserSessions(ctx, p.ID)
-		if err != nil {
+	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+		var rows []sessionRow
+		if err := tx.SelectContext(ctx, &rows, q.Get("ListActiveUserSessions"), p.ID); err != nil {
 			return err
 		}
 		out = make([]SessionInfo, len(rows))
 		for i, r := range rows {
-			si := SessionInfo{
-				ID: r.ID, Current: r.ID == p.SessionID, CreatedAt: r.CreatedAt.Time, LastSeenAt: r.LastSeenAt.Time,
-				IdleExpiresAt: r.IdleExpiresAt.Time, ExpiresAt: r.ExpiresAt.Time, UserAgent: r.UserAgent.String,
+			out[i] = SessionInfo{
+				ID: r.ID, Current: r.ID == p.SessionID, CreatedAt: r.CreatedAt, LastSeenAt: r.LastSeenAt,
+				IdleExpiresAt: r.IdleExpiresAt, ExpiresAt: r.ExpiresAt, UserAgent: r.UserAgent.String, IP: r.IP.String,
 			}
-			if r.Ip != nil {
-				si.IP = r.Ip.String()
-			}
-			out[i] = si
 		}
 		return nil
 	})
@@ -493,8 +495,8 @@ func (s *Service) RevokeSession(ctx context.Context, id uuid.UUID) error {
 	if !ok {
 		return authz.Unauthenticated()
 	}
-	return db.InTenantTx(ctx, s.pool, p.OrgID, func(tx pgx.Tx) error {
-		n, err := identitydb.New(tx).RevokeUserSession(ctx, identitydb.RevokeUserSessionParams{ID: id, UserID: p.ID})
+	return db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+		n, err := execRows(ctx, tx, q.Get("RevokeUserSession"), id, p.ID)
 		if err != nil {
 			return err
 		}
@@ -529,12 +531,14 @@ func digest(s string) string {
 	return hex.EncodeToString(sum[:16])
 }
 
-func isUniqueViolation(err error) bool {
-	var pgErr *pgconn.PgError
-	return errors.As(err, &pgErr) && pgErr.Code == "23505"
+// execRows runs a statement and returns the number of affected rows.
+func execRows(ctx context.Context, tx *sqlx.Tx, query string, args ...any) (int64, error) {
+	res, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
 }
-
-func ts(t time.Time) pgtype.Timestamptz { return pgtype.Timestamptz{Time: t, Valid: true} }
 
 func minTime(a, b time.Time) time.Time {
 	if a.Before(b) {

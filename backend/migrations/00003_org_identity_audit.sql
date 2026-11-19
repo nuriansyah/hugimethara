@@ -10,7 +10,7 @@
 --   the narrow SECURITY DEFINER functions at the bottom of this file.
 
 CREATE TABLE organizations (
-  id            uuid PRIMARY KEY,
+  id            uuid PRIMARY KEY DEFAULT uuidv7(),
   slug          citext NOT NULL UNIQUE CHECK (slug ~ '^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$'),
   name          text   NOT NULL CHECK (length(btrim(name)) BETWEEN 2 AND 100),
   status        text   NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
@@ -23,7 +23,7 @@ CREATE TRIGGER organizations_touch BEFORE UPDATE ON organizations
   FOR EACH ROW EXECUTE FUNCTION hugi_touch_updated_at();
 
 CREATE TABLE users (
-  id           uuid PRIMARY KEY,
+  id           uuid PRIMARY KEY DEFAULT uuidv7(),
   email        citext NOT NULL UNIQUE CHECK (length(email) <= 254 AND email ~ '^[^@\s]+@[^@\s]+$'),
   display_name text   NOT NULL CHECK (length(btrim(display_name)) BETWEEN 1 AND 100),
   status       text   NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled')),
@@ -54,7 +54,7 @@ CREATE TABLE user_credentials (
 );
 
 CREATE TABLE sessions (
-  id              uuid PRIMARY KEY,
+  id              uuid PRIMARY KEY DEFAULT uuidv7(),
   org_id          uuid  NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
   user_id         uuid  NOT NULL REFERENCES users (id) ON DELETE CASCADE,
   token_hash      bytea NOT NULL UNIQUE,       -- sha256 of the cookie token
@@ -71,7 +71,7 @@ CREATE TABLE sessions (
 CREATE INDEX sessions_user_idx ON sessions (org_id, user_id) WHERE revoked_at IS NULL;
 
 CREATE TABLE audit_events (
-  id            uuid PRIMARY KEY,                -- UUIDv7: time ordered
+  id            uuid PRIMARY KEY DEFAULT uuidv7(),                -- UUIDv7: time ordered
   org_id        uuid NOT NULL REFERENCES organizations (id) ON DELETE CASCADE,
   occurred_at   timestamptz NOT NULL DEFAULT now(),
   actor_type    text NOT NULL CHECK (actor_type IN ('user', 'service_account', 'system', 'anonymous')),
@@ -258,6 +258,10 @@ DROP FUNCTION IF EXISTS hugi_auth_record_attempt(uuid, boolean, integer, interva
 DROP FUNCTION IF EXISTS hugi_auth_user_orgs(uuid);
 DROP FUNCTION IF EXISTS hugi_auth_login_lookup(citext);
 DROP POLICY IF EXISTS sessions_auth ON sessions;
+-- Policies on users/user_credentials reference org_memberships; drop them first.
+DROP POLICY IF EXISTS users_select ON users;
+DROP POLICY IF EXISTS users_update ON users;
+DROP POLICY IF EXISTS credentials_member ON user_credentials;
 DROP TABLE IF EXISTS audit_events;
 DROP TABLE IF EXISTS sessions;
 DROP TABLE IF EXISTS user_credentials;

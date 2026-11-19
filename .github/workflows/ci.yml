@@ -17,6 +17,22 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      postgres:
+        image: postgres:18.7-alpine
+        env:
+          POSTGRES_USER: hugi_owner
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U hugi_owner" --health-interval 2s --health-retries 30
+      redis:
+        image: redis:8.8.4-alpine
+        ports: ["6379:6379"]
+    env:
+      HUGI_TEST_POSTGRES_URL: postgres://hugi_owner:ci-only@127.0.0.1:5432/postgres?sslmode=disable
+      HUGI_TEST_REDIS_URL: redis://127.0.0.1:6379/0
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v6
@@ -26,8 +42,7 @@ jobs:
       - name: Verify generated code is current
         run: |
           go generate ./...
-          go tool sqlc generate
-          git diff --exit-code -- internal/api/apigen internal/event/eventdb
+          git diff --exit-code -- internal/api/apigen
       - name: Vet
         run: go vet -tags integration ./...
       - name: Lint
@@ -37,7 +52,7 @@ jobs:
           working-directory: backend
       - name: Unit tests
         run: go test -race ./...
-      - name: Integration tests (testcontainers)
+      - name: Integration tests (Postgres + Redis services; NATS in-process)
         run: go test -race -tags integration -count=1 ./...
       - name: Vulnerability scan
         run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...

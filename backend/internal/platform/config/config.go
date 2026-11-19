@@ -36,7 +36,7 @@ type Config struct {
 	DatabaseURL        string `env:"HUGI_DATABASE_URL"`         // runtime role (hugi_app), RLS enforced
 	MigrateDatabaseURL string `env:"HUGI_MIGRATE_DATABASE_URL"` // owner role, migrations only
 	SystemDatabaseURL  string `env:"HUGI_SYSTEM_DATABASE_URL"`  // hugi_system role: cross-tenant platform jobs
-	DBMaxConns         int32  `env:"HUGI_DB_MAX_CONNS" envDefault:"20"`
+	DBMaxConns         int    `env:"HUGI_DB_MAX_CONNS" envDefault:"20"`
 
 	RedisURL string `env:"HUGI_REDIS_URL"`
 	NATSURL  string `env:"HUGI_NATS_URL"`

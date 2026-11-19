@@ -209,6 +209,485 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List departments
+         * @description Permission: department:read.
+         */
+        get: operations["listDepartments"];
+        put?: never;
+        /**
+         * Create a department
+         * @description Permission: department:create. May return 402 when the plan does not allow it.
+         */
+        post: operations["createDepartment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/departments/{department_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a department
+         * @description Permission: department:delete.
+         */
+        delete: operations["deleteDepartment"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a department
+         * @description Permission: department:update.
+         */
+        patch: operations["updateDepartment"];
+        trace?: never;
+    };
+    "/v1/hugimethara/environments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List environments
+         * @description Permission: environment:read.
+         */
+        get: operations["listEnvironments"];
+        put?: never;
+        /**
+         * Create a environment
+         * @description Permission: environment:create. May return 402 when the plan does not allow it.
+         */
+        post: operations["createEnvironment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/environments/{environment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a environment
+         * @description Permission: environment:delete.
+         */
+        delete: operations["deleteEnvironment"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a environment
+         * @description Permission: environment:update.
+         */
+        patch: operations["updateEnvironment"];
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Workspaces visible to the caller
+         * @description Owners see every workspace; members see the workspaces they belong to.
+         */
+        get: operations["listWorkspaces"];
+        put?: never;
+        /**
+         * Create a workspace (the creator becomes its first member)
+         * @description Permission: workspace:create. Counts against the plan's workspace quota (402 when reached).
+         */
+        post: operations["createWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        /**
+         * A workspace by its address
+         * @description Permission: workspace:read (members of the workspace, or org-wide). Others get 404.
+         */
+        get: operations["getWorkspace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update a workspace
+         * @description Permission: workspace:update.
+         */
+        patch: operations["updateWorkspace"];
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive a workspace (frees a slot in the workspace quota)
+         * @description Permission: workspace:archive.
+         */
+        post: operations["archiveWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore an archived workspace
+         * @description Permission: workspace:archive. Counts against the workspace quota (402 when full).
+         */
+        post: operations["restoreWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Members of a workspace
+         * @description Permission: workspace:read.
+         */
+        get: operations["listWorkspaceMembers"];
+        put?: never;
+        /**
+         * Add an organization member to the workspace (idempotent)
+         * @description Permission: workspace:manage_members.
+         */
+        post: operations["addWorkspaceMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/members/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a user from the workspace
+         * @description Permission: workspace:manage_members.
+         */
+        delete: operations["removeWorkspaceMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Members of the organization
+         * @description Permission: user:read. (Full user management arrives in S4.)
+         */
+        get: operations["listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/entitlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The organization's plan, paid features, quotas and usage
+         * @description Permission: subscription:read.
+         */
+        get: operations["getEntitlements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Plan catalog for comparison */
+        get: operations["listPlans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/me/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's effective permissions (for UI gating; the API still authorizes every call) */
+        get: operations["getMyPermissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/resource-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Permission catalog (resource types and actions)
+         * @description Permission: role:read.
+         */
+        get: operations["listResourceTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Roles of the organization
+         * @description Permission: role:read.
+         */
+        get: operations["listRoles"];
+        put?: never;
+        /**
+         * Create a custom role
+         * @description Permission: role:create. You can only include permissions you hold at organization scope.
+         */
+        post: operations["createRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/roles/{role_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        /** A role */
+        get: operations["getRole"];
+        /**
+         * Replace a role's name, description and permissions
+         * @description Permission: role:update. Added permissions must be ones you hold. Immutable roles keep their permissions.
+         */
+        put: operations["updateRole"];
+        post?: never;
+        /**
+         * Delete an unused custom role
+         * @description Permission: role:delete.
+         */
+        delete: operations["deleteRole"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/role-bindings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Role assignments
+         * @description Permission: role:read.
+         */
+        get: operations["listRoleBindings"];
+        put?: never;
+        /**
+         * Assign a role to a member at a scope
+         * @description Permission: role:bind at the target scope; the role's permissions must all be held by you there.
+         */
+        post: operations["createRoleBinding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/role-bindings/{binding_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a role assignment (the last owner cannot be removed)
+         * @description Permission: role:bind at the assignment's scope.
+         */
+        delete: operations["deleteRoleBinding"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/authorization/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check whether a member could perform an action (simulation; not logged as a decision)
+         * @description Permission: authorization:simulate.
+         */
+        post: operations["evaluateAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/authorization/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Logged authorization decisions (every denial and sensitive allow), newest first
+         * @description Permission: authorization:read_decisions.
+         */
+        get: operations["listAccessDecisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -229,13 +708,276 @@ export interface components {
             code: string;
             message: string;
         };
+        PlanProblem: components["schemas"]["Problem"] & {
+            feature: string;
+            plan: string;
+            /** Format: int64 */
+            limit?: number;
+            /** Format: int64 */
+            current?: number;
+        };
+        Department: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description: string;
+            /** Format: int64 */
+            workspace_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        DepartmentCreate: {
+            slug: string;
+            name: string;
+            description?: string;
+        };
+        DepartmentUpdate: {
+            name: string;
+            description?: string;
+        };
+        Environment: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            is_production: boolean;
+            /** @description Internal CIDR ranges outbound calls may reach (paid feature). */
+            egress_allowlist: string[];
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        EnvironmentCreate: {
+            slug: string;
+            name: string;
+            is_production?: boolean;
+            egress_allowlist?: string[];
+        };
+        EnvironmentUpdate: {
+            name: string;
+            is_production: boolean;
+            egress_allowlist?: string[];
+        };
+        Workspace: {
+            /** Format: uuid */
+            id: string;
+            slug: string;
+            name: string;
+            description: string;
+            /** Format: uuid */
+            department_id?: string;
+            department_name?: string;
+            /** Format: date-time */
+            archived_at?: string;
+            /** Format: int64 */
+            member_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        WorkspaceCreate: {
+            slug: string;
+            name: string;
+            description?: string;
+            /** Format: uuid */
+            department_id?: string | null;
+        };
+        WorkspaceUpdate: {
+            name: string;
+            description?: string;
+            /** Format: uuid */
+            department_id?: string | null;
+        };
+        Member: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            display_name: string;
+            status: string;
+            is_owner: boolean;
+            /** @description Role keys (organization-level in /users, workspace-level in workspace member lists). */
+            roles?: string[];
+            /** Format: date-time */
+            joined_at?: string;
+            /** Format: date-time */
+            added_at?: string;
+        };
+        FeatureDefinition: {
+            key: string;
+            name: string;
+            description: string;
+            /** @enum {string} */
+            kind: "flag" | "limit";
+            unit: string;
+        };
+        EntitlementFeature: components["schemas"]["FeatureDefinition"] & {
+            enabled: boolean;
+            /**
+             * Format: int64
+             * @description Absent = unlimited (limit features).
+             */
+            limit?: number;
+            /** Format: int64 */
+            used?: number;
+            /** @description Granted specifically for this organization. */
+            overridden: boolean;
+        };
+        Entitlements: {
+            plan: {
+                key: string;
+                name: string;
+            };
+            /** @enum {string} */
+            status: "active" | "trialing" | "past_due" | "canceled";
+            /** Format: date-time */
+            current_period_end?: string;
+            features: components["schemas"]["EntitlementFeature"][];
+        };
+        Plan: {
+            key: string;
+            name: string;
+            description: string;
+            /**
+             * Format: int64
+             * @description Absent = custom pricing.
+             */
+            price_monthly_cents?: number;
+            currency: string;
+            entitlements: {
+                [key: string]: {
+                    enabled: boolean;
+                    /** Format: int64 */
+                    limit?: number;
+                };
+            };
+        };
+        EffectivePermissions: {
+            /** @description Permissions that apply everywhere in the organization. */
+            organization: string[];
+            /** @description Extra permissions per workspace id (from workspace roles). */
+            workspaces: {
+                [key: string]: string[];
+            };
+        };
+        ResourceType: {
+            type: string;
+            description: string;
+            actions: string[];
+            sensitive_actions: string[];
+        };
+        Role: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            description: string;
+            is_system: boolean;
+            immutable: boolean;
+            permissions: string[];
+            /** Format: int64 */
+            binding_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        RoleCreate: {
+            key: string;
+            name: string;
+            description?: string;
+            permissions: string[];
+        };
+        RoleUpdate: {
+            name: string;
+            description?: string;
+            permissions: string[];
+        };
+        BindingScope: {
+            /** @enum {string} */
+            type: "org" | "workspace" | "resource";
+            /** Format: uuid */
+            workspace_id?: string;
+            resource_type?: string;
+            resource_id?: string;
+        };
+        RoleBinding: {
+            /** Format: uuid */
+            id: string;
+            user: {
+                /** Format: uuid */
+                id: string;
+                email: string;
+                display_name: string;
+            };
+            role: {
+                /** Format: uuid */
+                id: string;
+                key: string;
+                name: string;
+            };
+            scope: components["schemas"]["BindingScope"];
+            workspace_slug?: string;
+            workspace_name?: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            expires_at?: string;
+        };
+        RoleBindingCreate: {
+            /** Format: uuid */
+            user_id: string;
+            /** Format: uuid */
+            role_id: string;
+            scope: components["schemas"]["BindingScope"];
+            /** Format: date-time */
+            expires_at?: string;
+        };
+        EvaluateRequest: {
+            /** Format: uuid */
+            user_id: string;
+            resource_type: string;
+            action: string;
+            resource_id?: string;
+            /** Format: uuid */
+            workspace_id?: string;
+        };
+        AccessDecision: {
+            allowed: boolean;
+            reason: string;
+            matched_rules: string[];
+            /** Format: int64 */
+            policy_version: number;
+        };
+        LoggedDecision: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            principal_id: string;
+            principal_email?: string;
+            action: string;
+            resource_type: string;
+            resource_id?: string;
+            /** Format: uuid */
+            workspace_id?: string;
+            allowed: boolean;
+            reason: string;
+            matched_rules: string[];
+            request_id?: string;
+        };
         SignupRequest: {
             /** @example Acme Indonesia */
             organization_name: string;
             /** @example acme-id */
             organization_slug: string;
             display_name: string;
-            /** Format: email */
+            /** @description Validated server-side; invalid addresses return a field error. */
             email: string;
             /** Format: password */
             password: string;
@@ -380,6 +1122,15 @@ export interface components {
         };
     };
     responses: {
+        /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+        PlanProblem: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/problem+json": components["schemas"]["PlanProblem"];
+            };
+        };
         /** @description Error (RFC 9457 problem details). */
         Problem: {
             headers: {
@@ -391,6 +1142,8 @@ export interface components {
         };
     };
     parameters: {
+        /** @description Workspace address (slug). */
+        WorkspaceSlug: string;
         Limit: number;
         Cursor: string;
     };
@@ -703,6 +1456,861 @@ export interface operations {
             401: components["responses"]["Problem"];
             403: components["responses"]["Problem"];
             422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listDepartments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All departments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Department"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createDepartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepartmentCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Department"];
+                };
+            };
+            402: components["responses"]["PlanProblem"];
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteDepartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateDepartment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                department_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepartmentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Department"];
+                };
+            };
+            402: components["responses"]["PlanProblem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listEnvironments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All environments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Environment"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnvironmentCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Environment"];
+                };
+            };
+            402: components["responses"]["PlanProblem"];
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnvironmentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Environment"];
+                };
+            };
+            402: components["responses"]["PlanProblem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listWorkspaces: {
+        parameters: {
+            query?: {
+                include_archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Workspaces. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Workspace"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            402: components["responses"]["PlanProblem"];
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The workspace. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            402: components["responses"]["PlanProblem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    archiveWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Archived. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    restoreWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Restored. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            402: components["responses"]["PlanProblem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listWorkspaceMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Members. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Member"][];
+                    };
+                };
+            };
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    addWorkspaceMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    user_id: string;
+                    /** @description Workspace role to grant (default editor). */
+                    role_key?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description The user is a member. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    removeWorkspaceMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: components["parameters"]["WorkspaceSlug"];
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Organization members. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Member"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getEntitlements: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Effective entitlements. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Entitlements"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plans with their entitlements. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Plan"][];
+                        features: components["schemas"]["FeatureDefinition"][];
+                    };
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    getMyPermissions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Concrete permissions at organization scope and per workspace. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EffectivePermissions"];
+                };
+            };
+            default: components["responses"]["Problem"];
+        };
+    };
+    listResourceTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Catalog. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ResourceType"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listRoles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Roles with permissions. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Role"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Role"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The role. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Role"];
+                };
+            };
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Role"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                role_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listRoleBindings: {
+        parameters: {
+            query?: {
+                user_id?: string;
+                scope_type?: "org" | "workspace" | "resource";
+                workspace_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Assignments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["RoleBinding"][];
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createRoleBinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleBindingCreate"];
+            };
+        };
+        responses: {
+            /** @description Assigned. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleBinding"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteRoleBinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            409: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    evaluateAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluateRequest"];
+            };
+        };
+        responses: {
+            /** @description The decision. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccessDecision"];
+                };
+            };
+            403: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listAccessDecisions: {
+        parameters: {
+            query?: {
+                allowed?: boolean;
+                limit?: components["parameters"]["Limit"];
+                cursor?: components["parameters"]["Cursor"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["LoggedDecision"][];
+                        next_cursor?: string;
+                    };
+                };
+            };
+            403: components["responses"]["Problem"];
             default: components["responses"]["Problem"];
         };
     };

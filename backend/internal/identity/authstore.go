@@ -2,85 +2,98 @@ package identity
 
 import (
 	"context"
+	"database/sql"
+	"embed"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
+	"github.com/nuriansyah/hugimethara/backend/internal/platform/db"
 )
 
-// Hand-written calls to the pre-tenant SECURITY DEFINER functions from
-// migration 00003 (sqlc cannot infer their result columns).
+//go:embed queries.sql
+var queryFS embed.FS
+
+var q = db.MustLoad(queryFS, "queries.sql")
 
 type loginRecord struct {
-	UserID         uuid.UUID
-	UserStatus     string
-	DisplayName    string
-	PasswordHash   string
-	FailedAttempts int32
-	LockedUntil    pgtype.Timestamptz
+	UserID         uuid.UUID    `db:"user_id"`
+	UserStatus     string       `db:"user_status"`
+	DisplayName    string       `db:"display_name"`
+	PasswordHash   string       `db:"password_hash"`
+	FailedAttempts int32        `db:"failed_attempts"`
+	LockedUntil    sql.NullTime `db:"locked_until"`
 }
 
-func loginLookup(ctx context.Context, q pgx.Tx, email string) (loginRecord, error) {
+func loginLookup(ctx context.Context, tx *sqlx.Tx, email string) (loginRecord, error) {
 	var r loginRecord
-	err := q.QueryRow(ctx, `SELECT user_id, user_status, display_name, password_hash, failed_attempts, locked_until
-		FROM hugi_auth_login_lookup($1)`, email).
-		Scan(&r.UserID, &r.UserStatus, &r.DisplayName, &r.PasswordHash, &r.FailedAttempts, &r.LockedUntil)
+	err := tx.GetContext(ctx, &r, q.Get("LoginLookup"), email)
 	return r, err
 }
 
 type orgChoice struct {
-	ID       uuid.UUID
-	Slug     string
-	Name     string
+	ID       uuid.UUID `db:"org_id"`
+	Slug     string    `db:"slug"`
+	Name     string    `db:"name"`
+	RawSet   []byte    `db:"settings"`
 	Settings organization.Settings
 }
 
-func userOrganizations(ctx context.Context, q pgx.Tx, userID uuid.UUID) ([]orgChoice, error) {
-	rows, err := q.Query(ctx, `SELECT org_id, slug::text, name, settings FROM hugi_auth_user_orgs($1)`, userID)
-	if err != nil {
+func userOrganizations(ctx context.Context, tx *sqlx.Tx, userID uuid.UUID) ([]orgChoice, error) {
+	var out []orgChoice
+	if err := tx.SelectContext(ctx, &out, q.Get("UserOrganizations"), userID); err != nil {
 		return nil, err
 	}
-	return pgx.CollectRows(rows, func(r pgx.CollectableRow) (orgChoice, error) {
-		var c orgChoice
-		var raw []byte
-		err := r.Scan(&c.ID, &c.Slug, &c.Name, &raw)
-		c.Settings = organization.ParseSettings(raw)
-		return c, err
-	})
+	for i := range out {
+		out[i].Settings = organization.ParseSettings(out[i].RawSet)
+	}
+	return out, nil
 }
 
-func recordAttempt(ctx context.Context, q pgx.Tx, userID uuid.UUID, success bool, maxFailures int, lockFor time.Duration) error {
-	_, err := q.Exec(ctx, `SELECT hugi_auth_record_attempt($1, $2, $3, $4)`, userID, success, maxFailures, lockFor)
+func recordAttempt(ctx context.Context, tx *sqlx.Tx, userID uuid.UUID, success bool, maxFailures int, lockFor time.Duration) error {
+	_, err := tx.ExecContext(ctx, q.Get("RecordLoginAttempt"), userID, success, maxFailures, lockFor.Seconds())
 	return err
 }
 
 type resolvedSession struct {
-	SessionID        uuid.UUID
-	OrgID            uuid.UUID
-	UserID           uuid.UUID
-	CSRFHash         []byte
-	IdleExpiresAt    time.Time
-	ExpiresAt        time.Time
-	RevokedAt        pgtype.Timestamptz
-	LastSeenAt       time.Time
-	UserStatus       string
-	MembershipStatus string
-	IsOwner          bool
-	OrgStatus        string
+	SessionID        uuid.UUID    `db:"session_id"`
+	OrgID            uuid.UUID    `db:"org_id"`
+	UserID           uuid.UUID    `db:"user_id"`
+	CSRFHash         []byte       `db:"csrf_hash"`
+	IdleExpiresAt    time.Time    `db:"idle_expires_at"`
+	ExpiresAt        time.Time    `db:"expires_at"`
+	RevokedAt        sql.NullTime `db:"revoked_at"`
+	LastSeenAt       time.Time    `db:"last_seen_at"`
+	UserStatus       string       `db:"user_status"`
+	MembershipStatus string       `db:"membership_status"`
+	OrgStatus        string       `db:"org_status"`
+	RawSettings      []byte       `db:"org_settings"`
 	OrgSettings      organization.Settings
 }
 
-func resolveSession(ctx context.Context, q pgx.Tx, tokenHash []byte) (resolvedSession, error) {
+func resolveSession(ctx context.Context, tx *sqlx.Tx, tokenHash []byte) (resolvedSession, error) {
 	var s resolvedSession
-	var settings []byte
-	err := q.QueryRow(ctx, `SELECT session_id, org_id, user_id, csrf_hash, idle_expires_at, expires_at, revoked_at,
-		last_seen_at, user_status, membership_status, is_owner, org_status, org_settings
-		FROM hugi_auth_resolve_session($1)`, tokenHash).
-		Scan(&s.SessionID, &s.OrgID, &s.UserID, &s.CSRFHash, &s.IdleExpiresAt, &s.ExpiresAt, &s.RevokedAt,
-			&s.LastSeenAt, &s.UserStatus, &s.MembershipStatus, &s.IsOwner, &s.OrgStatus, &settings)
-	s.OrgSettings = organization.ParseSettings(settings)
+	err := tx.GetContext(ctx, &s, q.Get("ResolveSession"), tokenHash)
+	s.OrgSettings = organization.ParseSettings(s.RawSettings)
 	return s, err
+}
+
+type memberRow struct {
+	ID          uuid.UUID `db:"id"`
+	Email       string    `db:"email"`
+	DisplayName string    `db:"display_name"`
+	Status      string    `db:"status"`
+	JoinedAt    time.Time `db:"joined_at"`
+}
+
+type sessionRow struct {
+	ID            uuid.UUID      `db:"id"`
+	CreatedAt     time.Time      `db:"created_at"`
+	LastSeenAt    time.Time      `db:"last_seen_at"`
+	IdleExpiresAt time.Time      `db:"idle_expires_at"`
+	ExpiresAt     time.Time      `db:"expires_at"`
+	IP            sql.NullString `db:"ip"`
+	UserAgent     sql.NullString `db:"user_agent"`
 }

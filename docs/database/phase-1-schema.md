@@ -1,7 +1,7 @@
 # Phase 1 Database Design (PostgreSQL)
 
 Conventions ([ADR-0002](../adr/0002-postgresql-tenancy.md)):
-- `id uuid PRIMARY KEY` (UUIDv7, generated in Go). Tenant tables: `org_id uuid NOT NULL`, `UNIQUE (org_id, id)`,
+- `id uuid PRIMARY KEY DEFAULT uuidv7()` (PostgreSQL 18 built-in; Go also generates UUIDv7). Tenant tables: `org_id uuid NOT NULL`, `UNIQUE (org_id, id)`,
   composite FKs `(org_id, x_id)`, RLS on.
 - `created_at`, `updated_at timestamptz NOT NULL DEFAULT now()`; `created_by uuid` where authorship matters.
 - Soft-delete only where history must be kept (`archived_at`); otherwise hard delete + audit event.
@@ -154,8 +154,9 @@ erDiagram
 | ✅ 00001_platform_foundation (citext, pgcrypto, `hugi_app`/`hugi_system` roles + grants, `hugi_current_org()` RLS helper, `hugi_touch_updated_at()`) | S0 |
 | ✅ 00002_outbox (moved forward from S1: the relay is platform infrastructure every later slice uses) | S0 |
 | ✅ 00003_org_identity_audit (organizations, users, org_memberships, user_credentials, sessions, audit_events, `hugi_auth` role + pre-tenant auth functions) | S1 |
-| 0004_workspaces_envs_departments | S2 |
-| 0005_authz | S3 |
+| ✅ 00004_workspaces (departments, environments + backfill, workspaces, workspace_members; composite FKs) | S2 |
+| ✅ 00005_entitlements (features, plans, plan_entitlements, org_subscriptions, org_entitlement_overrides + seed) | S2 (paid features, ADR-0013) |
+| ✅ 00006_rbac (resource_types, role_templates, roles, role_permissions, role_bindings, authz_decisions, views workspace_access / org_member_roles; backfill; drops workspace_members and is_owner) | S3 |
 | 0006_groups_invitations_service_accounts | S4 |
 | 0007_identity_providers | S5 |
 | 0008_secrets_connectors | S6 |

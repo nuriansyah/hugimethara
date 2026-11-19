@@ -15,9 +15,9 @@ Requires Docker, Go 1.27+ (auto-downloaded by `go` via `toolchain`), Node 24 + p
 make up                  # postgres, redis, nats, migrate, api (:8080), worker x2, web (:3000)
 open http://localhost:3000
 make test                # backend unit tests
-make test-integration    # backend integration tests (testcontainers; needs Docker)
+make test-integration    # backend integration tests (needs HUGI_TEST_POSTGRES_URL + HUGI_TEST_REDIS_URL; see Makefile)
 make lint web-check      # golangci-lint, eslint, typecheck, next build
-make generate            # regenerate oapi-codegen, sqlc and TS client after spec/query changes
+make generate            # regenerate oapi-codegen server + TS client after OpenAPI changes
 ```
 
 ## Where to start

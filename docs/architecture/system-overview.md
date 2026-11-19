@@ -97,8 +97,7 @@ hugimethara/
 │   │   ├── webhook/             # inbound endpoints, outbound subscriptions, deliveries
 │   │   └── event/               # transactional outbox, platform event catalog
 │   ├── migrations/              # goose SQL migrations
-│   ├── queries/                 # sqlc query files, one dir per domain
-│   └── test/                    # integration + e2e harness (testcontainers)
+│   └── internal/platform/testsupport/  # integration harness: fresh DB per test, in-process NATS
 ├── pkg/connectorsdk/            # public Go SDK for out-of-process connectors (separate module)
 ├── web/
 │   └── src/
@@ -118,7 +117,8 @@ Each backend domain package follows the same internal shape:
 internal/workflow/
   model.go      # domain types + invariants (no I/O)
   service.go    # use cases; the ONLY exported entry point for other domains
-  store.go      # persistence (wraps sqlc-generated code)
+  queries.sql   # plain, named SQL statements (embedded; ADR-0012)
+  store.go      # row structs + persistence helpers (sqlx)
   http.go       # handlers; translate HTTP <-> service calls
   *_test.go
 ```

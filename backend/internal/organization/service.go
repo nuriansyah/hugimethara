@@ -3,21 +3,16 @@ package organization
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/nuriansyah/hugimethara/backend/internal/audit"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
 	"github.com/nuriansyah/hugimethara/backend/internal/event"
-	"github.com/nuriansyah/hugimethara/backend/internal/organization/orgdb"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/db"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/httpx"
 	"github.com/nuriansyah/hugimethara/backend/internal/principal"
@@ -29,12 +24,21 @@ var ErrSlugTaken = httpx.NewProblem(http.StatusConflict, "slug_taken", "Address 
 
 // Service manages organizations.
 type Service struct {
-	pool *pgxpool.Pool
-	az   authz.Authorizer
+	pool   *sqlx.DB
+	az     Authorizer
+	scopes authz.ScopeResolver
+	acl    *authz.Service
 }
 
-func NewService(pool *pgxpool.Pool, az authz.Authorizer) *Service {
-	return &Service{pool: pool, az: az}
+// Authorizer is what the organization domain needs from authz.
+type Authorizer interface {
+	authz.Authorizer
+	authz.ScopeResolver
+	Check(ctx context.Context, in authz.AuthorizationInput) (authz.AuthorizationDecision, error)
+}
+
+func NewService(pool *sqlx.DB, az Authorizer, acl *authz.Service) *Service {
+	return &Service{pool: pool, az: az, scopes: az, acl: acl}
 }
 
 // NewOrganization is the input to Create.
@@ -44,19 +48,23 @@ type NewOrganization struct {
 	Name string
 }
 
-// Create inserts an organization inside tx (which must be bound to o.ID).
-// Validation is the caller's responsibility (see identity signup).
-func (s *Service) Create(ctx context.Context, tx pgx.Tx, o NewOrganization) error {
+// Create inserts an organization and its default environments inside tx
+// (which must be bound to o.ID). Validation is the caller's responsibility
+// (see identity signup).
+func (s *Service) Create(ctx context.Context, tx *sqlx.Tx, o NewOrganization) error {
 	settings, _ := json.Marshal(DefaultSettings())
-	err := orgdb.New(tx).InsertOrganization(ctx, orgdb.InsertOrganizationParams{
-		ID: o.ID, Slug: o.Slug, Name: strings.TrimSpace(o.Name), Settings: settings,
-	})
-	var pgErr *pgconn.PgError
-	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+	_, err := tx.ExecContext(ctx, q.Get("InsertOrganization"), o.ID, o.Slug, strings.TrimSpace(o.Name), settings)
+	if db.IsUniqueViolation(err) {
 		return ErrSlugTaken
 	}
 	if err != nil {
 		return fmt.Errorf("organization: insert: %w", err)
+	}
+	for _, e := range DefaultEnvironments {
+		if _, err := tx.ExecContext(ctx, q.Get("InsertEnvironment"),
+			uuid.Must(uuid.NewV7()), o.ID, e.Slug, e.Name, e.IsProduction, []string{}); err != nil {
+			return fmt.Errorf("organization: seed environment %s: %w", e.Slug, err)
+		}
 	}
 	return nil
 }
@@ -70,16 +78,12 @@ func (s *Service) Current(ctx context.Context) (Organization, error) {
 	if _, err := authz.Require(ctx, s.az, "read", authz.Resource{Type: ResourceType, ID: p.OrgID.String(), OrgID: p.OrgID}); err != nil {
 		return Organization{}, err
 	}
-	var out Organization
-	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx pgx.Tx) error {
-		row, err := orgdb.New(tx).GetOrganization(ctx, p.OrgID)
-		if err != nil {
-			return err
-		}
-		out = fromRow(row.ID, row.Slug, row.Name, row.Status, row.Settings, row.CreatedAt.Time, row.UpdatedAt.Time)
-		return nil
+	var row orgRow
+	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+		return tx.GetContext(ctx, &row, q.Get("GetOrganization"), p.OrgID)
 	})
-	if errors.Is(err, pgx.ErrNoRows) {
+	out := row.toModel()
+	if db.IsNoRows(err) {
 		return Organization{}, httpx.NotFound("Organization not found.")
 	}
 	return out, err
@@ -115,13 +119,12 @@ func (s *Service) UpdateCurrent(ctx context.Context, u Update) (Organization, er
 	}
 
 	var out Organization
-	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx pgx.Tx) error {
-		q := orgdb.New(tx)
-		cur, err := q.GetOrganization(ctx, p.OrgID)
-		if err != nil {
+	err := db.InTenantTx(ctx, s.pool, p.OrgID, func(tx *sqlx.Tx) error {
+		var cur orgRow
+		if err := tx.GetContext(ctx, &cur, q.Get("GetOrganization"), p.OrgID); err != nil {
 			return err
 		}
-		before := fromRow(cur.ID, cur.Slug, cur.Name, cur.Status, cur.Settings, cur.CreatedAt.Time, cur.UpdatedAt.Time)
+		before := cur.toModel()
 		name, settings := before.Name, before.Settings
 		if u.Name != nil {
 			name = strings.TrimSpace(*u.Name)
@@ -130,11 +133,11 @@ func (s *Service) UpdateCurrent(ctx context.Context, u Update) (Organization, er
 			settings = *u.Settings
 		}
 		rawSettings, _ := json.Marshal(settings)
-		row, err := q.UpdateOrganization(ctx, orgdb.UpdateOrganizationParams{ID: p.OrgID, Name: name, Settings: rawSettings})
-		if err != nil {
+		var row orgRow
+		if err := tx.GetContext(ctx, &row, q.Get("UpdateOrganization"), p.OrgID, name, rawSettings); err != nil {
 			return err
 		}
-		out = fromRow(row.ID, row.Slug, row.Name, row.Status, row.Settings, row.CreatedAt.Time, row.UpdatedAt.Time)
+		out = row.toModel()
 
 		changes := diff(before, out)
 		if len(changes) == 0 {
@@ -146,18 +149,13 @@ func (s *Service) UpdateCurrent(ctx context.Context, u Update) (Organization, er
 		}); err != nil {
 			return err
 		}
-		_, err = event.Publish(ctx, tx, event.Event{
+		_, err := event.Publish(ctx, tx, event.Event{
 			OrgID: p.OrgID, Subject: "hugi.events.organization.updated",
 			Payload: map[string]any{"organization_id": p.OrgID, "changed": keys(changes)},
 		})
 		return err
 	})
 	return out, err
-}
-
-func fromRow(id uuid.UUID, slug, name, status string, settings []byte, created, updated time.Time) Organization {
-	return Organization{ID: id, Slug: slug, Name: name, Status: status, Settings: ParseSettings(settings),
-		CreatedAt: created, UpdatedAt: updated}
 }
 
 func diff(a, b Organization) map[string]any {
@@ -180,4 +178,19 @@ func keys(m map[string]any) []string {
 		out = append(out, k)
 	}
 	return out
+}
+
+// UsageCounters reports current usage for the plan limits this domain enforces.
+func UsageCounters() map[string]func(ctx context.Context, tx *sqlx.Tx) (int64, error) {
+	count := func(name string) func(ctx context.Context, tx *sqlx.Tx) (int64, error) {
+		return func(ctx context.Context, tx *sqlx.Tx) (int64, error) {
+			var n int64
+			err := tx.GetContext(ctx, &n, q.Get(name))
+			return n, err
+		}
+	}
+	return map[string]func(ctx context.Context, tx *sqlx.Tx) (int64, error){
+		"workspaces.max":   count("CountActiveWorkspaces"),
+		"environments.max": count("CountEnvironments"),
+	}
 }

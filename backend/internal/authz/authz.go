@@ -79,3 +79,19 @@ func Unauthenticated() *httpx.Problem {
 	return httpx.NewProblem(http.StatusUnauthorized, "unauthenticated", "Authentication required",
 		"Sign in to continue.")
 }
+
+// Scope says which workspaces a principal may act on in bulk (list
+// endpoints). Evaluating per row does not scale, so repositories turn a Scope
+// into a SQL predicate.
+type Scope struct {
+	All          bool        // every workspace in the organization
+	WorkspaceIDs []uuid.UUID // otherwise only these
+}
+
+// None reports whether the scope grants nothing.
+func (s Scope) None() bool { return !s.All && len(s.WorkspaceIDs) == 0 }
+
+// ScopeResolver answers list-level access questions.
+type ScopeResolver interface {
+	WorkspaceScope(ctx context.Context, p principal.Principal, action string) (Scope, error)
+}

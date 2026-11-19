@@ -43,6 +43,16 @@ const (
 	MaxAbsoluteHours     = 720
 )
 
+// DefaultEnvironments are created with every organization.
+var DefaultEnvironments = []struct {
+	Slug, Name   string
+	IsProduction bool
+}{
+	{"development", "Development", false},
+	{"staging", "Staging", false},
+	{"production", "Production", true},
+}
+
 // DefaultSettings returns the settings a new organization starts with.
 func DefaultSettings() Settings {
 	return Settings{SessionIdleTimeoutMinutes: DefaultIdleMinutes, SessionAbsoluteTimeoutHours: DefaultAbsoluteHours}

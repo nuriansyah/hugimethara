@@ -7,14 +7,17 @@ Must support SMB to enterprise tenants; "never allow one tenant to access anothe
 
 ## Decision
 - Shared database, shared schema. Every tenant-owned table has `org_id uuid NOT NULL`.
-- Primary keys are UUIDv7 (time-ordered, index-friendly). Child tables use **composite FKs** `(org_id, parent_id)`
+- Primary keys are UUIDv7 (time-ordered, index-friendly; `DEFAULT uuidv7()`). Child tables use **composite FKs** `(org_id, parent_id)`
   referencing `UNIQUE (org_id, id)` on the parent, making cross-tenant references impossible at the schema level.
 - **RLS enabled on every tenant table**: `USING (org_id = current_setting('app.org_id')::uuid)`. The app connects as
   `hugi_app` (no `BYPASSRLS`, not table owner); every tenant-scoped transaction runs `SET LOCAL app.org_id`.
   Migrations run as `hugi_owner`. Platform-level jobs that legitimately span tenants (reaper, outbox relay) use a
   narrowly-scoped `hugi_system` role on specific tables only.
 - Repositories still filter by `org_id` explicitly — RLS is defense-in-depth, not the primary mechanism.
-- pgx/v5 + sqlc; goose migrations (SQL, embedded in `hugi-migrate`).
+- pgx/v5 driver; queries via sqlx and plain `.sql` files ([ADR-0012](0012-data-access-sqlx.md), replacing sqlc);
+  goose migrations (SQL, embedded in `hugi-migrate`).
+- Primary keys default to PostgreSQL 18's `uuidv7()`; Go code generates UUIDv7 as well, so ids are time-ordered
+  whichever side creates them.
 
 ## Alternatives
 - Schema-per-tenant: migration fan-out and connection/catalog bloat at thousands of tenants. Rejected for default;

@@ -16,14 +16,16 @@
 ```
 L4  workflow · composition · webhook               (orchestration; consume L3)
 L3  connector · servicereg · mapping                (integration building blocks)
-L2  secret · authz                                  (governance primitives)
-L1  identity · organization · audit · event         (tenancy & identity foundation)
+L2  secret · entitlement                            (governance primitives)
+L1  identity · organization · audit                 (tenancy & identity foundation; use authz)
+L½  authz · event · principal                       (contracts every domain uses; depend only on platform)
 L0  platform/*                                      (no domain knowledge)
 ```
 
-`authz` sits above `identity`/`organization` because evaluation needs group membership and workspace hierarchy;
-those two expose read interfaces (`MembershipReader`, `WorkspaceHierarchy`) and never call `authz` themselves —
-HTTP handlers in every domain call `authz` before invoking their service.
+`authz` depends only on the platform layer and its own tables (plus foreign keys to memberships and
+workspaces), so every domain can call it. Other domains read authorization state only through the
+`workspace_access` / `org_member_roles` views; authz records audit events through an injected function to
+avoid an import cycle with `audit`.
 
 ## Domain catalogue
 

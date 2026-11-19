@@ -16,6 +16,7 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/api/apigen"
 	"github.com/nuriansyah/hugimethara/backend/internal/audit"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
+	"github.com/nuriansyah/hugimethara/backend/internal/entitlement"
 	"github.com/nuriansyah/hugimethara/backend/internal/identity"
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/buildinfo"
@@ -38,6 +39,8 @@ type Deps struct {
 	Identity     *identity.HTTP
 	Organization *organization.HTTP
 	Audit        *audit.HTTP
+	Entitlement  *entitlement.HTTP
+	Access       *authz.HTTP
 }
 
 // NewRouter returns the root handler for the API listener.
@@ -70,6 +73,7 @@ func NewRouter(d Deps) (http.Handler, error) {
 	srv := &server{
 		system: system{env: d.Env, health: d.Health},
 		HTTP:   d.Identity, orgHTTP: orgHTTP{d.Organization}, auditHTTP: auditHTTP{d.Audit},
+		entHTTP: entHTTP{d.Entitlement}, accessHTTP: accessHTTP{d.Access},
 	}
 	strict := apigen.NewStrictHandlerWithOptions(srv,
 		[]apigen.StrictMiddlewareFunc{requireSession(public)},
@@ -135,10 +139,14 @@ type server struct {
 	*identity.HTTP
 	orgHTTP
 	auditHTTP
+	entHTTP
+	accessHTTP
 }
 
 type orgHTTP struct{ *organization.HTTP }
 type auditHTTP struct{ *audit.HTTP }
+type entHTTP struct{ *entitlement.HTTP }
+type accessHTTP struct{ *authz.HTTP }
 
 var _ apigen.StrictServerInterface = (*server)(nil)
 

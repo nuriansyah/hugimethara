@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurrentUser } from "@/features/auth/components/auth-gate";
+import { useCan } from "@/features/access/api";
 import { applyApiError } from "@/lib/forms";
 import { useCurrentOrganization, useUpdateOrganization, type Organization } from "../api";
 
@@ -52,8 +52,8 @@ export function OrganizationSettingsForm() {
 }
 
 function SettingsForm({ org }: { org: Organization }) {
-  const me = useCurrentUser();
-  const canEdit = me.membership.is_owner; // UX only; the API enforces organization:update
+  const can = useCan();
+  const canEdit = can("organization:update"); // UX only; the API enforces it
   const update = useUpdateOrganization();
   const [formError, setFormError] = useState<string>();
   const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: toValues(org) });
@@ -93,7 +93,7 @@ function SettingsForm({ org }: { org: Organization }) {
         <CardContent className="flex flex-col gap-4">
           {!canEdit && (
             <Alert>
-              <AlertDescription>Only organization owners can change these settings.</AlertDescription>
+              <AlertDescription>You do not have permission to change these settings.</AlertDescription>
             </Alert>
           )}
           <fieldset disabled={!canEdit} className="flex flex-col gap-4">

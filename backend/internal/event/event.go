@@ -11,11 +11,10 @@ import (
 	"regexp"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
+	"github.com/jmoiron/sqlx"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 
-	"github.com/nuriansyah/hugimethara/backend/internal/event/eventdb"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/logging"
 )
 
@@ -31,7 +30,7 @@ type Event struct {
 // Publish appends ev to the outbox using tx. tx must be tenant-bound
 // (db.InTenantTx) for ev.OrgID, otherwise RLS rejects the insert.
 // Trace context and request id are captured so consumers continue the trace.
-func Publish(ctx context.Context, tx pgx.Tx, ev Event) (int64, error) {
+func Publish(ctx context.Context, tx *sqlx.Tx, ev Event) (int64, error) {
 	if ev.OrgID == uuid.Nil {
 		return 0, errors.New("event: org id required")
 	}
@@ -49,10 +48,8 @@ func Publish(ctx context.Context, tx pgx.Tx, ev Event) (int64, error) {
 	}
 	headers, _ := json.Marshal(map[string]string(hdr))
 
-	id, err := eventdb.New(tx).InsertOutbox(ctx, eventdb.InsertOutboxParams{
-		OrgID: ev.OrgID, Subject: ev.Subject, Payload: payload, Headers: headers,
-	})
-	if err != nil {
+	var id int64
+	if err := tx.GetContext(ctx, &id, q.Get("InsertOutbox"), ev.OrgID, ev.Subject, payload, headers); err != nil {
 		return 0, fmt.Errorf("event: insert outbox: %w", err)
 	}
 	return id, nil
