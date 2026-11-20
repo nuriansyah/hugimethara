@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 type OpenAPIChange struct {
@@ -424,12 +424,12 @@ func sensitiveResponseHeader(name string) bool {
 	return false
 }
 
-func apiChanges(changes []OpenAPIChange) []apigen.OpenAPIChange {
-	out := make([]apigen.OpenAPIChange, len(changes))
+func apiChanges(changes []OpenAPIChange) []dto.OpenAPIChange {
+	out := make([]dto.OpenAPIChange, len(changes))
 	for i, change := range changes {
-		kind := apigen.OpenAPIChangeKind(change.Kind)
+		kind := dto.OpenAPIChangeKind(change.Kind)
 		breaking := change.Breaking
-		out[i] = apigen.OpenAPIChange{OperationId: change.OperationID, Method: change.Method,
+		out[i] = dto.OpenAPIChange{OperationId: change.OperationID, Method: change.Method,
 			Path: change.Path, Kind: kind, Breaking: &breaking}
 	}
 	return out

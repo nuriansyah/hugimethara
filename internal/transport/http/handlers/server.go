@@ -16,7 +16,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/organization"
 	"github.com/nuriansyah/hugimethara/internal/platform/buildinfo"
 	"github.com/nuriansyah/hugimethara/internal/platform/health"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -38,7 +38,7 @@ type Deps struct {
 	Mappings     *mapping.HTTP
 }
 
-func NewServer(d Deps) apigen.StrictServerInterface {
+func NewServer(d Deps) any {
 	return &server{
 		system: system{env: d.Env, health: d.Health},
 		HTTP:   d.Identity, orgHTTP: orgHTTP{d.Organization}, auditHTTP: auditHTTP{d.Audit},
@@ -72,42 +72,59 @@ type connectorHTTP struct{ *connector.HTTP }
 type serviceHTTP struct{ *servicereg.HTTP }
 type mappingHTTP struct{ *mapping.HTTP }
 
-var _ apigen.StrictServerInterface = (*server)(nil)
-
 type system struct {
 	env    string
 	health *health.Handler
 }
 
-func (s system) GetLiveness(context.Context, apigen.GetLivenessRequestObject) (apigen.GetLivenessResponseObject, error) {
-	return apigen.GetLiveness200JSONResponse{Status: apigen.HealthReportStatusOk}, nil
+// @Summary Liveness probe
+// @ID getLiveness
+// @Tags system
+// @Success 200 {object} dto.HealthReport "Process is alive."
+// @Produce json
+// @Router /healthz [get]
+func (s system) GetLiveness(context.Context, dto.GetLivenessRequestObject) (dto.GetLivenessResponseObject, error) {
+	return dto.GetLiveness200JSONResponse{Status: dto.HealthReportStatusOk}, nil
 }
 
-func (s system) GetReadiness(ctx context.Context, _ apigen.GetReadinessRequestObject) (apigen.GetReadinessResponseObject, error) {
+// @Summary Readiness probe (dependencies and migration version)
+// @ID getReadiness
+// @Tags system
+// @Success 200 {object} dto.HealthReport "All dependencies ready."
+// @Failure 503 {object} dto.HealthReport "At least one dependency is not ready."
+// @Produce json
+// @Router /readyz [get]
+func (s system) GetReadiness(ctx context.Context, _ dto.GetReadinessRequestObject) (dto.GetReadinessResponseObject, error) {
 	rep := s.health.Evaluate(ctx)
 	out, err := toAPIReport(rep)
 	if err != nil {
 		return nil, err
 	}
 	if !rep.OK() {
-		return apigen.GetReadiness503JSONResponse(out), nil
+		return dto.GetReadiness503JSONResponse(out), nil
 	}
-	return apigen.GetReadiness200JSONResponse(out), nil
+	return dto.GetReadiness200JSONResponse(out), nil
 }
 
-func (s system) GetSystemInfo(context.Context, apigen.GetSystemInfoRequestObject) (apigen.GetSystemInfoResponseObject, error) {
-	return apigen.GetSystemInfo200JSONResponse{
+// @Summary Build and deployment information
+// @ID getSystemInfo
+// @Tags system
+// @Success 200 {object} dto.SystemInfo "Build and deployment information."
+// @Produce json
+// @Router /v1/hugimethara/system/info [get]
+func (s system) GetSystemInfo(context.Context, dto.GetSystemInfoRequestObject) (dto.GetSystemInfoResponseObject, error) {
+	return dto.GetSystemInfo200JSONResponse{
 		Name:        "Hugimethara",
 		Version:     buildinfo.Version,
 		Commit:      buildinfo.Commit,
 		GoVersion:   buildinfo.GoVersion(),
-		Environment: apigen.SystemInfoEnvironment(s.env),
+		Environment: dto.SystemInfoEnvironment(s.env),
 		ApiVersion:  "v1",
 	}, nil
 }
 
-func toAPIReport(r health.Report) (apigen.HealthReport, error) {
-	var out apigen.HealthReport
+func toAPIReport(r health.Report) (dto.HealthReport, error) {
+	var out dto.HealthReport
 	b, err := json.Marshal(r)
 	if err != nil {
 		return out, err

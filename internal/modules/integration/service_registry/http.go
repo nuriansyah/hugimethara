@@ -6,40 +6,40 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 type HTTP struct{ svc *Service }
 
 func NewHTTP(svc *Service) *HTTP { return &HTTP{svc: svc} }
 
-func apiService(s RegisteredService) apigen.Service {
-	envs := make([]apigen.ServiceEnvironment, len(s.Environments))
+func apiService(s RegisteredService) dto.Service {
+	envs := make([]dto.ServiceEnvironment, len(s.Environments))
 	for i, env := range s.Environments {
 		var connectorID *uuid.UUID
 		if env.ConnectorInstanceID != nil {
 			id := *env.ConnectorInstanceID
 			connectorID = &id
 		}
-		envs[i] = apigen.ServiceEnvironment{EnvironmentId: env.EnvironmentID, BaseUrl: env.BaseURL,
+		envs[i] = dto.ServiceEnvironment{EnvironmentId: env.EnvironmentID, BaseUrl: env.BaseURL,
 			ConnectorInstanceId: connectorID}
 	}
-	return apigen.Service{Id: s.ID, WorkspaceId: s.WorkspaceID, Name: s.Name, Owner: s.Owner,
-		Description: s.Description, Protocol: apigen.ServiceProtocol(s.Protocol), EndpointCount: s.EndpointCount,
+	return dto.Service{Id: s.ID, WorkspaceId: s.WorkspaceID, Name: s.Name, Owner: s.Owner,
+		Description: s.Description, Protocol: dto.ServiceProtocol(s.Protocol), EndpointCount: s.EndpointCount,
 		Environments: envs, CreatedAt: s.CreatedAt, UpdatedAt: s.UpdatedAt}
 }
 
-func apiEnvironment(env Environment) apigen.ServiceEnvironment {
+func apiEnvironment(env Environment) dto.ServiceEnvironment {
 	var connectorID *uuid.UUID
 	if env.ConnectorInstanceID != nil {
 		id := *env.ConnectorInstanceID
 		connectorID = &id
 	}
-	return apigen.ServiceEnvironment{EnvironmentId: env.EnvironmentID, BaseUrl: env.BaseURL,
+	return dto.ServiceEnvironment{EnvironmentId: env.EnvironmentID, BaseUrl: env.BaseURL,
 		ConnectorInstanceId: connectorID}
 }
 
-func apiEndpoint(endpoint Endpoint) apigen.ServiceEndpoint {
+func apiEndpoint(endpoint Endpoint) dto.ServiceEndpoint {
 	var requestSchema *map[string]interface{}
 	if endpoint.RequestSchema != nil {
 		schema := make(map[string]interface{}, len(endpoint.RequestSchema))
@@ -48,13 +48,24 @@ func apiEndpoint(endpoint Endpoint) apigen.ServiceEndpoint {
 		}
 		requestSchema = &schema
 	}
-	return apigen.ServiceEndpoint{Id: endpoint.ID, ServiceId: endpoint.ServiceID,
+	return dto.ServiceEndpoint{Id: endpoint.ID, ServiceId: endpoint.ServiceID,
 		OperationId: endpoint.OperationID, Method: endpoint.Method, Path: endpoint.Path,
 		Summary: endpoint.Summary, Parameters: endpoint.Parameters, RequestSchema: requestSchema,
 		ResponseSchemas: endpoint.ResponseSchemas, Security: endpoint.Security, Deprecated: endpoint.Deprecated}
 }
 
-func (h *HTTP) ListServices(ctx context.Context, req apigen.ListServicesRequestObject) (apigen.ListServicesResponseObject, error) {
+// @Summary List registered services
+// @ID listServices
+// @Tags services
+// @Param workspace_id query string true "workspace_id"
+// @Success 200 {object} dto.ListServices200JSONResponse "Services in the current workspace."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services [get]
+func (h *HTTP) ListServices(ctx context.Context, req dto.ListServicesRequestObject) (dto.ListServicesResponseObject, error) {
 	workspaceID := req.Params.WorkspaceId
 	if workspaceID == uuid.Nil {
 		return nil, httpx.BadRequest("workspace_id is required.")
@@ -63,14 +74,27 @@ func (h *HTTP) ListServices(ctx context.Context, req apigen.ListServicesRequestO
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListServices200JSONResponse{Data: make([]apigen.Service, len(services))}
+	out := dto.ListServices200JSONResponse{Data: make([]dto.Service, len(services))}
 	for i := range services {
 		out.Data[i] = apiService(services[i])
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateService(ctx context.Context, req apigen.CreateServiceRequestObject) (apigen.CreateServiceResponseObject, error) {
+// @Summary Register an API service
+// @ID createService
+// @Tags services
+// @Param body body dto.ServiceCreate true "Request body"
+// @Success 201 {object} dto.Service "Registered service."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services [post]
+func (h *HTTP) CreateService(ctx context.Context, req dto.CreateServiceRequestObject) (dto.CreateServiceResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -88,18 +112,44 @@ func (h *HTTP) CreateService(ctx context.Context, req apigen.CreateServiceReques
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateService201JSONResponse(apiService(service)), nil
+	return dto.CreateService201JSONResponse(apiService(service)), nil
 }
 
-func (h *HTTP) GetService(ctx context.Context, req apigen.GetServiceRequestObject) (apigen.GetServiceResponseObject, error) {
+// @Summary Get a registered service
+// @ID getService
+// @Tags services
+// @Param service_id path string true "service_id"
+// @Success 200 {object} dto.Service "Service and environment bindings."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services/{service_id} [get]
+func (h *HTTP) GetService(ctx context.Context, req dto.GetServiceRequestObject) (dto.GetServiceResponseObject, error) {
 	service, err := h.svc.Get(ctx, req.ServiceId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetService200JSONResponse(apiService(service)), nil
+	return dto.GetService200JSONResponse(apiService(service)), nil
 }
 
-func (h *HTTP) UpdateService(ctx context.Context, req apigen.UpdateServiceRequestObject) (apigen.UpdateServiceResponseObject, error) {
+// @Summary Update a registered service
+// @ID updateService
+// @Tags services
+// @Param service_id path string true "service_id"
+// @Param body body dto.ServiceUpdate true "Request body"
+// @Success 200 {object} dto.Service "Updated service."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services/{service_id} [patch]
+func (h *HTTP) UpdateService(ctx context.Context, req dto.UpdateServiceRequestObject) (dto.UpdateServiceResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -112,17 +162,45 @@ func (h *HTTP) UpdateService(ctx context.Context, req apigen.UpdateServiceReques
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateService200JSONResponse(apiService(service)), nil
+	return dto.UpdateService200JSONResponse(apiService(service)), nil
 }
 
-func (h *HTTP) DeleteService(ctx context.Context, req apigen.DeleteServiceRequestObject) (apigen.DeleteServiceResponseObject, error) {
+// @Summary Delete a service and its imported API specs
+// @ID deleteService
+// @Tags services
+// @Param service_id path string true "service_id"
+// @Success 204 "Deleted."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services/{service_id} [delete]
+func (h *HTTP) DeleteService(ctx context.Context, req dto.DeleteServiceRequestObject) (dto.DeleteServiceResponseObject, error) {
 	if err := h.svc.Delete(ctx, req.ServiceId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteService204Response{}, nil
+	return dto.DeleteService204Response{}, nil
 }
 
-func (h *HTTP) PutServiceEnvironment(ctx context.Context, req apigen.PutServiceEnvironmentRequestObject) (apigen.PutServiceEnvironmentResponseObject, error) {
+// @Summary Set a service base URL for an environment
+// @ID putServiceEnvironment
+// @Tags services
+// @Param service_id path string true "service_id"
+// @Param environment_id path string true "environment_id"
+// @Param body body dto.ServiceEnvironmentInput true "Request body"
+// @Success 200 {object} dto.ServiceEnvironment "Updated environment binding."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services/{service_id}/environments/{environment_id} [put]
+func (h *HTTP) PutServiceEnvironment(ctx context.Context, req dto.PutServiceEnvironmentRequestObject) (dto.PutServiceEnvironmentResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -135,17 +213,46 @@ func (h *HTTP) PutServiceEnvironment(ctx context.Context, req apigen.PutServiceE
 	if err != nil {
 		return nil, err
 	}
-	return apigen.PutServiceEnvironment200JSONResponse(apiEnvironment(env)), nil
+	return dto.PutServiceEnvironment200JSONResponse(apiEnvironment(env)), nil
 }
 
-func (h *HTTP) DeleteServiceEnvironment(ctx context.Context, req apigen.DeleteServiceEnvironmentRequestObject) (apigen.DeleteServiceEnvironmentResponseObject, error) {
+// @Summary Remove a service environment binding
+// @ID deleteServiceEnvironment
+// @Tags services
+// @Param service_id path string true "service_id"
+// @Param environment_id path string true "environment_id"
+// @Success 204 "Deleted."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services/{service_id}/environments/{environment_id} [delete]
+func (h *HTTP) DeleteServiceEnvironment(ctx context.Context, req dto.DeleteServiceEnvironmentRequestObject) (dto.DeleteServiceEnvironmentResponseObject, error) {
 	if err := h.svc.DeleteEnvironment(ctx, req.ServiceId, req.EnvironmentId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteServiceEnvironment204Response{}, nil
+	return dto.DeleteServiceEnvironment204Response{}, nil
 }
 
-func (h *HTTP) ImportOpenAPI(ctx context.Context, req apigen.ImportOpenAPIRequestObject) (apigen.ImportOpenAPIResponseObject, error) {
+// @Summary Import an OpenAPI document and preview changes
+// @ID importOpenAPI
+// @Tags services
+// @Param service_id path string true "service_id"
+// @Param dry_run query bool false "dry_run"
+// @Param body body dto.OpenAPIImportRequest true "Request body"
+// @Success 200 {object} dto.OpenAPIImportResult "Import diff (and applied version when dry_run is false)."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services/{service_id}/import-openapi [post]
+func (h *HTTP) ImportOpenAPI(ctx context.Context, req dto.ImportOpenAPIRequestObject) (dto.ImportOpenAPIResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -166,23 +273,50 @@ func (h *HTTP) ImportOpenAPI(ctx context.Context, req apigen.ImportOpenAPIReques
 		id := *result.SpecID
 		specID = &id
 	}
-	return apigen.ImportOpenAPI200JSONResponse(apigen.OpenAPIImportResult{DryRun: result.DryRun,
+	return dto.ImportOpenAPI200JSONResponse(dto.OpenAPIImportResult{DryRun: result.DryRun,
 		SpecId: specID, Changes: apiChanges(result.Changes), EndpointCount: result.EndpointCount}), nil
 }
 
-func (h *HTTP) ListServiceEndpoints(ctx context.Context, req apigen.ListServiceEndpointsRequestObject) (apigen.ListServiceEndpointsResponseObject, error) {
+// @Summary List imported API endpoints
+// @ID listServiceEndpoints
+// @Tags services
+// @Param service_id path string true "service_id"
+// @Success 200 {object} dto.ListServiceEndpoints200JSONResponse "Imported operation catalog."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/services/{service_id}/endpoints [get]
+func (h *HTTP) ListServiceEndpoints(ctx context.Context, req dto.ListServiceEndpointsRequestObject) (dto.ListServiceEndpointsResponseObject, error) {
 	endpoints, err := h.svc.ListEndpoints(ctx, req.ServiceId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListServiceEndpoints200JSONResponse{Data: make([]apigen.ServiceEndpoint, len(endpoints))}
+	out := dto.ListServiceEndpoints200JSONResponse{Data: make([]dto.ServiceEndpoint, len(endpoints))}
 	for i := range endpoints {
 		out.Data[i] = apiEndpoint(endpoints[i])
 	}
 	return out, nil
 }
 
-func (h *HTTP) TryServiceEndpoint(ctx context.Context, req apigen.TryServiceEndpointRequestObject) (apigen.TryServiceEndpointResponseObject, error) {
+// @Summary Send a test request to an imported endpoint
+// @ID tryServiceEndpoint
+// @Tags services
+// @Param endpoint_id path string true "endpoint_id"
+// @Param body body dto.ServiceTryRequest true "Request body"
+// @Success 200 {object} dto.ServiceTryResult "Upstream response (bounded to 1 MiB)."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-endpoints/{endpoint_id}/try [post]
+func (h *HTTP) TryServiceEndpoint(ctx context.Context, req dto.TryServiceEndpointRequestObject) (dto.TryServiceEndpointResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -200,7 +334,7 @@ func (h *HTTP) TryServiceEndpoint(ctx context.Context, req apigen.TryServiceEndp
 	if err != nil {
 		return nil, err
 	}
-	return apigen.TryServiceEndpoint200JSONResponse(apigen.ServiceTryResult{
+	return dto.TryServiceEndpoint200JSONResponse(dto.ServiceTryResult{
 		Status: result.Status, Headers: result.Headers, Body: result.Body, DurationMs: result.DurationMs,
 	}), nil
 }

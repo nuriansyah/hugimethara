@@ -4,15 +4,33 @@ import (
 	"context"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
-// HTTP implements the audit slice of apigen.StrictServerInterface.
+// HTTP implements the audit slice of dto.StrictServerInterface.
 type HTTP struct{ svc *Service }
 
 func NewHTTP(svc *Service) *HTTP { return &HTTP{svc: svc} }
 
-func (h *HTTP) ListAuditEvents(ctx context.Context, req apigen.ListAuditEventsRequestObject) (apigen.ListAuditEventsResponseObject, error) {
+// @Summary The organization audit trail, newest first
+// @ID listAuditEvents
+// @Tags audit
+// @Param action query string false "Exact action or prefix (e.g. `auth` matches `auth.*`)."
+// @Param actor_id query string false "actor_id"
+// @Param resource_type query string false "resource_type"
+// @Param since query string false "since"
+// @Param until query string false "until"
+// @Param limit query int false "limit"
+// @Param cursor query string false "cursor"
+// @Success 200 {object} dto.AuditEventPage "One page of events."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/audit-events [get]
+func (h *HTTP) ListAuditEvents(ctx context.Context, req dto.ListAuditEventsRequestObject) (dto.ListAuditEventsResponseObject, error) {
 	prm := req.Params
 	page := httpx.Page{Limit: httpx.DefaultPageLimit}
 	if prm.Limit != nil {
@@ -48,14 +66,14 @@ func (h *HTTP) ListAuditEvents(ctx context.Context, req apigen.ListAuditEventsRe
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListAuditEvents200JSONResponse{Data: make([]apigen.AuditEvent, len(entries))}
+	out := dto.ListAuditEvents200JSONResponse{Data: make([]dto.AuditEvent, len(entries))}
 	if next != "" {
 		out.NextCursor = &next
 	}
 	for i, e := range entries {
-		ev := apigen.AuditEvent{
-			Id: e.ID, OccurredAt: e.OccurredAt, ActorType: apigen.AuditEventActorType(e.ActorType),
-			Action: e.Action, ResourceType: e.ResourceType, Outcome: apigen.AuditEventOutcome(e.Outcome),
+		ev := dto.AuditEvent{
+			Id: e.ID, OccurredAt: e.OccurredAt, ActorType: dto.AuditEventActorType(e.ActorType),
+			Action: e.Action, ResourceType: e.ResourceType, Outcome: dto.AuditEventOutcome(e.Outcome),
 			Details: e.Details, ActorId: e.ActorID, WorkspaceId: e.WorkspaceID,
 			ActorEmail: opt(e.ActorEmail), ResourceId: opt(e.ResourceID), RequestId: opt(e.RequestID), Ip: opt(e.IP),
 		}

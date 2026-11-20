@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 func bodyRequired() error { return httpx.BadRequest("A JSON body is required.") }
@@ -21,43 +21,78 @@ func str(p *string) string {
 
 // Members ---------------------------------------------------------------------
 
-func apiMember(m OrgMember, withGroups bool) apigen.Member {
+func apiMember(m OrgMember, withGroups bool) dto.Member {
 	roles := m.Roles
 	joined := m.JoinedAt
-	ms := apigen.MemberMembershipStatus(m.MembershipStatus)
-	out := apigen.Member{Id: m.User.ID, Email: m.User.Email, DisplayName: m.User.DisplayName, Status: m.User.Status,
+	ms := dto.MemberMembershipStatus(m.MembershipStatus)
+	out := dto.Member{Id: m.User.ID, Email: m.User.Email, DisplayName: m.User.DisplayName, Status: m.User.Status,
 		IsOwner: m.IsOwner, Roles: &roles, JoinedAt: &joined, MembershipStatus: &ms}
 	if withGroups {
-		gs := make([]apigen.GroupRef, len(m.Groups))
+		gs := make([]dto.GroupRef, len(m.Groups))
 		for i, g := range m.Groups {
-			gs[i] = apigen.GroupRef{Id: g.ID, Name: g.Name}
+			gs[i] = dto.GroupRef{Id: g.ID, Name: g.Name}
 		}
 		out.Groups = &gs
 	}
 	return out
 }
 
-func (h *HTTP) ListUsers(ctx context.Context, _ apigen.ListUsersRequestObject) (apigen.ListUsersResponseObject, error) {
+// @Summary Members of the organization
+// @ID listUsers
+// @Tags identity
+// @Success 200 {object} dto.ListUsers200JSONResponse "Organization members."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/users [get]
+func (h *HTTP) ListUsers(ctx context.Context, _ dto.ListUsersRequestObject) (dto.ListUsersResponseObject, error) {
 	ms, err := h.svc.ListMembers(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListUsers200JSONResponse{Data: make([]apigen.Member, len(ms))}
+	out := dto.ListUsers200JSONResponse{Data: make([]dto.Member, len(ms))}
 	for i, m := range ms {
 		out.Data[i] = apiMember(m, false)
 	}
 	return out, nil
 }
 
-func (h *HTTP) GetUser(ctx context.Context, req apigen.GetUserRequestObject) (apigen.GetUserResponseObject, error) {
+// @Summary One member, with their groups
+// @ID getUser
+// @Tags identity
+// @Param user_id path string true "user_id"
+// @Success 200 {object} dto.Member "The member."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/users/{user_id} [get]
+func (h *HTTP) GetUser(ctx context.Context, req dto.GetUserRequestObject) (dto.GetUserResponseObject, error) {
 	m, err := h.svc.GetMember(ctx, req.UserId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetUser200JSONResponse(apiMember(m, true)), nil
+	return dto.GetUser200JSONResponse(apiMember(m, true)), nil
 }
 
-func (h *HTTP) UpdateUser(ctx context.Context, req apigen.UpdateUserRequestObject) (apigen.UpdateUserResponseObject, error) {
+// @Summary Suspend or reactivate a member
+// @ID updateUser
+// @Tags identity
+// @Param user_id path string true "user_id"
+// @Param body body dto.UserUpdate true "Request body"
+// @Success 200 {object} dto.Member "Updated."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/users/{user_id} [patch]
+func (h *HTTP) UpdateUser(ctx context.Context, req dto.UpdateUserRequestObject) (dto.UpdateUserResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -65,22 +100,34 @@ func (h *HTTP) UpdateUser(ctx context.Context, req apigen.UpdateUserRequestObjec
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateUser200JSONResponse(apiMember(m, false)), nil
+	return dto.UpdateUser200JSONResponse(apiMember(m, false)), nil
 }
 
-func (h *HTTP) RemoveUser(ctx context.Context, req apigen.RemoveUserRequestObject) (apigen.RemoveUserResponseObject, error) {
+// @Summary Remove a member from the organization
+// @ID removeUser
+// @Tags identity
+// @Param user_id path string true "user_id"
+// @Success 204 "Removed."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/users/{user_id} [delete]
+func (h *HTTP) RemoveUser(ctx context.Context, req dto.RemoveUserRequestObject) (dto.RemoveUserResponseObject, error) {
 	if err := h.svc.RemoveMember(ctx, req.UserId); err != nil {
 		return nil, err
 	}
-	return apigen.RemoveUser204Response{}, nil
+	return dto.RemoveUser204Response{}, nil
 }
 
 // Invitations -------------------------------------------------------------------
 
-func apiInvitation(inv Invitation) apigen.Invitation {
-	out := apigen.Invitation{Id: inv.ID, Email: inv.Email, Status: apigen.InvitationStatus(inv.Status),
+func apiInvitation(inv Invitation) dto.Invitation {
+	out := dto.Invitation{Id: inv.ID, Email: inv.Email, Status: dto.InvitationStatus(inv.Status),
 		CreatedAt: inv.CreatedAt, ExpiresAt: inv.ExpiresAt, AcceptedAt: inv.AcceptedAt,
-		Workspaces: make([]apigen.InvitationWorkspace, len(inv.Workspaces))}
+		Workspaces: make([]dto.InvitationWorkspace, len(inv.Workspaces))}
 	if inv.InvitedByName != "" {
 		n := inv.InvitedByName
 		out.InvitedByName = &n
@@ -94,26 +141,49 @@ func apiInvitation(inv Invitation) apigen.Invitation {
 	}
 	for i, w := range inv.Workspaces {
 		slug := w.WorkspaceSlug
-		out.Workspaces[i] = apigen.InvitationWorkspace{WorkspaceId: w.WorkspaceID, WorkspaceName: w.WorkspaceName,
+		out.Workspaces[i] = dto.InvitationWorkspace{WorkspaceId: w.WorkspaceID, WorkspaceName: w.WorkspaceName,
 			WorkspaceSlug: &slug, RoleId: w.RoleID, RoleName: w.RoleName}
 	}
 	return out
 }
 
-func (h *HTTP) ListInvitations(ctx context.Context, req apigen.ListInvitationsRequestObject) (apigen.ListInvitationsResponseObject, error) {
-	all := req.Params.Status != nil && *req.Params.Status == apigen.ListInvitationsParamsStatusAll
+// @Summary Invitations, newest first
+// @ID listInvitations
+// @Tags identity
+// @Param status query string false "status"
+// @Success 200 {object} dto.ListInvitations200JSONResponse "Invitations."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/invitations [get]
+func (h *HTTP) ListInvitations(ctx context.Context, req dto.ListInvitationsRequestObject) (dto.ListInvitationsResponseObject, error) {
+	all := req.Params.Status != nil && *req.Params.Status == dto.ListInvitationsParamsStatusAll
 	invs, err := h.svc.ListInvitations(ctx, all)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListInvitations200JSONResponse{Data: make([]apigen.Invitation, len(invs))}
+	out := dto.ListInvitations200JSONResponse{Data: make([]dto.Invitation, len(invs))}
 	for i, inv := range invs {
 		out.Data[i] = apiInvitation(inv)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateInvitation(ctx context.Context, req apigen.CreateInvitationRequestObject) (apigen.CreateInvitationResponseObject, error) {
+// @Summary Invite someone by email
+// @ID createInvitation
+// @Tags identity
+// @Param body body dto.InvitationCreate true "Request body"
+// @Success 201 {object} dto.InvitationCreated "Invited."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/invitations [post]
+func (h *HTTP) CreateInvitation(ctx context.Context, req dto.CreateInvitationRequestObject) (dto.CreateInvitationResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -130,23 +200,44 @@ func (h *HTTP) CreateInvitation(ctx context.Context, req apigen.CreateInvitation
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateInvitation201JSONResponse{Invitation: apiInvitation(c.Invitation), Token: c.Token, AcceptPath: AcceptPath(c.Token)}, nil
+	return dto.CreateInvitation201JSONResponse{Invitation: apiInvitation(c.Invitation), Token: c.Token, AcceptPath: AcceptPath(c.Token)}, nil
 }
 
-func (h *HTTP) RevokeInvitation(ctx context.Context, req apigen.RevokeInvitationRequestObject) (apigen.RevokeInvitationResponseObject, error) {
+// @Summary Revoke an open invitation
+// @ID revokeInvitation
+// @Tags identity
+// @Param invitation_id path string true "invitation_id"
+// @Success 204 "Revoked."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/invitations/{invitation_id} [delete]
+func (h *HTTP) RevokeInvitation(ctx context.Context, req dto.RevokeInvitationRequestObject) (dto.RevokeInvitationResponseObject, error) {
 	if err := h.svc.RevokeInvitation(ctx, req.InvitationId); err != nil {
 		return nil, err
 	}
-	return apigen.RevokeInvitation204Response{}, nil
+	return dto.RevokeInvitation204Response{}, nil
 }
 
-func (h *HTTP) GetInvitationPreview(ctx context.Context, req apigen.GetInvitationPreviewRequestObject) (apigen.GetInvitationPreviewResponseObject, error) {
+// @Summary What an invitation link is for (public)
+// @ID getInvitationPreview
+// @Tags identity
+// @Param token path string true "token"
+// @Success 200 {object} dto.InvitationPreview "The invitation."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 410 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Router /v1/hugimethara/invitation-tokens/{token} [get]
+func (h *HTTP) GetInvitationPreview(ctx context.Context, req dto.GetInvitationPreviewRequestObject) (dto.GetInvitationPreviewResponseObject, error) {
 	pv, err := h.svc.PreviewInvitation(ctx, req.Token)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.GetInvitationPreview200JSONResponse{Email: pv.Email, ExpiresAt: pv.ExpiresAt, AccountExists: pv.AccountExists,
-		Organization: apigen.OrganizationSummary{Id: pv.Organization.ID, Slug: pv.Organization.Slug, Name: pv.Organization.Name}}
+	out := dto.GetInvitationPreview200JSONResponse{Email: pv.Email, ExpiresAt: pv.ExpiresAt, AccountExists: pv.AccountExists,
+		Organization: dto.OrganizationSummary{Id: pv.Organization.ID, Slug: pv.Organization.Slug, Name: pv.Organization.Name}}
 	if pv.InvitedByName != "" {
 		n := pv.InvitedByName
 		out.InvitedByName = &n
@@ -158,7 +249,22 @@ func (r sessionResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) er
 	return r.visit(w)
 }
 
-func (h *HTTP) AcceptInvitation(ctx context.Context, req apigen.AcceptInvitationRequestObject) (apigen.AcceptInvitationResponseObject, error) {
+// @Summary Accept an invitation and sign in to the organization (public, rate-limited)
+// @ID acceptInvitation
+// @Tags identity
+// @Param token path string true "token"
+// @Param body body dto.InvitationAccept false "Request body"
+// @Success 200 {object} dto.AuthResponse "Joined and signed in."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 410 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 429 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Router /v1/hugimethara/invitation-tokens/{token}/accept [post]
+func (h *HTTP) AcceptInvitation(ctx context.Context, req dto.AcceptInvitationRequestObject) (dto.AcceptInvitationResponseObject, error) {
 	var in AcceptInput
 	if req.Body != nil {
 		in = AcceptInput{DisplayName: str(req.Body.DisplayName), Password: str(req.Body.Password)}
@@ -172,24 +278,46 @@ func (h *HTTP) AcceptInvitation(ctx context.Context, req apigen.AcceptInvitation
 
 // Groups ------------------------------------------------------------------------
 
-func apiGroup(g Group) apigen.Group {
-	return apigen.Group{Id: g.ID, Name: g.Name, Description: g.Description, Source: apigen.GroupSource(g.Source),
+func apiGroup(g Group) dto.Group {
+	return dto.Group{Id: g.ID, Name: g.Name, Description: g.Description, Source: dto.GroupSource(g.Source),
 		MemberCount: g.MemberCount, CreatedAt: g.CreatedAt, UpdatedAt: g.UpdatedAt}
 }
 
-func (h *HTTP) ListGroups(ctx context.Context, _ apigen.ListGroupsRequestObject) (apigen.ListGroupsResponseObject, error) {
+// @Summary Groups
+// @ID listGroups
+// @Tags identity
+// @Success 200 {object} dto.ListGroups200JSONResponse "Groups."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups [get]
+func (h *HTTP) ListGroups(ctx context.Context, _ dto.ListGroupsRequestObject) (dto.ListGroupsResponseObject, error) {
 	gs, err := h.svc.ListGroups(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListGroups200JSONResponse{Data: make([]apigen.Group, len(gs))}
+	out := dto.ListGroups200JSONResponse{Data: make([]dto.Group, len(gs))}
 	for i, g := range gs {
 		out.Data[i] = apiGroup(g)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateGroup(ctx context.Context, req apigen.CreateGroupRequestObject) (apigen.CreateGroupResponseObject, error) {
+// @Summary Create a group
+// @ID createGroup
+// @Tags identity
+// @Param body body dto.GroupInput true "Request body"
+// @Success 201 {object} dto.Group "Created."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups [post]
+func (h *HTTP) CreateGroup(ctx context.Context, req dto.CreateGroupRequestObject) (dto.CreateGroupResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -197,18 +325,44 @@ func (h *HTTP) CreateGroup(ctx context.Context, req apigen.CreateGroupRequestObj
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateGroup201JSONResponse(apiGroup(g)), nil
+	return dto.CreateGroup201JSONResponse(apiGroup(g)), nil
 }
 
-func (h *HTTP) GetGroup(ctx context.Context, req apigen.GetGroupRequestObject) (apigen.GetGroupResponseObject, error) {
+// @Summary One group
+// @ID getGroup
+// @Tags identity
+// @Param group_id path string true "group_id"
+// @Success 200 {object} dto.Group "The group."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups/{group_id} [get]
+func (h *HTTP) GetGroup(ctx context.Context, req dto.GetGroupRequestObject) (dto.GetGroupResponseObject, error) {
 	g, err := h.svc.GetGroup(ctx, req.GroupId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetGroup200JSONResponse(apiGroup(g)), nil
+	return dto.GetGroup200JSONResponse(apiGroup(g)), nil
 }
 
-func (h *HTTP) UpdateGroup(ctx context.Context, req apigen.UpdateGroupRequestObject) (apigen.UpdateGroupResponseObject, error) {
+// @Summary Rename or describe a group
+// @ID updateGroup
+// @Tags identity
+// @Param group_id path string true "group_id"
+// @Param body body dto.GroupInput true "Request body"
+// @Success 200 {object} dto.Group "Updated."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups/{group_id} [patch]
+func (h *HTTP) UpdateGroup(ctx context.Context, req dto.UpdateGroupRequestObject) (dto.UpdateGroupResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -216,54 +370,102 @@ func (h *HTTP) UpdateGroup(ctx context.Context, req apigen.UpdateGroupRequestObj
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateGroup200JSONResponse(apiGroup(g)), nil
+	return dto.UpdateGroup200JSONResponse(apiGroup(g)), nil
 }
 
-func (h *HTTP) DeleteGroup(ctx context.Context, req apigen.DeleteGroupRequestObject) (apigen.DeleteGroupResponseObject, error) {
+// @Summary Delete a group and its role assignments
+// @ID deleteGroup
+// @Tags identity
+// @Param group_id path string true "group_id"
+// @Success 204 "Deleted."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups/{group_id} [delete]
+func (h *HTTP) DeleteGroup(ctx context.Context, req dto.DeleteGroupRequestObject) (dto.DeleteGroupResponseObject, error) {
 	if err := h.svc.DeleteGroup(ctx, req.GroupId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteGroup204Response{}, nil
+	return dto.DeleteGroup204Response{}, nil
 }
 
-func (h *HTTP) ListGroupMembers(ctx context.Context, req apigen.ListGroupMembersRequestObject) (apigen.ListGroupMembersResponseObject, error) {
+// @Summary Members of a group
+// @ID listGroupMembers
+// @Tags identity
+// @Param group_id path string true "group_id"
+// @Success 200 {object} dto.ListGroupMembers200JSONResponse "Members."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups/{group_id}/members [get]
+func (h *HTTP) ListGroupMembers(ctx context.Context, req dto.ListGroupMembersRequestObject) (dto.ListGroupMembersResponseObject, error) {
 	ms, err := h.svc.ListGroupMembers(ctx, req.GroupId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListGroupMembers200JSONResponse{Data: make([]apigen.GroupMember, len(ms))}
+	out := dto.ListGroupMembers200JSONResponse{Data: make([]dto.GroupMember, len(ms))}
 	for i, m := range ms {
-		out.Data[i] = apigen.GroupMember{Id: m.ID, Email: m.Email, DisplayName: m.DisplayName, AddedAt: m.AddedAt}
+		out.Data[i] = dto.GroupMember{Id: m.ID, Email: m.Email, DisplayName: m.DisplayName, AddedAt: m.AddedAt}
 	}
 	return out, nil
 }
 
-func (h *HTTP) AddGroupMember(ctx context.Context, req apigen.AddGroupMemberRequestObject) (apigen.AddGroupMemberResponseObject, error) {
+// @Summary Add a member to a group (idempotent)
+// @ID addGroupMember
+// @Tags identity
+// @Param group_id path string true "group_id"
+// @Param body body map[string]interface{} true "Request body"
+// @Success 204 "The user is a member."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups/{group_id}/members [post]
+func (h *HTTP) AddGroupMember(ctx context.Context, req dto.AddGroupMemberRequestObject) (dto.AddGroupMemberResponseObject, error) {
 	if req.Body == nil || req.Body.UserId == uuid.Nil {
 		return nil, httpx.Validation(httpx.FieldError{Field: "user_id", Code: "required", Message: "Choose a member."})
 	}
 	if err := h.svc.AddGroupMember(ctx, req.GroupId, req.Body.UserId); err != nil {
 		return nil, err
 	}
-	return apigen.AddGroupMember204Response{}, nil
+	return dto.AddGroupMember204Response{}, nil
 }
 
-func (h *HTTP) RemoveGroupMember(ctx context.Context, req apigen.RemoveGroupMemberRequestObject) (apigen.RemoveGroupMemberResponseObject, error) {
+// @Summary Remove a member from a group
+// @ID removeGroupMember
+// @Tags identity
+// @Param group_id path string true "group_id"
+// @Param user_id path string true "user_id"
+// @Success 204 "Removed."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/groups/{group_id}/members/{user_id} [delete]
+func (h *HTTP) RemoveGroupMember(ctx context.Context, req dto.RemoveGroupMemberRequestObject) (dto.RemoveGroupMemberResponseObject, error) {
 	if err := h.svc.RemoveGroupMember(ctx, req.GroupId, req.UserId); err != nil {
 		return nil, err
 	}
-	return apigen.RemoveGroupMember204Response{}, nil
+	return dto.RemoveGroupMember204Response{}, nil
 }
 
 // Service accounts -------------------------------------------------------------------
 
-func apiServiceAccount(sa ServiceAccount) apigen.ServiceAccount {
-	return apigen.ServiceAccount{Id: sa.ID, Name: sa.Name, Description: sa.Description, Disabled: sa.DisabledAt.Valid,
+func apiServiceAccount(sa ServiceAccount) dto.ServiceAccount {
+	return dto.ServiceAccount{Id: sa.ID, Name: sa.Name, Description: sa.Description, Disabled: sa.DisabledAt.Valid,
 		ActiveKeyCount: sa.ActiveKeyCount, CreatedAt: sa.CreatedAt, UpdatedAt: sa.UpdatedAt}
 }
 
-func apiKey(k APIKey) apigen.ApiKey {
-	out := apigen.ApiKey{Id: k.ID, Name: k.Name, Prefix: k.Prefix, CreatedAt: k.CreatedAt}
+func apiKey(k APIKey) dto.ApiKey {
+	out := dto.ApiKey{Id: k.ID, Name: k.Name, Prefix: k.Prefix, CreatedAt: k.CreatedAt}
 	if k.ExpiresAt.Valid {
 		out.ExpiresAt = &k.ExpiresAt.Time
 	}
@@ -276,19 +478,41 @@ func apiKey(k APIKey) apigen.ApiKey {
 	return out
 }
 
-func (h *HTTP) ListServiceAccounts(ctx context.Context, _ apigen.ListServiceAccountsRequestObject) (apigen.ListServiceAccountsResponseObject, error) {
+// @Summary Service accounts
+// @ID listServiceAccounts
+// @Tags identity
+// @Success 200 {object} dto.ListServiceAccounts200JSONResponse "Service accounts."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts [get]
+func (h *HTTP) ListServiceAccounts(ctx context.Context, _ dto.ListServiceAccountsRequestObject) (dto.ListServiceAccountsResponseObject, error) {
 	sas, err := h.svc.ListServiceAccounts(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListServiceAccounts200JSONResponse{Data: make([]apigen.ServiceAccount, len(sas))}
+	out := dto.ListServiceAccounts200JSONResponse{Data: make([]dto.ServiceAccount, len(sas))}
 	for i, sa := range sas {
 		out.Data[i] = apiServiceAccount(sa)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateServiceAccount(ctx context.Context, req apigen.CreateServiceAccountRequestObject) (apigen.CreateServiceAccountResponseObject, error) {
+// @Summary Create a service account
+// @ID createServiceAccount
+// @Tags identity
+// @Param body body dto.ServiceAccountCreate true "Request body"
+// @Success 201 {object} dto.ServiceAccount "Created."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts [post]
+func (h *HTTP) CreateServiceAccount(ctx context.Context, req dto.CreateServiceAccountRequestObject) (dto.CreateServiceAccountResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -296,18 +520,44 @@ func (h *HTTP) CreateServiceAccount(ctx context.Context, req apigen.CreateServic
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateServiceAccount201JSONResponse(apiServiceAccount(sa)), nil
+	return dto.CreateServiceAccount201JSONResponse(apiServiceAccount(sa)), nil
 }
 
-func (h *HTTP) GetServiceAccount(ctx context.Context, req apigen.GetServiceAccountRequestObject) (apigen.GetServiceAccountResponseObject, error) {
+// @Summary One service account
+// @ID getServiceAccount
+// @Tags identity
+// @Param service_account_id path string true "service_account_id"
+// @Success 200 {object} dto.ServiceAccount "The service account."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts/{service_account_id} [get]
+func (h *HTTP) GetServiceAccount(ctx context.Context, req dto.GetServiceAccountRequestObject) (dto.GetServiceAccountResponseObject, error) {
 	sa, err := h.svc.GetServiceAccount(ctx, req.ServiceAccountId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetServiceAccount200JSONResponse(apiServiceAccount(sa)), nil
+	return dto.GetServiceAccount200JSONResponse(apiServiceAccount(sa)), nil
 }
 
-func (h *HTTP) UpdateServiceAccount(ctx context.Context, req apigen.UpdateServiceAccountRequestObject) (apigen.UpdateServiceAccountResponseObject, error) {
+// @Summary Rename, describe, disable or re-enable a service account
+// @ID updateServiceAccount
+// @Tags identity
+// @Param service_account_id path string true "service_account_id"
+// @Param body body dto.ServiceAccountUpdate true "Request body"
+// @Success 200 {object} dto.ServiceAccount "Updated."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts/{service_account_id} [patch]
+func (h *HTTP) UpdateServiceAccount(ctx context.Context, req dto.UpdateServiceAccountRequestObject) (dto.UpdateServiceAccountResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -316,29 +566,66 @@ func (h *HTTP) UpdateServiceAccount(ctx context.Context, req apigen.UpdateServic
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateServiceAccount200JSONResponse(apiServiceAccount(sa)), nil
+	return dto.UpdateServiceAccount200JSONResponse(apiServiceAccount(sa)), nil
 }
 
-func (h *HTTP) DeleteServiceAccount(ctx context.Context, req apigen.DeleteServiceAccountRequestObject) (apigen.DeleteServiceAccountResponseObject, error) {
+// @Summary Delete a service account, its keys and role assignments
+// @ID deleteServiceAccount
+// @Tags identity
+// @Param service_account_id path string true "service_account_id"
+// @Success 204 "Deleted."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts/{service_account_id} [delete]
+func (h *HTTP) DeleteServiceAccount(ctx context.Context, req dto.DeleteServiceAccountRequestObject) (dto.DeleteServiceAccountResponseObject, error) {
 	if err := h.svc.DeleteServiceAccount(ctx, req.ServiceAccountId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteServiceAccount204Response{}, nil
+	return dto.DeleteServiceAccount204Response{}, nil
 }
 
-func (h *HTTP) ListApiKeys(ctx context.Context, req apigen.ListApiKeysRequestObject) (apigen.ListApiKeysResponseObject, error) {
+// @Summary API keys of a service account (never the secret)
+// @ID listApiKeys
+// @Tags identity
+// @Param service_account_id path string true "service_account_id"
+// @Success 200 {object} dto.ListApiKeys200JSONResponse "Keys."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts/{service_account_id}/keys [get]
+func (h *HTTP) ListApiKeys(ctx context.Context, req dto.ListApiKeysRequestObject) (dto.ListApiKeysResponseObject, error) {
 	ks, err := h.svc.ListAPIKeys(ctx, req.ServiceAccountId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListApiKeys200JSONResponse{Data: make([]apigen.ApiKey, len(ks))}
+	out := dto.ListApiKeys200JSONResponse{Data: make([]dto.ApiKey, len(ks))}
 	for i, k := range ks {
 		out.Data[i] = apiKey(k)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateApiKey(ctx context.Context, req apigen.CreateApiKeyRequestObject) (apigen.CreateApiKeyResponseObject, error) {
+// @Summary Create an API key (the secret is returned once)
+// @ID createApiKey
+// @Tags identity
+// @Param service_account_id path string true "service_account_id"
+// @Param body body dto.ApiKeyCreate true "Request body"
+// @Success 201 {object} dto.ApiKeyCreated "Created."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts/{service_account_id}/keys [post]
+func (h *HTTP) CreateApiKey(ctx context.Context, req dto.CreateApiKeyRequestObject) (dto.CreateApiKeyResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -346,12 +633,25 @@ func (h *HTTP) CreateApiKey(ctx context.Context, req apigen.CreateApiKeyRequestO
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateApiKey201JSONResponse{Key: apiKey(k), Secret: secret}, nil
+	return dto.CreateApiKey201JSONResponse{Key: apiKey(k), Secret: secret}, nil
 }
 
-func (h *HTTP) RevokeApiKey(ctx context.Context, req apigen.RevokeApiKeyRequestObject) (apigen.RevokeApiKeyResponseObject, error) {
+// @Summary Revoke an API key
+// @ID revokeApiKey
+// @Tags identity
+// @Param service_account_id path string true "service_account_id"
+// @Param key_id path string true "key_id"
+// @Success 204 "Revoked."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id} [delete]
+func (h *HTTP) RevokeApiKey(ctx context.Context, req dto.RevokeApiKeyRequestObject) (dto.RevokeApiKeyResponseObject, error) {
 	if err := h.svc.RevokeAPIKey(ctx, req.ServiceAccountId, req.KeyId); err != nil {
 		return nil, err
 	}
-	return apigen.RevokeApiKey204Response{}, nil
+	return dto.RevokeApiKey204Response{}, nil
 }

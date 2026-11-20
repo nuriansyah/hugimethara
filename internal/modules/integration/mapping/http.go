@@ -6,14 +6,14 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 type HTTP struct{ svc *Service }
 
 func NewHTTP(svc *Service) *HTTP { return &HTTP{svc: svc} }
 
-func apiMapping(m Mapping) apigen.Mapping {
+func apiMapping(m Mapping) dto.Mapping {
 	var input, output *map[string]interface{}
 	if m.InputSchema != nil {
 		v := m.InputSchema
@@ -23,33 +23,57 @@ func apiMapping(m Mapping) apigen.Mapping {
 		v := m.OutputSchema
 		output = &v
 	}
-	return apigen.Mapping{Id: m.ID, WorkspaceId: m.WorkspaceID, Name: m.Name, Draft: m.Draft,
+	return dto.Mapping{Id: m.ID, WorkspaceId: m.WorkspaceID, Name: m.Name, Draft: m.Draft,
 		InputSchema: input, OutputSchema: output, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}
 }
 
-func apiVersion(v MappingVersion) apigen.MappingVersion {
-	return apigen.MappingVersion{Id: v.ID, MappingId: v.MappingID, Version: v.Version,
+func apiVersion(v MappingVersion) dto.MappingVersion {
+	return dto.MappingVersion{Id: v.ID, MappingId: v.MappingID, Version: v.Version,
 		Definition: v.Definition, Checksum: v.Checksum, PublishedBy: v.PublishedBy, PublishedAt: v.PublishedAt}
 }
 
-func apiTest(t MappingTest) apigen.MappingTest {
-	return apigen.MappingTest{Id: t.ID, MappingId: t.MappingID, Name: t.Name,
+func apiTest(t MappingTest) dto.MappingTest {
+	return dto.MappingTest{Id: t.ID, MappingId: t.MappingID, Name: t.Name,
 		Input: t.Input, Expected: t.Expected, CreatedAt: t.CreatedAt, UpdatedAt: t.UpdatedAt}
 }
 
-func (h *HTTP) ListMappings(ctx context.Context, req apigen.ListMappingsRequestObject) (apigen.ListMappingsResponseObject, error) {
+// @Summary List mappings in a workspace
+// @ID listMappings
+// @Tags mappings
+// @Param workspace_id query string true "workspace_id"
+// @Success 200 {object} dto.ListMappings200JSONResponse "Mappings."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings [get]
+func (h *HTTP) ListMappings(ctx context.Context, req dto.ListMappingsRequestObject) (dto.ListMappingsResponseObject, error) {
 	rows, err := h.svc.List(ctx, req.Params.WorkspaceId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListMappings200JSONResponse{Data: make([]apigen.Mapping, len(rows))}
+	out := dto.ListMappings200JSONResponse{Data: make([]dto.Mapping, len(rows))}
 	for i := range rows {
 		out.Data[i] = apiMapping(rows[i])
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateMapping(ctx context.Context, req apigen.CreateMappingRequestObject) (apigen.CreateMappingResponseObject, error) {
+// @Summary Create a mapping draft
+// @ID createMapping
+// @Tags mappings
+// @Param body body dto.MappingCreate true "Request body"
+// @Success 201 {object} dto.Mapping "Created mapping."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings [post]
+func (h *HTTP) CreateMapping(ctx context.Context, req dto.CreateMappingRequestObject) (dto.CreateMappingResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -67,18 +91,45 @@ func (h *HTTP) CreateMapping(ctx context.Context, req apigen.CreateMappingReques
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateMapping201JSONResponse(apiMapping(row)), nil
+	return dto.CreateMapping201JSONResponse(apiMapping(row)), nil
 }
 
-func (h *HTTP) GetMapping(ctx context.Context, req apigen.GetMappingRequestObject) (apigen.GetMappingResponseObject, error) {
+// @Summary Get a mapping draft
+// @ID getMapping
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Success 200 {object} dto.Mapping "Mapping"
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id} [get]
+func (h *HTTP) GetMapping(ctx context.Context, req dto.GetMappingRequestObject) (dto.GetMappingResponseObject, error) {
 	row, err := h.svc.Get(ctx, uuid.UUID(req.MappingId))
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetMapping200JSONResponse(apiMapping(row)), nil
+	return dto.GetMapping200JSONResponse(apiMapping(row)), nil
 }
 
-func (h *HTTP) UpdateMapping(ctx context.Context, req apigen.UpdateMappingRequestObject) (apigen.UpdateMappingResponseObject, error) {
+// @Summary Update a mapping draft
+// @ID updateMapping
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Param body body dto.MappingUpdate true "Request body"
+// @Success 200 {object} dto.Mapping "Updated mapping"
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id} [patch]
+func (h *HTTP) UpdateMapping(ctx context.Context, req dto.UpdateMappingRequestObject) (dto.UpdateMappingResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -99,37 +150,89 @@ func (h *HTTP) UpdateMapping(ctx context.Context, req apigen.UpdateMappingReques
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateMapping200JSONResponse(apiMapping(row)), nil
+	return dto.UpdateMapping200JSONResponse(apiMapping(row)), nil
 }
 
-func (h *HTTP) DeleteMapping(ctx context.Context, req apigen.DeleteMappingRequestObject) (apigen.DeleteMappingResponseObject, error) {
+// @Summary Delete a mapping and its versions
+// @ID deleteMapping
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Success 204 "Deleted."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id} [delete]
+func (h *HTTP) DeleteMapping(ctx context.Context, req dto.DeleteMappingRequestObject) (dto.DeleteMappingResponseObject, error) {
 	if err := h.svc.Delete(ctx, uuid.UUID(req.MappingId)); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteMapping204Response{}, nil
+	return dto.DeleteMapping204Response{}, nil
 }
 
-func (h *HTTP) PublishMapping(ctx context.Context, req apigen.PublishMappingRequestObject) (apigen.PublishMappingResponseObject, error) {
+// @Summary Publish a tested immutable mapping version
+// @ID publishMapping
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Success 201 {object} dto.MappingVersion "Published mapping version."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id}/publish [post]
+func (h *HTTP) PublishMapping(ctx context.Context, req dto.PublishMappingRequestObject) (dto.PublishMappingResponseObject, error) {
 	row, err := h.svc.Publish(ctx, uuid.UUID(req.MappingId))
 	if err != nil {
 		return nil, err
 	}
-	return apigen.PublishMapping201JSONResponse(apiVersion(row)), nil
+	return dto.PublishMapping201JSONResponse(apiVersion(row)), nil
 }
 
-func (h *HTTP) ListMappingVersions(ctx context.Context, req apigen.ListMappingVersionsRequestObject) (apigen.ListMappingVersionsResponseObject, error) {
+// @Summary List immutable mapping versions
+// @ID listMappingVersions
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Success 200 {object} dto.ListMappingVersions200JSONResponse "Mapping versions."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id}/versions [get]
+func (h *HTTP) ListMappingVersions(ctx context.Context, req dto.ListMappingVersionsRequestObject) (dto.ListMappingVersionsResponseObject, error) {
 	rows, err := h.svc.ListVersions(ctx, uuid.UUID(req.MappingId))
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListMappingVersions200JSONResponse{Data: make([]apigen.MappingVersion, len(rows))}
+	out := dto.ListMappingVersions200JSONResponse{Data: make([]dto.MappingVersion, len(rows))}
 	for i := range rows {
 		out.Data[i] = apiVersion(rows[i])
 	}
 	return out, nil
 }
 
-func (h *HTTP) TestMapping(ctx context.Context, req apigen.TestMappingRequestObject) (apigen.TestMappingResponseObject, error) {
+// @Summary Evaluate mapping input ad hoc or run stored tests
+// @ID testMapping
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Param body body dto.MappingTestRequest true "Request body"
+// @Success 200 {object} dto.MappingTestResult "Mapping evaluation result."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id}/test [post]
+func (h *HTTP) TestMapping(ctx context.Context, req dto.TestMappingRequestObject) (dto.TestMappingResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -147,22 +250,48 @@ func (h *HTTP) TestMapping(ctx context.Context, req apigen.TestMappingRequestObj
 		failed[i].Actual = result.StoredTestsFailed[i].Actual
 		failed[i].Expected = result.StoredTestsFailed[i].Expected
 	}
-	return apigen.TestMapping200JSONResponse{Output: result.Output, StoredTestsPassed: result.StoredTestsPassed, StoredTestsFailed: failed}, nil
+	return dto.TestMapping200JSONResponse{Output: result.Output, StoredTestsPassed: result.StoredTestsPassed, StoredTestsFailed: failed}, nil
 }
 
-func (h *HTTP) ListMappingTests(ctx context.Context, req apigen.ListMappingTestsRequestObject) (apigen.ListMappingTestsResponseObject, error) {
+// @Summary List stored mapping test cases
+// @ID listMappingTests
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Success 200 {object} dto.ListMappingTests200JSONResponse "Test cases."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id}/tests [get]
+func (h *HTTP) ListMappingTests(ctx context.Context, req dto.ListMappingTestsRequestObject) (dto.ListMappingTestsResponseObject, error) {
 	rows, err := h.svc.ListTests(ctx, uuid.UUID(req.MappingId))
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListMappingTests200JSONResponse{Data: make([]apigen.MappingTest, len(rows))}
+	out := dto.ListMappingTests200JSONResponse{Data: make([]dto.MappingTest, len(rows))}
 	for i := range rows {
 		out.Data[i] = apiTest(rows[i])
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateMappingTest(ctx context.Context, req apigen.CreateMappingTestRequestObject) (apigen.CreateMappingTestResponseObject, error) {
+// @Summary Create a mapping test case
+// @ID createMappingTest
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Param body body dto.MappingTestCreate true "Request body"
+// @Success 201 {object} dto.MappingTest "Test case."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id}/tests [post]
+func (h *HTTP) CreateMappingTest(ctx context.Context, req dto.CreateMappingTestRequestObject) (dto.CreateMappingTestResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -170,10 +299,26 @@ func (h *HTTP) CreateMappingTest(ctx context.Context, req apigen.CreateMappingTe
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateMappingTest201JSONResponse(apiTest(row)), nil
+	return dto.CreateMappingTest201JSONResponse(apiTest(row)), nil
 }
 
-func (h *HTTP) UpdateMappingTest(ctx context.Context, req apigen.UpdateMappingTestRequestObject) (apigen.UpdateMappingTestResponseObject, error) {
+// @Summary Update a mapping test case
+// @ID updateMappingTest
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Param test_id path string true "test_id"
+// @Param body body dto.MappingTestUpdate true "Request body"
+// @Success 200 {object} dto.MappingTest "Updated test"
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id}/tests/{test_id} [patch]
+func (h *HTTP) UpdateMappingTest(ctx context.Context, req dto.UpdateMappingTestRequestObject) (dto.UpdateMappingTestResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -182,12 +327,25 @@ func (h *HTTP) UpdateMappingTest(ctx context.Context, req apigen.UpdateMappingTe
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateMappingTest200JSONResponse(apiTest(row)), nil
+	return dto.UpdateMappingTest200JSONResponse(apiTest(row)), nil
 }
 
-func (h *HTTP) DeleteMappingTest(ctx context.Context, req apigen.DeleteMappingTestRequestObject) (apigen.DeleteMappingTestResponseObject, error) {
+// @Summary Delete a mapping test case
+// @ID deleteMappingTest
+// @Tags mappings
+// @Param mapping_id path string true "mapping_id"
+// @Param test_id path string true "test_id"
+// @Success 204 "Deleted."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/mappings/{mapping_id}/tests/{test_id} [delete]
+func (h *HTTP) DeleteMappingTest(ctx context.Context, req dto.DeleteMappingTestRequestObject) (dto.DeleteMappingTestResponseObject, error) {
 	if err := h.svc.DeleteTest(ctx, uuid.UUID(req.MappingId), uuid.UUID(req.TestId)); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteMappingTest204Response{}, nil
+	return dto.DeleteMappingTest204Response{}, nil
 }

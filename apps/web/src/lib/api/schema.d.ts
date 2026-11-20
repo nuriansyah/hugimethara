@@ -38,37 +38,17 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/hugimethara/system/info": {
+    "/v1/hugimethara/audit-events": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Build and deployment information */
-        get: operations["getSystemInfo"];
+        /** The organization audit trail, newest first */
+        get: operations["listAuditEvents"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/organizations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Sign up — create an organization and its first owner, and sign in
-         * @description Public. Sets the session and CSRF cookies on success. Rate limited per client IP.
-         */
-        post: operations["createOrganization"];
         delete?: never;
         options?: never;
         head?: never;
@@ -84,12 +64,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Sign in with email and password
-         * @description Public. On success sets the session cookie (HttpOnly) and the CSRF cookie (readable by the page;
-         *     echo it in `X-CSRF-Token` on state-changing requests). When the account belongs to several
-         *     organizations and none is given, responds 409 `organization_required` with an `organizations` list.
-         */
+        /** Sign in with email and password */
         post: operations["login"];
         delete?: never;
         options?: never;
@@ -114,27 +89,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/hugimethara/auth/oidc/providers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Enabled SSO providers of an organization (public)
-         * @description Public. Used by the sign-in page to offer a "Continue with SSO" button. Returns an empty
-         *     list for unknown organizations so slugs cannot be enumerated. Rate limited per client IP.
-         */
-        get: operations["listOidcProviders"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/hugimethara/auth/oidc/{idp_id}/start": {
         parameters: {
             query?: never;
@@ -142,12 +96,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Begin an OIDC sign-in (public)
-         * @description Public. Sets a sealed, short-lived state cookie (state, nonce, PKCE verifier) and redirects
-         *     the browser to the identity provider. `redirect` is a relative web path to land on after
-         *     sign-in (defaults to `/`). Failures redirect to the sign-in page with `sso_error`.
-         */
+        /** Begin an OIDC sign-in (public) */
         get: operations["startOidcLogin"];
         put?: never;
         post?: never;
@@ -164,17 +113,365 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Finish an OIDC sign-in (public)
-         * @description Public. Validates state and nonce, exchanges the authorization code with PKCE, verifies the
-         *     ID token signature, issuer and audience, links or just-in-time provisions the user, applies
-         *     group mappings and sets the session cookies. Always redirects to the web app; failures carry
-         *     a stable `sso_error` code.
-         */
+        /** Finish an OIDC sign-in (public) */
         get: operations["completeOidcLogin"];
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/auth/oidc/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Enabled SSO providers of an organization (public) */
+        get: operations["listOidcProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/authorization/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Logged authorization decisions (every denial and sensitive allow), newest first */
+        get: operations["listAccessDecisions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/authorization/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check whether a member could perform an action (simulation; not logged as a decision) */
+        post: operations["evaluateAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connector-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List available connector definitions */
+        get: operations["listConnectorDefinitions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connector-definitions/{definition_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List connector definition versions */
+        get: operations["listConnectorVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List configured connector instances */
+        get: operations["listConnectors"];
+        put?: never;
+        /** Configure a connector instance */
+        post: operations["createConnector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors/{connector_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a connector instance */
+        get: operations["getConnector"];
+        put?: never;
+        post?: never;
+        /** Delete a connector instance */
+        delete: operations["deleteConnector"];
+        options?: never;
+        head?: never;
+        /** Update a connector instance */
+        patch: operations["updateConnector"];
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors/{connector_id}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get connector health history */
+        get: operations["getConnectorHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors/{connector_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Test connector reachability */
+        post: operations["testConnector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List credential metadata */
+        get: operations["listCredentials"];
+        put?: never;
+        /** Store an encrypted credential */
+        post: operations["createCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/credentials/{credential_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get credential metadata */
+        get: operations["getCredential"];
+        put?: never;
+        post?: never;
+        /** Delete a credential */
+        delete: operations["deleteCredential"];
+        options?: never;
+        head?: never;
+        /** Update credential metadata or rotate its value */
+        patch: operations["updateCredential"];
+        trace?: never;
+    };
+    "/v1/hugimethara/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List departments */
+        get: operations["listDepartments"];
+        put?: never;
+        /** Create a department */
+        post: operations["createDepartment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/departments/{department_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a department */
+        delete: operations["deleteDepartment"];
+        options?: never;
+        head?: never;
+        /** Update a department */
+        patch: operations["updateDepartment"];
+        trace?: never;
+    };
+    "/v1/hugimethara/entitlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The organization's plan, paid features, quotas and usage */
+        get: operations["getEntitlements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/environments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List environments */
+        get: operations["listEnvironments"];
+        put?: never;
+        /** Create a environment */
+        post: operations["createEnvironment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/environments/{environment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a environment */
+        delete: operations["deleteEnvironment"];
+        options?: never;
+        head?: never;
+        /** Update a environment */
+        patch: operations["updateEnvironment"];
+        trace?: never;
+    };
+    "/v1/hugimethara/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Groups */
+        get: operations["listGroups"];
+        put?: never;
+        /** Create a group */
+        post: operations["createGroup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/groups/{group_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One group */
+        get: operations["getGroup"];
+        put?: never;
+        post?: never;
+        /** Delete a group and its role assignments */
+        delete: operations["deleteGroup"];
+        options?: never;
+        head?: never;
+        /** Rename or describe a group */
+        patch: operations["updateGroup"];
+        trace?: never;
+    };
+    "/v1/hugimethara/groups/{group_id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members of a group */
+        get: operations["listGroupMembers"];
+        put?: never;
+        /** Add a member to a group (idempotent) */
+        post: operations["addGroupMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/groups/{group_id}/members/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a member from a group */
+        delete: operations["removeGroupMember"];
         options?: never;
         head?: never;
         patch?: never;
@@ -187,16 +484,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * OIDC identity providers
-         * @description Permission: identity_provider:read. Secrets are never returned.
-         */
+        /** OIDC identity providers */
         get: operations["listIdentityProviders"];
         put?: never;
-        /**
-         * Configure an OIDC identity provider
-         * @description Permission: identity_provider:create. The client secret is write-only.
-         */
+        /** Configure an OIDC identity provider */
         post: operations["createIdentityProvider"];
         delete?: never;
         options?: never;
@@ -208,75 +499,32 @@ export interface paths {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                provider_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        /**
-         * One identity provider
-         * @description Permission: identity_provider:read.
-         */
+        /** One identity provider */
         get: operations["getIdentityProvider"];
         put?: never;
         post?: never;
-        /**
-         * Delete an identity provider, its links and group mappings
-         * @description Permission: identity_provider:delete. Members stay; they can no longer sign in through it.
-         */
+        /** Delete an identity provider, its links and group mappings */
         delete: operations["deleteIdentityProvider"];
         options?: never;
         head?: never;
-        /**
-         * Update an identity provider
-         * @description Permission: identity_provider:update. Omitted client secret keeps the current one; an
-         *     empty string removes it.
-         */
+        /** Update an identity provider */
         patch: operations["updateIdentityProvider"];
-        trace?: never;
-    };
-    "/v1/hugimethara/identity/providers/{provider_id}/test": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Check discovery and signing-key reachability
-         * @description Permission: identity_provider:test. Fetches the issuer's discovery document and JWKS.
-         */
-        post: operations["testIdentityProvider"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/v1/hugimethara/identity/providers/{provider_id}/group-mappings": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                provider_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        /**
-         * External-group to internal-group mappings
-         * @description Permission: identity_provider:read.
-         */
+        /** External-group to internal-group mappings */
         get: operations["listGroupMappings"];
         put?: never;
-        /**
-         * Map an IdP group to an internal group
-         * @description Permission: identity_provider:update. Without `group_id` a group with `source: idp` is
-         *     created from the external name (its members are then managed by the IdP only).
-         */
+        /** Map an IdP group to an internal group */
         post: operations["createGroupMapping"];
         delete?: never;
         options?: never;
@@ -288,20 +536,224 @@ export interface paths {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                provider_id: string;
-                mapping_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * Remove a group mapping
-         * @description Permission: identity_provider:update.
-         */
+        /** Remove a group mapping */
         delete: operations["deleteGroupMapping"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/identity/providers/{provider_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check discovery and signing-key reachability */
+        post: operations["testIdentityProvider"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/invitation-tokens/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What an invitation link is for (public) */
+        get: operations["getInvitationPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/invitation-tokens/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept an invitation and sign in to the organization (public, rate-limited) */
+        post: operations["acceptInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Invitations, newest first */
+        get: operations["listInvitations"];
+        put?: never;
+        /** Invite someone by email */
+        post: operations["createInvitation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/invitations/{invitation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke an open invitation */
+        delete: operations["revokeInvitation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List mappings in a workspace */
+        get: operations["listMappings"];
+        put?: never;
+        /** Create a mapping draft */
+        post: operations["createMapping"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/mappings/{mapping_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a mapping draft */
+        get: operations["getMapping"];
+        put?: never;
+        post?: never;
+        /** Delete a mapping and its versions */
+        delete: operations["deleteMapping"];
+        options?: never;
+        head?: never;
+        /** Update a mapping draft */
+        patch: operations["updateMapping"];
+        trace?: never;
+    };
+    "/v1/hugimethara/mappings/{mapping_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a tested immutable mapping version */
+        post: operations["publishMapping"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/mappings/{mapping_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Evaluate mapping input ad hoc or run stored tests */
+        post: operations["testMapping"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/mappings/{mapping_id}/tests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List stored mapping test cases */
+        get: operations["listMappingTests"];
+        put?: never;
+        /** Create a mapping test case */
+        post: operations["createMappingTest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/mappings/{mapping_id}/tests/{test_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a mapping test case */
+        delete: operations["deleteMappingTest"];
+        options?: never;
+        head?: never;
+        /** Update a mapping test case */
+        patch: operations["updateMappingTest"];
+        trace?: never;
+    };
+    "/v1/hugimethara/mappings/{mapping_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List immutable mapping versions */
+        get: operations["listMappingVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -316,6 +768,23 @@ export interface paths {
         };
         /** The signed-in user, their organization and session */
         get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/me/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's effective permissions (for UI gating; the API still authorizes every call) */
+        get: operations["getMyPermissions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -358,6 +827,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign up — create an organization and its first owner, and sign in */
+        post: operations["createOrganization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/organizations/current": {
         parameters: {
             query?: never;
@@ -365,1141 +851,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * The caller's organization
-         * @description Permission: organization:read.
-         */
+        /** The caller's organization */
         get: operations["getCurrentOrganization"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * Update the caller's organization
-         * @description Permission: organization:update. Audited as organization.updated.
-         */
+        /** Update the caller's organization */
         patch: operations["updateCurrentOrganization"];
-        trace?: never;
-    };
-    "/v1/hugimethara/audit-events": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The organization audit trail, newest first
-         * @description Permission: audit_event:read.
-         */
-        get: operations["listAuditEvents"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/credentials": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List credential metadata
-         * @description Permission: secret:read. Values and ciphertext are never returned.
-         */
-        get: operations["listCredentials"];
-        put?: never;
-        /**
-         * Store an encrypted credential
-         * @description Permission: secret:create. The plaintext is accepted once and never returned.
-         */
-        post: operations["createCredential"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/credentials/{credential_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                credential_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * Get credential metadata
-         * @description Permission: secret:read. The value is write-only.
-         */
-        get: operations["getCredential"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete a credential
-         * @description Permission: secret:delete.
-         */
-        delete: operations["deleteCredential"];
-        options?: never;
-        head?: never;
-        /**
-         * Update credential metadata or rotate its value
-         * @description Permission: secret:update. Omit value to keep the current value.
-         */
-        patch: operations["updateCredential"];
-        trace?: never;
-    };
-    "/v1/hugimethara/connector-definitions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List available connector definitions
-         * @description Permission: connector:read.
-         */
-        get: operations["listConnectorDefinitions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/connector-definitions/{definition_id}/versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List connector definition versions
-         * @description Permission: connector:read.
-         */
-        get: operations["listConnectorVersions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/connectors": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List configured connector instances
-         * @description Permission: connector:read.
-         */
-        get: operations["listConnectors"];
-        put?: never;
-        /**
-         * Configure a connector instance
-         * @description Permission: connector:create. Credential values must be stored separately via /credentials.
-         */
-        post: operations["createConnector"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/connectors/{connector_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                connector_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * Get a connector instance
-         * @description Permission: connector:read. Secret values are never returned.
-         */
-        get: operations["getConnector"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete a connector instance
-         * @description Permission: connector:delete.
-         */
-        delete: operations["deleteConnector"];
-        options?: never;
-        head?: never;
-        /**
-         * Update a connector instance
-         * @description Permission: connector:update.
-         */
-        patch: operations["updateConnector"];
-        trace?: never;
-    };
-    "/v1/hugimethara/connectors/{connector_id}/test": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Test connector reachability
-         * @description Permission: connector:test. The result is recorded in connector health history.
-         */
-        post: operations["testConnector"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/connectors/{connector_id}/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get connector health history
-         * @description Permission: connector:read.
-         */
-        get: operations["getConnectorHealth"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/services": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List registered services
-         * @description Permission: service:read.
-         */
-        get: operations["listServices"];
-        put?: never;
-        /**
-         * Register an API service
-         * @description Permission: service:create.
-         */
-        post: operations["createService"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/services/{service_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * Get a registered service
-         * @description Permission: service:read.
-         */
-        get: operations["getService"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete a service and its imported API specs
-         * @description Permission: service:delete.
-         */
-        delete: operations["deleteService"];
-        options?: never;
-        head?: never;
-        /**
-         * Update a registered service
-         * @description Permission: service:update.
-         */
-        patch: operations["updateService"];
-        trace?: never;
-    };
-    "/v1/hugimethara/services/{service_id}/environments/{environment_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Set a service base URL for an environment
-         * @description Permission: service:update.
-         */
-        put: operations["putServiceEnvironment"];
-        post?: never;
-        /**
-         * Remove a service environment binding
-         * @description Permission: service:update.
-         */
-        delete: operations["deleteServiceEnvironment"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/services/{service_id}/import-openapi": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Import an OpenAPI document and preview changes
-         * @description Permission: service:update. Supply exactly one of spec or url. URL fetches use guarded egress.
-         */
-        post: operations["importOpenAPI"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/services/{service_id}/endpoints": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List imported API endpoints
-         * @description Permission: service:read.
-         */
-        get: operations["listServiceEndpoints"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/service-endpoints/{endpoint_id}/try": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Send a test request to an imported endpoint
-         * @description Permission: service:invoke. Uses configured service environment and guarded egress.
-         */
-        post: operations["tryServiceEndpoint"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/mappings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List mappings in a workspace
-         * @description Permission: mapping:read.
-         */
-        get: operations["listMappings"];
-        put?: never;
-        /**
-         * Create a mapping draft
-         * @description Permission: mapping:create.
-         */
-        post: operations["createMapping"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/mappings/{mapping_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * Get a mapping draft
-         * @description Permission: mapping:read.
-         */
-        get: operations["getMapping"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete a mapping and its versions
-         * @description Permission: mapping:delete.
-         */
-        delete: operations["deleteMapping"];
-        options?: never;
-        head?: never;
-        /**
-         * Update a mapping draft
-         * @description Permission: mapping:update.
-         */
-        patch: operations["updateMapping"];
-        trace?: never;
-    };
-    "/v1/hugimethara/mappings/{mapping_id}/publish": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Publish a tested immutable mapping version
-         * @description Permission: mapping:publish. Draft test cases must all pass.
-         */
-        post: operations["publishMapping"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/mappings/{mapping_id}/versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List immutable mapping versions
-         * @description Permission: mapping:read.
-         */
-        get: operations["listMappingVersions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/mappings/{mapping_id}/test": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Evaluate mapping input ad hoc or run stored tests
-         * @description Permission: mapping:test.
-         */
-        post: operations["testMapping"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/mappings/{mapping_id}/tests": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List stored mapping test cases
-         * @description Permission: mapping:read.
-         */
-        get: operations["listMappingTests"];
-        put?: never;
-        /**
-         * Create a mapping test case
-         * @description Permission: mapping:update.
-         */
-        post: operations["createMappingTest"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/mappings/{mapping_id}/tests/{test_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete a mapping test case
-         * @description Permission: mapping:update.
-         */
-        delete: operations["deleteMappingTest"];
-        options?: never;
-        head?: never;
-        /**
-         * Update a mapping test case
-         * @description Permission: mapping:update.
-         */
-        patch: operations["updateMappingTest"];
-        trace?: never;
-    };
-    "/v1/hugimethara/departments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List departments
-         * @description Permission: department:read.
-         */
-        get: operations["listDepartments"];
-        put?: never;
-        /**
-         * Create a department
-         * @description Permission: department:create. May return 402 when the plan does not allow it.
-         */
-        post: operations["createDepartment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/departments/{department_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                department_id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete a department
-         * @description Permission: department:delete.
-         */
-        delete: operations["deleteDepartment"];
-        options?: never;
-        head?: never;
-        /**
-         * Update a department
-         * @description Permission: department:update.
-         */
-        patch: operations["updateDepartment"];
-        trace?: never;
-    };
-    "/v1/hugimethara/environments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List environments
-         * @description Permission: environment:read.
-         */
-        get: operations["listEnvironments"];
-        put?: never;
-        /**
-         * Create a environment
-         * @description Permission: environment:create. May return 402 when the plan does not allow it.
-         */
-        post: operations["createEnvironment"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/environments/{environment_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                environment_id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete a environment
-         * @description Permission: environment:delete.
-         */
-        delete: operations["deleteEnvironment"];
-        options?: never;
-        head?: never;
-        /**
-         * Update a environment
-         * @description Permission: environment:update.
-         */
-        patch: operations["updateEnvironment"];
-        trace?: never;
-    };
-    "/v1/hugimethara/workspaces": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Workspaces visible to the caller
-         * @description Owners see every workspace; members see the workspaces they belong to.
-         */
-        get: operations["listWorkspaces"];
-        put?: never;
-        /**
-         * Create a workspace (the creator becomes its first member)
-         * @description Permission: workspace:create. Counts against the plan's workspace quota (402 when reached).
-         */
-        post: operations["createWorkspace"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/workspaces/{workspace}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        /**
-         * A workspace by its address
-         * @description Permission: workspace:read (members of the workspace, or org-wide). Others get 404.
-         */
-        get: operations["getWorkspace"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Update a workspace
-         * @description Permission: workspace:update.
-         */
-        patch: operations["updateWorkspace"];
-        trace?: never;
-    };
-    "/v1/hugimethara/workspaces/{workspace}/archive": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Archive a workspace (frees a slot in the workspace quota)
-         * @description Permission: workspace:archive.
-         */
-        post: operations["archiveWorkspace"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/workspaces/{workspace}/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Restore an archived workspace
-         * @description Permission: workspace:archive. Counts against the workspace quota (402 when full).
-         */
-        post: operations["restoreWorkspace"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/workspaces/{workspace}/members": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        /**
-         * Members of a workspace
-         * @description Permission: workspace:read.
-         */
-        get: operations["listWorkspaceMembers"];
-        put?: never;
-        /**
-         * Add an organization member to the workspace (idempotent)
-         * @description Permission: workspace:manage_members.
-         */
-        post: operations["addWorkspaceMember"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/workspaces/{workspace}/members/{user_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Remove a user from the workspace
-         * @description Permission: workspace:manage_members.
-         */
-        delete: operations["removeWorkspaceMember"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/users": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Members of the organization
-         * @description Permission: user:read.
-         */
-        get: operations["listUsers"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/users/{user_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * One member, with their groups
-         * @description Permission: user:read.
-         */
-        get: operations["getUser"];
-        put?: never;
-        post?: never;
-        /**
-         * Remove a member from the organization
-         * @description Permission: user:remove. Removes their roles and group memberships and ends their sessions. The account itself (shared with other organizations) is kept.
-         */
-        delete: operations["removeUser"];
-        options?: never;
-        head?: never;
-        /**
-         * Suspend or reactivate a member
-         * @description Permission: user:update. Suspending ends the member's sessions; you cannot suspend yourself or the last owner.
-         */
-        patch: operations["updateUser"];
-        trace?: never;
-    };
-    "/v1/hugimethara/invitations": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Invitations, newest first
-         * @description Permission: user:invite.
-         */
-        get: operations["listInvitations"];
-        put?: never;
-        /**
-         * Invite someone by email
-         * @description Permission: user:invite; workspace roles need workspace:manage_members there, an organization role needs role:bind, and you can only hand out permissions you hold. Re-inviting an address replaces its open invitation. The link token is returned once.
-         */
-        post: operations["createInvitation"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/invitations/{invitation_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                invitation_id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Revoke an open invitation
-         * @description Permission: user:invite.
-         */
-        delete: operations["revokeInvitation"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/invitation-tokens/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        /** What an invitation link is for (public) */
-        get: operations["getInvitationPreview"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/invitation-tokens/{token}/accept": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Accept an invitation and sign in to the organization (public, rate-limited)
-         * @description Signed in as the invited address: no body needed. Otherwise send the password of the
-         *     existing account, or a display name and password to create one. Sets session cookies.
-         */
-        post: operations["acceptInvitation"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/groups": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Groups
-         * @description Permission: group:read.
-         */
-        get: operations["listGroups"];
-        put?: never;
-        /**
-         * Create a group
-         * @description Permission: group:create.
-         */
-        post: operations["createGroup"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/groups/{group_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * One group
-         * @description Permission: group:read.
-         */
-        get: operations["getGroup"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete a group and its role assignments
-         * @description Permission: group:delete.
-         */
-        delete: operations["deleteGroup"];
-        options?: never;
-        head?: never;
-        /**
-         * Rename or describe a group
-         * @description Permission: group:update.
-         */
-        patch: operations["updateGroup"];
-        trace?: never;
-    };
-    "/v1/hugimethara/groups/{group_id}/members": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * Members of a group
-         * @description Permission: group:read.
-         */
-        get: operations["listGroupMembers"];
-        put?: never;
-        /**
-         * Add a member to a group (idempotent)
-         * @description Permission: group:manage_members, and you must be able to grant every role the group holds.
-         */
-        post: operations["addGroupMember"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/groups/{group_id}/members/{user_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Remove a member from a group
-         * @description Permission: group:manage_members.
-         */
-        delete: operations["removeGroupMember"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/service-accounts": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Service accounts
-         * @description Permission: service_account:read.
-         */
-        get: operations["listServiceAccounts"];
-        put?: never;
-        /**
-         * Create a service account
-         * @description Permission: service_account:create. Grant it roles with /role-bindings.
-         */
-        post: operations["createServiceAccount"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/service-accounts/{service_account_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * One service account
-         * @description Permission: service_account:read.
-         */
-        get: operations["getServiceAccount"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete a service account, its keys and role assignments
-         * @description Permission: service_account:delete.
-         */
-        delete: operations["deleteServiceAccount"];
-        options?: never;
-        head?: never;
-        /**
-         * Rename, describe, disable or re-enable a service account
-         * @description Permission: service_account:update. Disabled accounts cannot authenticate.
-         */
-        patch: operations["updateServiceAccount"];
-        trace?: never;
-    };
-    "/v1/hugimethara/service-accounts/{service_account_id}/keys": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-            };
-            cookie?: never;
-        };
-        /**
-         * API keys of a service account (never the secret)
-         * @description Permission: service_account:read.
-         */
-        get: operations["listApiKeys"];
-        put?: never;
-        /**
-         * Create an API key (the secret is returned once)
-         * @description Permission: service_account:manage_keys.
-         */
-        post: operations["createApiKey"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-                key_id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Revoke an API key
-         * @description Permission: service_account:manage_keys.
-         */
-        delete: operations["revokeApiKey"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/entitlements": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * The organization's plan, paid features, quotas and usage
-         * @description Permission: subscription:read.
-         */
-        get: operations["getEntitlements"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/v1/hugimethara/plans": {
@@ -1519,23 +879,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/hugimethara/me/permissions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** The caller's effective permissions (for UI gating; the API still authorizes every call) */
-        get: operations["getMyPermissions"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/hugimethara/resource-types": {
         parameters: {
             query?: never;
@@ -1543,65 +886,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Permission catalog (resource types and actions)
-         * @description Permission: role:read.
-         */
+        /** Permission catalog (resource types and actions) */
         get: operations["listResourceTypes"];
         put?: never;
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/roles": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Roles of the organization
-         * @description Permission: role:read.
-         */
-        get: operations["listRoles"];
-        put?: never;
-        /**
-         * Create a custom role
-         * @description Permission: role:create. You can only include permissions you hold at organization scope.
-         */
-        post: operations["createRole"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/hugimethara/roles/{role_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                role_id: string;
-            };
-            cookie?: never;
-        };
-        /** A role */
-        get: operations["getRole"];
-        /**
-         * Replace a role's name, description and permissions
-         * @description Permission: role:update. Added permissions must be ones you hold. Immutable roles keep their permissions.
-         */
-        put: operations["updateRole"];
-        post?: never;
-        /**
-         * Delete an unused custom role
-         * @description Permission: role:delete.
-         */
-        delete: operations["deleteRole"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1614,16 +903,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /**
-         * Role assignments
-         * @description Permission: role:read.
-         */
+        /** Role assignments */
         get: operations["listRoleBindings"];
         put?: never;
-        /**
-         * Assign a role to a member, group or service account at a scope
-         * @description Permission: role:bind at the target scope; the role's permissions must all be held by you there.
-         */
+        /** Assign a role to a member, group or service account at a scope */
         post: operations["createRoleBinding"];
         delete?: never;
         options?: never;
@@ -1635,25 +918,112 @@ export interface paths {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                binding_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         get?: never;
         put?: never;
         post?: never;
-        /**
-         * Remove a role assignment (the last owner cannot be removed)
-         * @description Permission: role:bind at the assignment's scope.
-         */
+        /** Remove a role assignment (the last owner cannot be removed) */
         delete: operations["deleteRoleBinding"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/hugimethara/authorization/evaluate": {
+    "/v1/hugimethara/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Roles of the organization */
+        get: operations["listRoles"];
+        put?: never;
+        /** Create a custom role */
+        post: operations["createRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/roles/{role_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A role */
+        get: operations["getRole"];
+        /** Replace a role's name, description and permissions */
+        put: operations["updateRole"];
+        post?: never;
+        /** Delete an unused custom role */
+        delete: operations["deleteRole"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Service accounts */
+        get: operations["listServiceAccounts"];
+        put?: never;
+        /** Create a service account */
+        post: operations["createServiceAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts/{service_account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One service account */
+        get: operations["getServiceAccount"];
+        put?: never;
+        post?: never;
+        /** Delete a service account, its keys and role assignments */
+        delete: operations["deleteServiceAccount"];
+        options?: never;
+        head?: never;
+        /** Rename, describe, disable or re-enable a service account */
+        patch: operations["updateServiceAccount"];
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts/{service_account_id}/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** API keys of a service account (never the secret) */
+        get: operations["listApiKeys"];
+        put?: never;
+        /** Create an API key (the secret is returned once) */
+        post: operations["createApiKey"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1662,31 +1032,272 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /**
-         * Check whether a member could perform an action (simulation; not logged as a decision)
-         * @description Permission: authorization:simulate.
-         */
-        post: operations["evaluateAccess"];
-        delete?: never;
+        post?: never;
+        /** Revoke an API key */
+        delete: operations["revokeApiKey"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/hugimethara/authorization/decisions": {
+    "/v1/hugimethara/service-endpoints/{endpoint_id}/try": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /**
-         * Logged authorization decisions (every denial and sensitive allow), newest first
-         * @description Permission: authorization:read_decisions.
-         */
-        get: operations["listAccessDecisions"];
+        get?: never;
+        put?: never;
+        /** Send a test request to an imported endpoint */
+        post: operations["tryServiceEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List registered services */
+        get: operations["listServices"];
+        put?: never;
+        /** Register an API service */
+        post: operations["createService"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a registered service */
+        get: operations["getService"];
         put?: never;
         post?: never;
+        /** Delete a service and its imported API specs */
+        delete: operations["deleteService"];
+        options?: never;
+        head?: never;
+        /** Update a registered service */
+        patch: operations["updateService"];
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}/endpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List imported API endpoints */
+        get: operations["listServiceEndpoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}/environments/{environment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set a service base URL for an environment */
+        put: operations["putServiceEnvironment"];
+        post?: never;
+        /** Remove a service environment binding */
+        delete: operations["deleteServiceEnvironment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}/import-openapi": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import an OpenAPI document and preview changes */
+        post: operations["importOpenAPI"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/system/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Build and deployment information */
+        get: operations["getSystemInfo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members of the organization */
+        get: operations["listUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One member, with their groups */
+        get: operations["getUser"];
+        put?: never;
+        post?: never;
+        /** Remove a member from the organization */
+        delete: operations["removeUser"];
+        options?: never;
+        head?: never;
+        /** Suspend or reactivate a member */
+        patch: operations["updateUser"];
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspaces visible to the caller */
+        get: operations["listWorkspaces"];
+        put?: never;
+        /** Create a workspace (the creator becomes its first member) */
+        post: operations["createWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A workspace by its address */
+        get: operations["getWorkspace"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a workspace */
+        patch: operations["updateWorkspace"];
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive a workspace (frees a slot in the workspace quota) */
+        post: operations["archiveWorkspace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members of a workspace */
+        get: operations["listWorkspaceMembers"];
+        put?: never;
+        /** Add an organization member to the workspace (idempotent) */
+        post: operations["addWorkspaceMember"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/members/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a user from the workspace */
+        delete: operations["removeWorkspaceMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workspaces/{workspace}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an archived workspace */
+        post: operations["restoreWorkspace"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1697,1083 +1308,967 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AccessDecision: {
+            allowed: boolean;
+            matched_rules: string[];
+            policy_version: number;
+            reason: string;
+        };
+        ApiKey: {
+            created_at: string;
+            expires_at?: string;
+            id: string;
+            last_used_at?: string;
+            name: string;
+            prefix: string;
+            revoked_at?: string;
+        };
+        ApiKeyCreate: {
+            expires_at?: string;
+            name: string;
+        };
+        ApiKeyCreated: {
+            key: components["schemas"]["ApiKey"];
+            secret: string;
+        };
+        AuditEvent: {
+            /** @description Action is the exact event action, for example organization.updated. */
+            action: string;
+            actor_email?: string;
+            actor_id?: string;
+            actor_type: components["schemas"]["AuditEventActorType"];
+            details: {
+                [key: string]: unknown;
+            };
+            id: string;
+            ip?: string;
+            occurred_at: string;
+            outcome: components["schemas"]["AuditEventOutcome"];
+            request_id?: string;
+            resource_id?: string;
+            resource_type: string;
+            workspace_id?: string;
+        };
+        /** @enum {string} */
+        AuditEventActorType: "anonymous" | "service_account" | "system" | "user";
+        /** @enum {string} */
+        AuditEventOutcome: "denied" | "failure" | "success";
+        AuditEventPage: {
+            data: components["schemas"]["AuditEvent"][];
+            next_cursor?: string;
+        };
+        AuthResponse: {
+            organization: components["schemas"]["OrganizationSummary"];
+            session: components["schemas"]["SessionSummary"];
+            user: components["schemas"]["User"];
+        };
+        BindingScope: {
+            resource_id?: string;
+            resource_type?: string;
+            type: components["schemas"]["BindingScopeType"];
+            workspace_id?: string;
+        };
+        /** @enum {string} */
+        BindingScopeType: "org" | "resource" | "workspace";
+        ClaimMapping: {
+            email: string;
+            groups?: string;
+            name: string;
+        };
         ConnectorDefinition: {
-            /** Format: uuid */
+            category: string;
+            icon: string;
             id: string;
             key: string;
             name: string;
-            category: string;
-            /** @enum {string} */
-            tier: "builtin" | "declarative";
-            icon: string;
+            tier: components["schemas"]["ConnectorDefinitionTier"];
         };
-        ConnectorVersion: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            definition_id: string;
-            version: string;
-            config_schema: {
+        /** @enum {string} */
+        ConnectorDefinitionTier: "builtin" | "declarative";
+        ConnectorInstance: {
+            auth_method: string;
+            config: {
                 [key: string]: unknown;
             };
-            auth_methods: string[];
-            operations: {
-                [key: string]: unknown;
-            }[];
-            /** Format: date-time */
-            deprecated_at?: string | null;
-        };
-        ConnectorInstance: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            workspace_id: string;
-            /** Format: uuid */
-            environment_id: string;
-            ref_key: string;
-            /** Format: uuid */
+            created_at: string;
+            credential_configured: boolean;
             definition_id: string;
             definition_key: string;
+            environment_id: string;
+            id: string;
             name: string;
-            version: string;
-            config: {
-                [key: string]: unknown;
-            };
-            auth_method: string;
-            /** Format: uuid */
-            secret_id?: string | null;
-            credential_configured: boolean;
             rate_limit: number;
+            ref_key: string;
+            secret_id?: string;
+            status: components["schemas"]["ConnectorInstanceStatus"];
             timeout_ms: number;
-            /** @enum {string} */
-            status: "enabled" | "disabled";
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
             updated_at: string;
+            version: string;
+            workspace_id: string;
         };
         ConnectorInstanceCreate: {
-            /** Format: uuid */
-            workspace_id: string;
-            /** Format: uuid */
-            environment_id: string;
-            ref_key: string;
-            /** Format: uuid */
-            connector_version_id: string;
+            auth_method?: string;
             config: {
                 [key: string]: unknown;
             };
-            auth_method?: string;
-            /** Format: uuid */
-            secret_id?: string | null;
+            connector_version_id: string;
+            environment_id: string;
             rate_limit?: number;
+            ref_key: string;
+            secret_id?: string;
             timeout_ms?: number;
+            workspace_id: string;
         };
+        /** @enum {string} */
+        ConnectorInstanceStatus: "disabled" | "enabled";
         ConnectorInstanceUpdate: {
+            auth_method?: string;
             config?: {
                 [key: string]: unknown;
             };
-            auth_method?: string;
-            /** Format: uuid */
-            secret_id?: string | null;
             rate_limit?: number;
+            secret_id?: string;
+            status?: components["schemas"]["ConnectorInstanceUpdateStatus"];
             timeout_ms?: number;
-            /** @enum {string} */
-            status?: "enabled" | "disabled";
         };
+        /** @enum {string} */
+        ConnectorInstanceUpdateStatus: "disabled" | "enabled";
         ConnectorTestResult: {
-            /** Format: date-time */
             checked_at: string;
-            ok: boolean;
-            latency_ms: number;
             error_code?: string;
+            latency_ms: number;
             message: string;
+            ok: boolean;
         };
-        Service: {
-            /** Format: uuid */
+        ConnectorVersion: {
+            auth_methods: string[];
+            config_schema: {
+                [key: string]: unknown;
+            };
+            definition_id: string;
+            deprecated_at?: string;
             id: string;
-            /** Format: uuid */
-            workspace_id: string;
-            name: string;
-            owner: string;
-            description: string;
-            /** @enum {string} */
-            protocol: "rest" | "graphql" | "grpc";
-            environments: components["schemas"]["ServiceEnvironment"][];
-            /** Format: int64 */
-            endpoint_count: number;
-            /** Format: date-time */
+            operations: {
+                [key: string]: unknown;
+            }[];
+            version: string;
+        };
+        Credential: {
+            configured: boolean;
             created_at: string;
-            /** Format: date-time */
+            environment_id?: string;
+            hint: string;
+            id: string;
+            kind: string;
+            name: string;
+            updated_at: string;
+            version: number;
+        };
+        CredentialCreate: {
+            environment_id?: string;
+            kind: string;
+            name: string;
+            value: string;
+        };
+        CredentialUpdate: {
+            name?: string;
+            value?: string;
+        };
+        Department: {
+            created_at: string;
+            description: string;
+            id: string;
+            name: string;
+            slug: string;
+            updated_at: string;
+            workspace_count: number;
+        };
+        DepartmentCreate: {
+            description?: string;
+            name: string;
+            slug: string;
+        };
+        DepartmentUpdate: {
+            description?: string;
+            name: string;
+        };
+        EffectivePermissions: {
+            organization: string[];
+            workspaces: {
+                [key: string]: string[];
+            };
+        };
+        EntitlementFeature: {
+            description: string;
+            enabled: boolean;
+            key: string;
+            kind: components["schemas"]["EntitlementFeatureKind"];
+            limit?: number;
+            name: string;
+            overridden: boolean;
+            unit: string;
+            used?: number;
+        };
+        /** @enum {string} */
+        EntitlementFeatureKind: "flag" | "limit";
+        Entitlements: {
+            current_period_end?: string;
+            features: components["schemas"]["EntitlementFeature"][];
+            plan: {
+                key?: string;
+                name?: string;
+            };
+            status: components["schemas"]["EntitlementsStatus"];
+        };
+        /** @enum {string} */
+        EntitlementsStatus: "active" | "canceled" | "past_due" | "trialing";
+        Environment: {
+            created_at: string;
+            egress_allowlist: string[];
+            id: string;
+            is_production: boolean;
+            name: string;
+            slug: string;
             updated_at: string;
         };
-        ServiceCreate: {
-            /** Format: uuid */
-            workspace_id: string;
+        EnvironmentCreate: {
+            egress_allowlist?: string[];
+            is_production?: boolean;
             name: string;
-            owner?: string;
-            description?: string;
-            /** @enum {string} */
-            protocol?: "rest" | "graphql" | "grpc";
+            slug: string;
         };
-        ServiceUpdate: {
-            name?: string;
-            owner?: string;
-            description?: string;
-            /** @enum {string} */
-            protocol?: "rest" | "graphql" | "grpc";
+        EnvironmentUpdate: {
+            egress_allowlist?: string[];
+            is_production: boolean;
+            name: string;
         };
-        ServiceEnvironment: {
-            /** Format: uuid */
-            environment_id: string;
-            /** Format: uri */
-            base_url: string;
-            /** Format: uuid */
-            connector_instance_id: string | null;
+        EvaluateRequest: {
+            action: string;
+            resource_id?: string;
+            resource_type: string;
+            service_account_id?: string;
+            user_id?: string;
+            workspace_id?: string;
         };
-        ServiceEnvironmentInput: {
-            /** Format: uri */
-            base_url: string;
-            /** Format: uuid */
-            connector_instance_id?: string | null;
+        FeatureDefinition: {
+            description: string;
+            key: string;
+            kind: components["schemas"]["FeatureDefinitionKind"];
+            name: string;
+            unit: string;
         };
-        OpenAPIImportRequest: {
-            /** @description OpenAPI JSON or YAML document. */
-            spec?: string;
-            /** Format: uri */
-            url?: string;
-            version_label?: string;
+        /** @enum {string} */
+        FeatureDefinitionKind: "flag" | "limit";
+        FieldError: {
+            code: string;
+            field: string;
+            message: string;
         };
-        OpenAPIChange: {
-            operation_id: string;
-            method: string;
-            path: string;
-            /** @enum {string} */
-            kind: "added" | "removed" | "changed";
-            breaking?: boolean;
+        GetConnectorHealth200JSONResponse: {
+            data: components["schemas"]["ConnectorTestResult"][];
         };
-        OpenAPIImportResult: {
-            dry_run: boolean;
-            /** Format: uuid */
-            spec_id?: string | null;
-            changes: components["schemas"]["OpenAPIChange"][];
-            endpoint_count: number;
-        };
-        ServiceEndpoint: {
-            /** Format: uuid */
+        Group: {
+            created_at: string;
+            description: string;
             id: string;
-            /** Format: uuid */
-            service_id: string;
-            operation_id: string;
-            method: string;
-            path: string;
-            summary: string;
-            parameters: {
-                [key: string]: unknown;
-            }[];
-            request_schema?: {
-                [key: string]: unknown;
-            } | null;
-            response_schemas: {
-                [key: string]: unknown;
-            };
-            security: {
-                [key: string]: unknown;
-            }[];
-            deprecated: boolean;
+            member_count: number;
+            name: string;
+            source: components["schemas"]["GroupSource"];
+            updated_at: string;
         };
-        ServiceTryRequest: {
-            /** Format: uuid */
-            environment_id: string;
-            path_values?: {
-                [key: string]: string;
-            };
-            query?: {
-                [key: string]: string;
-            };
-            headers?: {
-                [key: string]: string;
-            };
-            body?: unknown;
+        GroupInput: {
+            description?: string;
+            name: string;
         };
-        ServiceTryResult: {
-            status: number;
-            headers: {
-                [key: string]: string;
+        GroupMapping: {
+            created_at: string;
+            external_group: string;
+            group_id: string;
+            group_name: string;
+            group_source: components["schemas"]["GroupMappingGroupSource"];
+            id: string;
+        };
+        GroupMappingCreate: {
+            external_group: string;
+            group_id?: string;
+        };
+        /** @enum {string} */
+        GroupMappingGroupSource: "idp" | "internal";
+        GroupMember: {
+            added_at: string;
+            display_name: string;
+            email: string;
+            id: string;
+        };
+        GroupRef: {
+            id: string;
+            name: string;
+        };
+        /** @enum {string} */
+        GroupSource: "idp" | "internal";
+        HealthReport: {
+            checks?: {
+                [key: string]: {
+                    error?: string;
+                    status?: components["schemas"]["HealthReportChecksStatus"];
+                };
             };
-            body: unknown;
-            duration_ms: number;
+            status: components["schemas"]["HealthReportStatus"];
+        };
+        /** @enum {string} */
+        HealthReportChecksStatus: "fail" | "ok";
+        /** @enum {string} */
+        HealthReportStatus: "fail" | "ok";
+        IdentityProvider: {
+            allowed_domains: string[];
+            claim_mapping: components["schemas"]["ClaimMapping"];
+            client_id: string;
+            created_at: string;
+            enabled: boolean;
+            group_mapping_count: number;
+            has_client_secret: boolean;
+            id: string;
+            issuer: string;
+            jit_provisioning: boolean;
+            name: string;
+            preset: components["schemas"]["IdentityProviderPreset"];
+            protocol: components["schemas"]["IdentityProviderProtocol"];
+            redirect_uri: string;
+            scopes: string[];
+            sso_url: string;
+            updated_at: string;
+        };
+        IdentityProviderCreate: {
+            allowed_domains?: string[];
+            claim_mapping?: components["schemas"]["ClaimMapping"];
+            client_id: string;
+            client_secret?: string;
+            enabled?: boolean;
+            issuer: string;
+            jit_provisioning?: boolean;
+            name: string;
+            preset: components["schemas"]["IdentityProviderPreset"];
+            scopes?: string[];
+        };
+        /** @enum {string} */
+        IdentityProviderPreset: "entra" | "generic" | "google" | "keycloak";
+        /** @enum {string} */
+        IdentityProviderProtocol: "oidc";
+        IdentityProviderTest: {
+            authorization_endpoint?: string;
+            checked_at: string;
+            error?: string;
+            issuer?: string;
+            jwks_uri?: string;
+            latency_ms: number;
+            ok: boolean;
+            token_endpoint?: string;
+        };
+        IdentityProviderUpdate: {
+            allowed_domains?: string[];
+            claim_mapping?: components["schemas"]["ClaimMapping"];
+            client_id?: string;
+            client_secret?: string;
+            enabled?: boolean;
+            issuer?: string;
+            jit_provisioning?: boolean;
+            name?: string;
+            preset?: components["schemas"]["IdentityProviderPreset"];
+            scopes?: string[];
+        };
+        Invitation: {
+            accepted_at?: string;
+            created_at: string;
+            email: string;
+            expires_at: string;
+            id: string;
+            invited_by_name?: string;
+            org_role?: {
+                id?: string;
+                key?: string;
+                name?: string;
+            };
+            status: components["schemas"]["InvitationStatus"];
+            workspaces: components["schemas"]["InvitationWorkspace"][];
+        };
+        InvitationAccept: {
+            display_name?: string;
+            password?: string;
+        };
+        InvitationCreate: {
+            email: string;
+            expires_in_days?: number;
+            org_role_id?: string;
+            workspaces?: {
+                role_id?: string;
+                workspace_id?: string;
+            }[];
+        };
+        InvitationCreated: {
+            accept_path: string;
+            invitation: components["schemas"]["Invitation"];
+            token: string;
+        };
+        InvitationPreview: {
+            account_exists: boolean;
+            email: string;
+            expires_at: string;
+            invited_by_name?: string;
+            organization: components["schemas"]["OrganizationSummary"];
+        };
+        /** @enum {string} */
+        InvitationStatus: "accepted" | "expired" | "pending" | "revoked";
+        InvitationWorkspace: {
+            role_id: string;
+            role_name: string;
+            workspace_id: string;
+            workspace_name: string;
+            workspace_slug?: string;
+        };
+        ListAccessDecisions200JSONResponse: {
+            data: components["schemas"]["LoggedDecision"][];
+            next_cursor?: string;
+        };
+        ListApiKeys200JSONResponse: {
+            data: components["schemas"]["ApiKey"][];
+        };
+        ListConnectorDefinitions200JSONResponse: {
+            data: components["schemas"]["ConnectorDefinition"][];
+        };
+        ListConnectorVersions200JSONResponse: {
+            data: components["schemas"]["ConnectorVersion"][];
+        };
+        ListConnectors200JSONResponse: {
+            data: components["schemas"]["ConnectorInstance"][];
+        };
+        ListCredentials200JSONResponse: {
+            data: components["schemas"]["Credential"][];
+        };
+        ListDepartments200JSONResponse: {
+            data: components["schemas"]["Department"][];
+        };
+        ListEnvironments200JSONResponse: {
+            data: components["schemas"]["Environment"][];
+        };
+        ListGroupMappings200JSONResponse: {
+            data: components["schemas"]["GroupMapping"][];
+        };
+        ListGroupMembers200JSONResponse: {
+            data: components["schemas"]["GroupMember"][];
+        };
+        ListGroups200JSONResponse: {
+            data: components["schemas"]["Group"][];
+        };
+        ListIdentityProviders200JSONResponse: {
+            data: components["schemas"]["IdentityProvider"][];
+        };
+        ListInvitations200JSONResponse: {
+            data: components["schemas"]["Invitation"][];
+        };
+        ListMappingTests200JSONResponse: {
+            data: components["schemas"]["MappingTest"][];
+        };
+        ListMappingVersions200JSONResponse: {
+            data: components["schemas"]["MappingVersion"][];
+        };
+        ListMappings200JSONResponse: {
+            data: components["schemas"]["Mapping"][];
+        };
+        ListMySessions200JSONResponse: {
+            data: components["schemas"]["SessionInfo"][];
+        };
+        ListOidcProviders200JSONResponse: {
+            data: components["schemas"]["OidcProviderOption"][];
+        };
+        ListPlans200JSONResponse: {
+            data: components["schemas"]["Plan"][];
+            features: components["schemas"]["FeatureDefinition"][];
+        };
+        ListResourceTypes200JSONResponse: {
+            data: components["schemas"]["ResourceType"][];
+        };
+        ListRoleBindings200JSONResponse: {
+            data: components["schemas"]["RoleBinding"][];
+        };
+        ListRoles200JSONResponse: {
+            data: components["schemas"]["Role"][];
+        };
+        ListServiceAccounts200JSONResponse: {
+            data: components["schemas"]["ServiceAccount"][];
+        };
+        ListServiceEndpoints200JSONResponse: {
+            data: components["schemas"]["ServiceEndpoint"][];
+        };
+        ListServices200JSONResponse: {
+            data: components["schemas"]["Service"][];
+        };
+        ListUsers200JSONResponse: {
+            data: components["schemas"]["Member"][];
+        };
+        ListWorkspaceMembers200JSONResponse: {
+            data: components["schemas"]["Member"][];
+        };
+        ListWorkspaces200JSONResponse: {
+            data: components["schemas"]["Workspace"][];
+        };
+        LoggedDecision: {
+            action: string;
+            allowed: boolean;
+            id: string;
+            matched_rules: string[];
+            occurred_at: string;
+            principal_email?: string;
+            principal_id: string;
+            principal_type?: components["schemas"]["PrincipalType"];
+            reason: string;
+            request_id?: string;
+            resource_id?: string;
+            resource_type: string;
+            workspace_id?: string;
+        };
+        LoginRequest: {
+            email: string;
+            organization_slug?: string;
+            password: string;
         };
         Mapping: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            workspace_id: string;
-            name: string;
+            created_at: string;
             draft: {
                 [key: string]: unknown;
             };
+            id: string;
             input_schema?: {
                 [key: string]: unknown;
-            } | null;
+            };
+            name: string;
             output_schema?: {
                 [key: string]: unknown;
-            } | null;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
+            };
             updated_at: string;
+            workspace_id: string;
         };
         MappingCreate: {
-            /** Format: uuid */
-            workspace_id: string;
+            draft?: {
+                [key: string]: unknown;
+            };
+            input_schema?: {
+                [key: string]: unknown;
+            };
             name: string;
-            draft?: {
-                [key: string]: unknown;
-            };
-            input_schema?: {
-                [key: string]: unknown;
-            } | null;
             output_schema?: {
                 [key: string]: unknown;
-            } | null;
-        };
-        MappingUpdate: {
-            name?: string;
-            draft?: {
-                [key: string]: unknown;
             };
-            input_schema?: {
-                [key: string]: unknown;
-            } | null;
-            output_schema?: {
-                [key: string]: unknown;
-            } | null;
-        };
-        MappingVersion: {
-            /** Format: uuid */
-            id: string;
-            /** Format: uuid */
-            mapping_id: string;
-            version: number;
-            definition: {
-                [key: string]: unknown;
-            };
-            checksum: string;
-            /** Format: uuid */
-            published_by: string;
-            /** Format: date-time */
-            published_at: string;
+            workspace_id: string;
         };
         MappingTest: {
-            /** Format: uuid */
+            created_at: string;
+            expected: unknown;
             id: string;
-            /** Format: uuid */
+            input: unknown;
             mapping_id: string;
             name: string;
-            input: unknown;
-            expected: unknown;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
             updated_at: string;
         };
         MappingTestCreate: {
-            name: string;
-            input: unknown;
             expected: unknown;
-        };
-        MappingTestUpdate: {
-            name?: string;
-            input?: unknown;
-            expected?: unknown;
+            input: unknown;
+            name: string;
         };
         MappingTestRequest: {
             input: unknown;
         };
         MappingTestResult: {
             output: unknown;
-            stored_tests_passed: number;
             stored_tests_failed: {
-                name: string;
-                actual: unknown;
-                expected: unknown;
+                actual?: unknown;
+                expected?: unknown;
+                name?: string;
             }[];
+            stored_tests_passed: number;
         };
-        Credential: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            kind: string;
-            /** Format: uuid */
-            environment_id?: string | null;
-            /** @constant */
-            configured: true;
-            /** @description At most the last four characters of the stored value. */
-            hint: string;
-            /** Format: int64 */
-            version: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        CredentialCreate: {
-            name: string;
-            kind: string;
-            value: string;
-            /** Format: uuid */
-            environment_id?: string | null;
-        };
-        CredentialUpdate: {
+        MappingTestUpdate: {
+            expected?: unknown;
+            input?: unknown;
             name?: string;
-            value?: string;
         };
-        Problem: {
-            /** Format: uri */
-            type: string;
-            title: string;
-            status: number;
-            /** @description Stable machine-readable error code. */
-            code: string;
-            detail?: string;
-            request_id?: string;
-            errors?: components["schemas"]["FieldError"][];
+        MappingUpdate: {
+            draft?: {
+                [key: string]: unknown;
+            };
+            input_schema?: {
+                [key: string]: unknown;
+            };
+            name?: string;
+            output_schema?: {
+                [key: string]: unknown;
+            };
         };
-        FieldError: {
-            field: string;
-            code: string;
-            message: string;
-        };
-        PlanProblem: components["schemas"]["Problem"] & {
-            feature: string;
-            plan: string;
-            /** Format: int64 */
-            limit?: number;
-            /** Format: int64 */
-            current?: number;
-        };
-        Department: {
-            /** Format: uuid */
+        MappingVersion: {
+            checksum: string;
+            definition: {
+                [key: string]: unknown;
+            };
             id: string;
-            slug: string;
-            name: string;
-            description: string;
-            /** Format: int64 */
-            workspace_count: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
+            mapping_id: string;
+            published_at: string;
+            published_by: string;
+            version: number;
         };
-        DepartmentCreate: {
-            slug: string;
-            name: string;
-            description?: string;
-        };
-        DepartmentUpdate: {
-            name: string;
-            description?: string;
-        };
-        Environment: {
-            /** Format: uuid */
-            id: string;
-            slug: string;
-            name: string;
-            is_production: boolean;
-            /** @description Internal CIDR ranges outbound calls may reach (paid feature). */
-            egress_allowlist: string[];
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        EnvironmentCreate: {
-            slug: string;
-            name: string;
-            is_production?: boolean;
-            egress_allowlist?: string[];
-        };
-        EnvironmentUpdate: {
-            name: string;
-            is_production: boolean;
-            egress_allowlist?: string[];
-        };
-        Workspace: {
-            /** Format: uuid */
-            id: string;
-            slug: string;
-            name: string;
-            description: string;
-            /** Format: uuid */
-            department_id?: string;
-            department_name?: string;
-            /** Format: date-time */
-            archived_at?: string;
-            /** Format: int64 */
-            member_count: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        WorkspaceCreate: {
-            slug: string;
-            name: string;
-            description?: string;
-            /** Format: uuid */
-            department_id?: string | null;
-        };
-        WorkspaceUpdate: {
-            name: string;
-            description?: string;
-            /** Format: uuid */
-            department_id?: string | null;
+        Me: {
+            membership: {
+                is_owner?: boolean;
+                joined_at?: string;
+            };
+            organization: components["schemas"]["OrganizationSummary"];
+            session: components["schemas"]["SessionSummary"];
+            user: components["schemas"]["User"];
         };
         Member: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            display_name: string;
-            status: string;
-            is_owner: boolean;
-            /**
-             * @description Organization lists only.
-             * @enum {string}
-             */
-            membership_status?: "active" | "suspended";
-            /** @description Role keys (organization-level in /users, workspace-level in workspace member lists). */
-            roles?: string[];
-            /** @description Groups the member belongs to (/users/{id} only). */
-            groups?: components["schemas"]["GroupRef"][];
-            /** Format: date-time */
-            joined_at?: string;
-            /** Format: date-time */
             added_at?: string;
+            display_name: string;
+            email: string;
+            groups?: components["schemas"]["GroupRef"][];
+            id: string;
+            is_owner: boolean;
+            joined_at?: string;
+            membership_status?: components["schemas"]["MemberMembershipStatus"];
+            roles?: string[];
+            status: string;
         };
-        FeatureDefinition: {
-            key: string;
+        /** @enum {string} */
+        MemberMembershipStatus: "active" | "suspended";
+        OidcProviderOption: {
+            id: string;
             name: string;
-            description: string;
-            /** @enum {string} */
-            kind: "flag" | "limit";
-            unit: string;
+            preset: components["schemas"]["IdentityProviderPreset"];
         };
-        EntitlementFeature: components["schemas"]["FeatureDefinition"] & {
-            enabled: boolean;
-            /**
-             * Format: int64
-             * @description Absent = unlimited (limit features).
-             */
-            limit?: number;
-            /** Format: int64 */
-            used?: number;
-            /** @description Granted specifically for this organization. */
-            overridden: boolean;
+        OpenAPIChange: {
+            breaking?: boolean;
+            kind: components["schemas"]["OpenAPIChangeKind"];
+            method: string;
+            operation_id: string;
+            path: string;
         };
-        Entitlements: {
-            plan: {
-                key: string;
-                name: string;
-            };
-            /** @enum {string} */
-            status: "active" | "trialing" | "past_due" | "canceled";
-            /** Format: date-time */
-            current_period_end?: string;
-            features: components["schemas"]["EntitlementFeature"][];
+        /** @enum {string} */
+        OpenAPIChangeKind: "added" | "changed" | "removed";
+        OpenAPIImportRequest: {
+            spec?: string;
+            url?: string;
+            version_label?: string;
+        };
+        OpenAPIImportResult: {
+            changes: components["schemas"]["OpenAPIChange"][];
+            dry_run: boolean;
+            endpoint_count: number;
+            spec_id?: string;
+        };
+        Organization: {
+            created_at: string;
+            id: string;
+            name: string;
+            settings: components["schemas"]["OrganizationSettings"];
+            slug: string;
+            status: components["schemas"]["OrganizationStatus"];
+            updated_at: string;
+        };
+        OrganizationChoice: {
+            name: string;
+            slug: string;
+        };
+        OrganizationChoiceProblem: {
+            code: string;
+            detail?: string;
+            errors?: components["schemas"]["FieldError"][];
+            organizations: components["schemas"]["OrganizationChoice"][];
+            request_id?: string;
+            status: number;
+            title: string;
+            type: string;
+        };
+        OrganizationSettings: {
+            session_absolute_timeout_hours: number;
+            session_idle_timeout_minutes: number;
+        };
+        /** @enum {string} */
+        OrganizationStatus: "active" | "suspended";
+        OrganizationSummary: {
+            id: string;
+            name: string;
+            slug: string;
         };
         Plan: {
-            key: string;
-            name: string;
-            description: string;
-            /**
-             * Format: int64
-             * @description Absent = custom pricing.
-             */
-            price_monthly_cents?: number;
             currency: string;
+            description: string;
             entitlements: {
                 [key: string]: {
-                    enabled: boolean;
-                    /** Format: int64 */
+                    enabled?: boolean;
                     limit?: number;
                 };
             };
+            key: string;
+            name: string;
+            price_monthly_cents?: number;
         };
-        EffectivePermissions: {
-            /** @description Permissions that apply everywhere in the organization. */
-            organization: string[];
-            /** @description Extra permissions per workspace id (from workspace roles). */
-            workspaces: {
-                [key: string]: string[];
-            };
+        PlanProblem: {
+            code: string;
+            current?: number;
+            detail?: string;
+            errors?: components["schemas"]["FieldError"][];
+            feature: string;
+            limit?: number;
+            plan: string;
+            request_id?: string;
+            status: number;
+            title: string;
+            type: string;
+        };
+        /** @enum {string} */
+        PrincipalType: "group" | "service_account" | "user";
+        Problem: {
+            code: string;
+            detail?: string;
+            errors?: components["schemas"]["FieldError"][];
+            request_id?: string;
+            status: number;
+            title: string;
+            type: string;
         };
         ResourceType: {
-            type: string;
-            description: string;
             actions: string[];
+            description: string;
             sensitive_actions: string[];
+            type: string;
         };
         Role: {
-            /** Format: uuid */
+            binding_count: number;
+            created_at: string;
+            description: string;
             id: string;
+            immutable: boolean;
+            is_system: boolean;
             key: string;
             name: string;
-            description: string;
-            is_system: boolean;
-            immutable: boolean;
             permissions: string[];
-            /** Format: int64 */
-            binding_count: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
             updated_at: string;
         };
+        RoleBinding: {
+            created_at: string;
+            expires_at?: string;
+            id: string;
+            principal: {
+                email?: string;
+                id?: string;
+                name?: string;
+                type?: components["schemas"]["PrincipalType"];
+            };
+            role: {
+                id?: string;
+                key?: string;
+                name?: string;
+            };
+            scope: components["schemas"]["BindingScope"];
+            user?: {
+                display_name?: string;
+                email?: string;
+                id?: string;
+            };
+            workspace_name?: string;
+            workspace_slug?: string;
+        };
+        RoleBindingCreate: {
+            expires_at?: string;
+            group_id?: string;
+            role_id: string;
+            scope: components["schemas"]["BindingScope"];
+            service_account_id?: string;
+            user_id?: string;
+        };
         RoleCreate: {
+            description?: string;
             key: string;
             name: string;
-            description?: string;
             permissions: string[];
         };
         RoleUpdate: {
-            name: string;
             description?: string;
+            name: string;
             permissions: string[];
         };
-        BindingScope: {
-            /** @enum {string} */
-            type: "org" | "workspace" | "resource";
-            /** Format: uuid */
-            workspace_id?: string;
-            resource_type?: string;
-            resource_id?: string;
-        };
-        /** @enum {string} */
-        PrincipalType: "user" | "group" | "service_account";
-        RoleBinding: {
-            /** Format: uuid */
-            id: string;
-            principal: {
-                type: components["schemas"]["PrincipalType"];
-                /** Format: uuid */
-                id: string;
-                /** @description Display name, group name or service-account name. */
-                name: string;
-                /** @description Users only. */
-                email?: string;
-            };
-            /** @description Present for user assignments (kept for older clients). */
-            user?: {
-                /** Format: uuid */
-                id: string;
-                email: string;
-                display_name: string;
-            };
-            role: {
-                /** Format: uuid */
-                id: string;
-                key: string;
-                name: string;
-            };
-            scope: components["schemas"]["BindingScope"];
-            workspace_slug?: string;
-            workspace_name?: string;
-            /** Format: date-time */
+        Service: {
             created_at: string;
-            /** Format: date-time */
-            expires_at?: string;
-        };
-        /** @description Exactly one of user_id, group_id, service_account_id. */
-        RoleBindingCreate: {
-            /** Format: uuid */
-            user_id?: string;
-            /** Format: uuid */
-            group_id?: string;
-            /** Format: uuid */
-            service_account_id?: string;
-            /** Format: uuid */
-            role_id: string;
-            scope: components["schemas"]["BindingScope"];
-            /** Format: date-time */
-            expires_at?: string;
-        };
-        /** @description Exactly one of user_id (includes group roles) or service_account_id. */
-        EvaluateRequest: {
-            /** Format: uuid */
-            user_id?: string;
-            /** Format: uuid */
-            service_account_id?: string;
-            resource_type: string;
-            action: string;
-            resource_id?: string;
-            /** Format: uuid */
-            workspace_id?: string;
-        };
-        AccessDecision: {
-            allowed: boolean;
-            reason: string;
-            matched_rules: string[];
-            /** Format: int64 */
-            policy_version: number;
-        };
-        LoggedDecision: {
-            /** Format: uuid */
-            id: string;
-            /** Format: date-time */
-            occurred_at: string;
-            /** Format: uuid */
-            principal_id: string;
-            principal_type?: components["schemas"]["PrincipalType"];
-            /** @description Email of a user, or the service-account name. */
-            principal_email?: string;
-            action: string;
-            resource_type: string;
-            resource_id?: string;
-            /** Format: uuid */
-            workspace_id?: string;
-            allowed: boolean;
-            reason: string;
-            matched_rules: string[];
-            request_id?: string;
-        };
-        GroupRef: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-        };
-        UserUpdate: {
-            /** @enum {string} */
-            status: "active" | "suspended";
-        };
-        Group: {
-            /** Format: uuid */
-            id: string;
-            name: string;
             description: string;
-            /** @enum {string} */
-            source: "internal" | "idp";
-            /** Format: int64 */
-            member_count: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        GroupInput: {
+            endpoint_count: number;
+            environments: components["schemas"]["ServiceEnvironment"][];
+            id: string;
             name: string;
-            description?: string;
-        };
-        GroupMember: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            display_name: string;
-            /** Format: date-time */
-            added_at: string;
-        };
-        InvitationWorkspace: {
-            /** Format: uuid */
+            owner: string;
+            protocol: components["schemas"]["ServiceProtocol"];
+            updated_at: string;
             workspace_id: string;
-            workspace_name: string;
-            workspace_slug?: string;
-            /** Format: uuid */
-            role_id: string;
-            role_name: string;
-        };
-        Invitation: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            /** @enum {string} */
-            status: "pending" | "accepted" | "revoked" | "expired";
-            org_role?: {
-                /** Format: uuid */
-                id: string;
-                key: string;
-                name: string;
-            };
-            workspaces: components["schemas"]["InvitationWorkspace"][];
-            invited_by_name?: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            expires_at: string;
-            /** Format: date-time */
-            accepted_at?: string;
-        };
-        InvitationCreate: {
-            email: string;
-            /**
-             * Format: uuid
-             * @description Organization role in addition to Member.
-             */
-            org_role_id?: string;
-            workspaces?: {
-                /** Format: uuid */
-                workspace_id: string;
-                /** Format: uuid */
-                role_id: string;
-            }[];
-            /** @default 7 */
-            expires_in_days: number;
-        };
-        InvitationCreated: {
-            invitation: components["schemas"]["Invitation"];
-            /** @description Shown once. Anyone with the link can accept as the invited address. */
-            token: string;
-            /** @description Web path of the invitation page, e.g. /invite/<token>. */
-            accept_path: string;
-        };
-        InvitationPreview: {
-            organization: components["schemas"]["OrganizationSummary"];
-            email: string;
-            invited_by_name?: string;
-            /** Format: date-time */
-            expires_at: string;
-            /** @description True: accept with the account's password. False: choose a name and password. */
-            account_exists: boolean;
-        };
-        InvitationAccept: {
-            display_name?: string;
-            password?: string;
         };
         ServiceAccount: {
-            /** Format: uuid */
-            id: string;
-            name: string;
+            active_key_count: number;
+            created_at: string;
             description: string;
             disabled: boolean;
-            /** Format: int64 */
-            active_key_count: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
+            id: string;
+            name: string;
             updated_at: string;
         };
         ServiceAccountCreate: {
-            name: string;
             description?: string;
+            name: string;
         };
         ServiceAccountUpdate: {
-            name: string;
             description?: string;
             disabled: boolean;
-        };
-        ApiKey: {
-            /** Format: uuid */
-            id: string;
             name: string;
-            /** @description Identifies the key (hugi_<prefix>_…); not secret. */
-            prefix: string;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            expires_at?: string;
-            /** Format: date-time */
-            last_used_at?: string;
-            /** Format: date-time */
-            revoked_at?: string;
         };
-        ApiKeyCreate: {
+        ServiceCreate: {
+            description?: string;
             name: string;
-            /** Format: date-time */
-            expires_at?: string;
-        };
-        ApiKeyCreated: {
-            key: components["schemas"]["ApiKey"];
-            /** @description The full key. Shown once; store it in a secret manager. */
-            secret: string;
-        };
-        ClaimMapping: {
-            /** @description Claim carrying the verified email address. */
-            email: string;
-            /** @description Claim carrying the display name. */
-            name: string;
-            /** @description Claim carrying group names. Empty disables group mapping. */
-            groups?: string;
+            owner?: string;
+            protocol?: components["schemas"]["ServiceCreateProtocol"];
+            workspace_id: string;
         };
         /** @enum {string} */
-        IdentityProviderPreset: "entra" | "google" | "keycloak" | "generic";
-        IdentityProvider: {
-            /** Format: uuid */
+        ServiceCreateProtocol: "graphql" | "grpc" | "rest";
+        ServiceEndpoint: {
+            deprecated: boolean;
             id: string;
-            name: string;
-            /** @enum {string} */
-            protocol: "oidc";
-            preset: components["schemas"]["IdentityProviderPreset"];
-            issuer: string;
-            client_id: string;
-            /** @description The secret itself is never returned. */
-            has_client_secret: boolean;
-            scopes: string[];
-            claim_mapping: components["schemas"]["ClaimMapping"];
-            /** @description Create members on first sign-in. Off: only existing members can link. */
-            jit_provisioning: boolean;
-            /** @description Email domains allowed to sign in. Empty allows every domain the IdP asserts. */
-            allowed_domains: string[];
-            enabled: boolean;
-            /** @description Exact redirect URI to register at the identity provider. */
-            redirect_uri: string;
-            /** @description Browser URL that starts the SSO flow (points at the web origin). */
-            sso_url: string;
-            /** Format: int64 */
-            group_mapping_count: number;
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
-        };
-        IdentityProviderCreate: {
-            name: string;
-            preset: components["schemas"]["IdentityProviderPreset"];
-            /** @description Issuer URL; discovery is read from /.well-known/openid-configuration. */
-            issuer: string;
-            client_id: string;
-            /**
-             * Format: password
-             * @description Write-only. Omit for public clients using PKCE.
-             */
-            client_secret?: string;
-            scopes?: string[];
-            claim_mapping?: components["schemas"]["ClaimMapping"];
-            /** @default true */
-            jit_provisioning: boolean;
-            allowed_domains?: string[];
-            /** @default true */
-            enabled: boolean;
-        };
-        IdentityProviderUpdate: {
-            name?: string;
-            preset?: components["schemas"]["IdentityProviderPreset"];
-            issuer?: string;
-            client_id?: string;
-            /**
-             * Format: password
-             * @description Omit to keep; empty string removes.
-             */
-            client_secret?: string;
-            scopes?: string[];
-            claim_mapping?: components["schemas"]["ClaimMapping"];
-            jit_provisioning?: boolean;
-            allowed_domains?: string[];
-            enabled?: boolean;
-        };
-        IdentityProviderTest: {
-            ok: boolean;
-            issuer?: string;
-            authorization_endpoint?: string;
-            token_endpoint?: string;
-            jwks_uri?: string;
-            /** Format: int64 */
-            latency_ms: number;
-            /** @description Sanitized failure reason when ok is false. */
-            error?: string;
-            /** Format: date-time */
-            checked_at: string;
-        };
-        GroupMapping: {
-            /** Format: uuid */
-            id: string;
-            external_group: string;
-            /** Format: uuid */
-            group_id: string;
-            group_name: string;
-            /** @enum {string} */
-            group_source: "internal" | "idp";
-            /** Format: date-time */
-            created_at: string;
-        };
-        GroupMappingCreate: {
-            external_group: string;
-            /**
-             * Format: uuid
-             * @description Omit to create an IdP-managed group named after the external group.
-             */
-            group_id?: string;
-        };
-        OidcProviderOption: {
-            /** Format: uuid */
-            id: string;
-            name: string;
-            preset: components["schemas"]["IdentityProviderPreset"];
-        };
-        SignupRequest: {
-            /** @example Acme Indonesia */
-            organization_name: string;
-            /** @example acme-id */
-            organization_slug: string;
-            display_name: string;
-            /** @description Validated server-side; invalid addresses return a field error. */
-            email: string;
-            /** Format: password */
-            password: string;
-        };
-        LoginRequest: {
-            email: string;
-            /** Format: password */
-            password: string;
-            organization_slug?: string;
-        };
-        OrganizationChoice: {
-            slug: string;
-            name: string;
-        };
-        OrganizationChoiceProblem: components["schemas"]["Problem"] & {
-            organizations: components["schemas"]["OrganizationChoice"][];
-        };
-        User: {
-            /** Format: uuid */
-            id: string;
-            email: string;
-            display_name: string;
-            /** @enum {string} */
-            status: "active" | "disabled";
-        };
-        OrganizationSummary: {
-            /** Format: uuid */
-            id: string;
-            slug: string;
-            name: string;
-        };
-        SessionSummary: {
-            /** Format: uuid */
-            id: string;
-            /** Format: date-time */
-            expires_at: string;
-            /** Format: date-time */
-            idle_expires_at: string;
-        };
-        AuthResponse: {
-            user: components["schemas"]["User"];
-            organization: components["schemas"]["OrganizationSummary"];
-            session: components["schemas"]["SessionSummary"];
-        };
-        Me: {
-            user: components["schemas"]["User"];
-            organization: components["schemas"]["OrganizationSummary"];
-            membership: {
-                /** @description Interim until RBAC (S3): owners hold all permissions. */
-                is_owner: boolean;
-                /** Format: date-time */
-                joined_at: string;
+            method: string;
+            operation_id: string;
+            parameters: {
+                [key: string]: unknown;
+            }[];
+            path: string;
+            request_schema?: {
+                [key: string]: unknown;
             };
-            session: components["schemas"]["SessionSummary"];
+            response_schemas: {
+                [key: string]: unknown;
+            };
+            security: {
+                [key: string]: unknown;
+            }[];
+            service_id: string;
+            summary: string;
         };
+        ServiceEnvironment: {
+            base_url: string;
+            connector_instance_id: string;
+            environment_id: string;
+        };
+        ServiceEnvironmentInput: {
+            base_url: string;
+            connector_instance_id?: string;
+        };
+        /** @enum {string} */
+        ServiceProtocol: "graphql" | "grpc" | "rest";
+        ServiceTryRequest: {
+            body?: unknown;
+            environment_id: string;
+            headers?: {
+                [key: string]: string;
+            };
+            path_values?: {
+                [key: string]: string;
+            };
+            query?: {
+                [key: string]: string;
+            };
+        };
+        ServiceTryResult: {
+            body: unknown;
+            duration_ms: number;
+            headers: {
+                [key: string]: string;
+            };
+            status: number;
+        };
+        ServiceUpdate: {
+            description?: string;
+            name?: string;
+            owner?: string;
+            protocol?: components["schemas"]["ServiceUpdateProtocol"];
+        };
+        /** @enum {string} */
+        ServiceUpdateProtocol: "graphql" | "grpc" | "rest";
         SessionInfo: {
-            /** Format: uuid */
-            id: string;
-            current: boolean;
-            /** Format: date-time */
             created_at: string;
-            /** Format: date-time */
-            last_seen_at: string;
-            /** Format: date-time */
-            idle_expires_at: string;
-            /** Format: date-time */
+            current: boolean;
             expires_at: string;
+            id: string;
+            idle_expires_at: string;
             ip?: string;
+            last_seen_at: string;
             user_agent?: string;
         };
-        OrganizationSettings: {
-            session_idle_timeout_minutes: number;
-            session_absolute_timeout_hours: number;
-        };
-        Organization: {
-            /** Format: uuid */
+        SessionSummary: {
+            expires_at: string;
             id: string;
-            slug: string;
-            name: string;
-            /** @enum {string} */
-            status: "active" | "suspended";
-            settings: components["schemas"]["OrganizationSettings"];
-            /** Format: date-time */
-            created_at: string;
-            /** Format: date-time */
-            updated_at: string;
+            idle_expires_at: string;
         };
+        SignupRequest: {
+            display_name: string;
+            email: string;
+            organization_name: string;
+            organization_slug: string;
+            password: string;
+        };
+        SystemInfo: {
+            api_version: string;
+            commit: string;
+            environment: components["schemas"]["SystemInfoEnvironment"];
+            go_version: string;
+            name: string;
+            version: string;
+        };
+        /** @enum {string} */
+        SystemInfoEnvironment: "development" | "production" | "staging" | "test";
         UpdateOrganizationRequest: {
             name?: string;
             settings?: components["schemas"]["OrganizationSettings"];
         };
-        AuditEvent: {
-            /** Format: uuid */
+        User: {
+            display_name: string;
+            email: string;
             id: string;
-            /** Format: date-time */
-            occurred_at: string;
-            /** @enum {string} */
-            actor_type: "user" | "service_account" | "system" | "anonymous";
-            /** Format: uuid */
-            actor_id?: string;
-            actor_email?: string;
-            /** @example organization.updated */
-            action: string;
-            resource_type: string;
-            resource_id?: string;
-            /** Format: uuid */
-            workspace_id?: string;
-            /** @enum {string} */
-            outcome: "success" | "failure" | "denied";
-            request_id?: string;
-            ip?: string;
-            details: {
-                [key: string]: unknown;
-            };
+            status: components["schemas"]["UserStatus"];
         };
-        AuditEventPage: {
-            data: components["schemas"]["AuditEvent"][];
-            next_cursor?: string;
+        /** @enum {string} */
+        UserStatus: "active" | "disabled";
+        UserUpdate: {
+            status: components["schemas"]["UserUpdateStatus"];
         };
-        HealthReport: {
-            /** @enum {string} */
-            status: "ok" | "fail";
-            checks?: {
-                [key: string]: {
-                    /** @enum {string} */
-                    status: "ok" | "fail";
-                    error?: string;
-                };
-            };
-        };
-        SystemInfo: {
-            /** @example Hugimethara */
+        /** @enum {string} */
+        UserUpdateStatus: "active" | "suspended";
+        Workspace: {
+            archived_at?: string;
+            created_at: string;
+            department_id?: string;
+            department_name?: string;
+            description: string;
+            id: string;
+            member_count: number;
             name: string;
-            /** @example v0.1.0 */
-            version: string;
-            commit: string;
-            go_version: string;
-            /** @enum {string} */
-            environment: "development" | "staging" | "production" | "test";
-            /** @example v1 */
-            api_version: string;
+            slug: string;
+            updated_at: string;
+        };
+        WorkspaceCreate: {
+            department_id?: string;
+            description?: string;
+            name: string;
+            slug: string;
+        };
+        WorkspaceUpdate: {
+            department_id?: string;
+            description?: string;
+            name: string;
         };
     };
-    responses: {
-        /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
-        PlanProblem: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["PlanProblem"];
-            };
-        };
-        /** @description Error (RFC 9457 problem details). */
-        Problem: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/problem+json": components["schemas"]["Problem"];
-            };
-        };
-    };
-    parameters: {
-        /** @description Workspace address (slug). */
-        WorkspaceSlug: string;
-        Limit: number;
-        Cursor: string;
-    };
+    responses: never;
+    parameters: never;
     requestBodies: never;
     headers: never;
     pathItems: never;
@@ -2829,53 +2324,66 @@ export interface operations {
             };
         };
     };
-    getSystemInfo: {
+    listAuditEvents: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Exact action or prefix (e.g. `auth` matches `auth.*`). */
+                action?: string;
+                /** @description actor_id */
+                actor_id?: string;
+                /** @description resource_type */
+                resource_type?: string;
+                /** @description since */
+                since?: string;
+                /** @description until */
+                until?: string;
+                /** @description limit */
+                limit?: number;
+                /** @description cursor */
+                cursor?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Build and deployment information. */
+            /** @description One page of events. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SystemInfo"];
+                    "application/json": components["schemas"]["AuditEventPage"];
                 };
             };
-            default: components["responses"]["Problem"];
-        };
-    };
-    createOrganization: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SignupRequest"];
-            };
-        };
-        responses: {
-            /** @description Organization created; the caller is signed in. */
-            201: {
+            /** @description Error (RFC 9457 problem details). */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuthResponse"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            429: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     login: {
@@ -2885,6 +2393,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LoginRequest"];
@@ -2900,18 +2409,33 @@ export interface operations {
                     "application/json": components["schemas"]["AuthResponse"];
                 };
             };
-            401: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
             /** @description The user must choose an organization. */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/problem+json": components["schemas"]["OrganizationChoiceProblem"];
+                    "application/json": components["schemas"]["OrganizationChoiceProblem"];
                 };
             };
-            429: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     logout: {
@@ -2930,7 +2454,75 @@ export interface operations {
                 };
                 content?: never;
             };
-            default: components["responses"]["Problem"];
+        };
+    };
+    startOidcLogin: {
+        parameters: {
+            query?: {
+                /** @description redirect */
+                redirect?: string;
+            };
+            header?: never;
+            path: {
+                /** @description idp_id */
+                idp_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to the identity provider (or to the sign-in page on failure). */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    completeOidcLogin: {
+        parameters: {
+            query?: {
+                /** @description code */
+                code?: string;
+                /** @description state */
+                state?: string;
+                /** @description error */
+                error?: string;
+                /** @description error_description */
+                error_description?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Redirect to the web app; session cookies are set on success. */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     listOidcProviders: {
@@ -2951,47 +2543,29 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["OidcProviderOption"][];
-                    };
+                    "application/json": components["schemas"]["ListOidcProviders200JSONResponse"];
                 };
             };
-            429: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    startOidcLogin: {
+    listAccessDecisions: {
         parameters: {
             query?: {
-                redirect?: string;
-            };
-            header?: never;
-            path: {
-                idp_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Redirect to the identity provider (or to the sign-in page on failure). */
-            302: {
-                headers: {
-                    Location?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            429: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    completeOidcLogin: {
-        parameters: {
-            query?: {
-                code?: string;
-                state?: string;
-                error?: string;
-                error_description?: string;
+                /** @description allowed */
+                allowed?: boolean;
+                /** @description limit */
+                limit?: number;
+                /** @description cursor */
+                cursor?: string;
             };
             header?: never;
             path?: never;
@@ -2999,541 +2573,67 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Redirect to the web app; session cookies are set on success. */
-            302: {
-                headers: {
-                    Location?: string;
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            429: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listIdentityProviders: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Providers. */
+            /** @description One page. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["IdentityProvider"][];
-                    };
+                    "application/json": components["schemas"]["ListAccessDecisions200JSONResponse"];
                 };
             };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    createIdentityProvider: {
+    evaluateAccess: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
-                "application/json": components["schemas"]["IdentityProviderCreate"];
+                "application/json": components["schemas"]["EvaluateRequest"];
             };
         };
         responses: {
-            /** @description Created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["IdentityProvider"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getIdentityProvider: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The provider. */
+            /** @description The decision. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IdentityProvider"];
+                    "application/json": components["schemas"]["AccessDecision"];
                 };
             };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteIdentityProvider: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateIdentityProvider: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["IdentityProviderUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated. */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IdentityProvider"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    testIdentityProvider: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The probe result (ok=false carries a sanitized error). */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["IdentityProviderTest"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listGroupMappings: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Mappings. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["GroupMapping"][];
-                    };
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createGroupMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupMappingCreate"];
-            };
-        };
-        responses: {
-            /** @description Created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["GroupMapping"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteGroupMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                provider_id: string;
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getMe: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Current identity. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Me"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listMySessions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Active sessions, most recently used first. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["SessionInfo"][];
-                    };
-                };
-            };
-            401: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    revokeMySession: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                session_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Session revoked. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getCurrentOrganization: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The organization. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Organization"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateCurrentOrganization: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UpdateOrganizationRequest"];
-            };
-        };
-        responses: {
-            /** @description The updated organization. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Organization"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listAuditEvents: {
-        parameters: {
-            query?: {
-                /** @description Exact action or prefix (e.g. `auth` matches `auth.*`). */
-                action?: string;
-                actor_id?: string;
-                resource_type?: string;
-                since?: string;
-                until?: string;
-                limit?: components["parameters"]["Limit"];
-                cursor?: components["parameters"]["Cursor"];
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description One page of events. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuditEventPage"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listCredentials: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Credential metadata. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["Credential"][];
-                    };
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createCredential: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CredentialCreate"];
-            };
-        };
-        responses: {
-            /** @description Stored credential metadata. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Credential"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getCredential: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                credential_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Credential metadata. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Credential"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteCredential: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                credential_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateCredential: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                credential_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CredentialUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated credential metadata. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Credential"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
         };
     };
     listConnectorDefinitions: {
@@ -3551,14 +2651,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["ConnectorDefinition"][];
-                    };
+                    "application/json": components["schemas"]["ListConnectorDefinitions200JSONResponse"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     listConnectorVersions: {
@@ -3566,6 +2679,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description definition_id */
                 definition_id: string;
             };
             cookie?: never;
@@ -3578,15 +2692,36 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["ConnectorVersion"][];
-                    };
+                    "application/json": components["schemas"]["ListConnectorVersions200JSONResponse"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     listConnectors: {
@@ -3604,14 +2739,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["ConnectorInstance"][];
-                    };
+                    "application/json": components["schemas"]["ListConnectors200JSONResponse"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     createConnector: {
@@ -3621,6 +2769,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ConnectorInstanceCreate"];
@@ -3636,10 +2785,33 @@ export interface operations {
                     "application/json": components["schemas"]["ConnectorInstance"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     getConnector: {
@@ -3647,6 +2819,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description connector_id */
                 connector_id: string;
             };
             cookie?: never;
@@ -3662,10 +2835,33 @@ export interface operations {
                     "application/json": components["schemas"]["ConnectorInstance"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     deleteConnector: {
@@ -3673,6 +2869,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description connector_id */
                 connector_id: string;
             };
             cookie?: never;
@@ -3686,10 +2883,33 @@ export interface operations {
                 };
                 content?: never;
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     updateConnector: {
@@ -3697,10 +2917,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description connector_id */
                 connector_id: string;
             };
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ConnectorInstanceUpdate"];
@@ -3716,11 +2938,92 @@ export interface operations {
                     "application/json": components["schemas"]["ConnectorInstance"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getConnectorHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description connector_id */
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent test results. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetConnectorHealth200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     testConnector: {
@@ -3728,6 +3031,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description connector_id */
                 connector_id: string;
             };
             cookie?: never;
@@ -3743,127 +3047,182 @@ export interface operations {
                     "application/json": components["schemas"]["ConnectorTestResult"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getConnectorHealth: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                connector_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Recent test results. */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["ConnectorTestResult"][];
-                    };
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listServices: {
-        parameters: {
-            query: {
-                workspace_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Services in the current workspace. */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["Service"][];
-                    };
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    createService: {
+    listCredentials: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        requestBody?: never;
+        responses: {
+            /** @description Credential metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListCredentials200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ServiceCreate"];
+                "application/json": components["schemas"]["CredentialCreate"];
             };
         };
         responses: {
-            /** @description Registered service. */
+            /** @description Stored credential metadata. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Service"];
+                    "application/json": components["schemas"]["Credential"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    getService: {
+    getCredential: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                service_id: string;
+                /** @description credential_id */
+                credential_id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Service and environment bindings. */
+            /** @description Credential metadata. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Service"];
+                    "application/json": components["schemas"]["Credential"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    deleteService: {
+    deleteCredential: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                service_id: string;
+                /** @description credential_id */
+                credential_id: string;
             };
             cookie?: never;
         };
@@ -3876,526 +3235,97 @@ export interface operations {
                 };
                 content?: never;
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    updateService: {
+    updateCredential: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                service_id: string;
+                /** @description credential_id */
+                credential_id: string;
             };
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ServiceUpdate"];
+                "application/json": components["schemas"]["CredentialUpdate"];
             };
         };
         responses: {
-            /** @description Updated service. */
+            /** @description Updated credential metadata. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Service"];
+                    "application/json": components["schemas"]["Credential"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    putServiceEnvironment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_id: string;
-                environment_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServiceEnvironmentInput"];
-            };
-        };
-        responses: {
-            /** @description Updated environment binding. */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ServiceEnvironment"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteServiceEnvironment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_id: string;
-                environment_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    importOpenAPI: {
-        parameters: {
-            query?: {
-                dry_run?: boolean;
-            };
-            header?: never;
-            path: {
-                service_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["OpenAPIImportRequest"];
-            };
-        };
-        responses: {
-            /** @description Import diff (and applied version when dry_run is false). */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["OpenAPIImportResult"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listServiceEndpoints: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Imported operation catalog. */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["ServiceEndpoint"][];
-                    };
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    tryServiceEndpoint: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                endpoint_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServiceTryRequest"];
-            };
-        };
-        responses: {
-            /** @description Upstream response (bounded to 1 MiB). */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ServiceTryResult"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listMappings: {
-        parameters: {
-            query: {
-                workspace_id: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Mappings. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["Mapping"][];
-                    };
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MappingCreate"];
-            };
-        };
-        responses: {
-            /** @description Created mapping. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Mapping"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Mapping */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Mapping"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MappingUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated mapping */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Mapping"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    publishMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Published mapping version. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MappingVersion"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listMappingVersions: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Mapping versions. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["MappingVersion"][];
-                    };
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    testMapping: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MappingTestRequest"];
-            };
-        };
-        responses: {
-            /** @description Mapping evaluation result. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MappingTestResult"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listMappingTests: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Test cases. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["MappingTest"][];
-                    };
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createMappingTest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MappingTestCreate"];
-            };
-        };
-        responses: {
-            /** @description Test case. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MappingTest"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteMappingTest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-                test_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateMappingTest: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                mapping_id: string;
-                test_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["MappingTestUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated test */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MappingTest"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
         };
     };
     listDepartments: {
@@ -4413,14 +3343,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["Department"][];
-                    };
+                    "application/json": components["schemas"]["ListDepartments200JSONResponse"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     createDepartment: {
@@ -4430,6 +3373,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DepartmentCreate"];
@@ -4445,11 +3389,42 @@ export interface operations {
                     "application/json": components["schemas"]["Department"];
                 };
             };
-            402: components["responses"]["PlanProblem"];
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanProblem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     deleteDepartment: {
@@ -4457,6 +3432,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description department_id */
                 department_id: string;
             };
             cookie?: never;
@@ -4470,10 +3446,33 @@ export interface operations {
                 };
                 content?: never;
             };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     updateDepartment: {
@@ -4481,10 +3480,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description department_id */
                 department_id: string;
             };
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DepartmentUpdate"];
@@ -4500,1042 +3501,42 @@ export interface operations {
                     "application/json": components["schemas"]["Department"];
                 };
             };
-            402: components["responses"]["PlanProblem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listEnvironments: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description All environments. */
-            200: {
+            /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+            402: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["Environment"][];
-                    };
+                    "application/json": components["schemas"]["PlanProblem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createEnvironment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EnvironmentCreate"];
-            };
-        };
-        responses: {
-            /** @description Created. */
-            201: {
+            /** @description Error (RFC 9457 problem details). */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Environment"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            402: components["responses"]["PlanProblem"];
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteEnvironment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                environment_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateEnvironment: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                environment_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["EnvironmentUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated. */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Environment"];
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            402: components["responses"]["PlanProblem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listWorkspaces: {
-        parameters: {
-            query?: {
-                include_archived?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Workspaces. */
-            200: {
+            /** @description Error (RFC 9457 problem details). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["Workspace"][];
-                    };
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
-            401: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createWorkspace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["WorkspaceCreate"];
-            };
-        };
-        responses: {
-            /** @description Created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Workspace"];
-                };
-            };
-            402: components["responses"]["PlanProblem"];
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getWorkspace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The workspace. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Workspace"];
-                };
-            };
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateWorkspace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["WorkspaceUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Workspace"];
-                };
-            };
-            402: components["responses"]["PlanProblem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    archiveWorkspace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Archived. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Workspace"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    restoreWorkspace: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Restored. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Workspace"];
-                };
-            };
-            402: components["responses"]["PlanProblem"];
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listWorkspaceMembers: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Members. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["Member"][];
-                    };
-                };
-            };
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    addWorkspaceMember: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    user_id: string;
-                    /** @description Workspace role to grant (default editor). */
-                    role_key?: string;
-                };
-            };
-        };
-        responses: {
-            /** @description The user is a member. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    removeWorkspaceMember: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Workspace address (slug). */
-                workspace: components["parameters"]["WorkspaceSlug"];
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listUsers: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Organization members. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["Member"][];
-                    };
-                };
-            };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The member. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Member"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    removeUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateUser: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["UserUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Member"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listInvitations: {
-        parameters: {
-            query?: {
-                status?: "pending" | "all";
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Invitations. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["Invitation"][];
-                    };
-                };
-            };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createInvitation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InvitationCreate"];
-            };
-        };
-        responses: {
-            /** @description Invited. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InvitationCreated"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    revokeInvitation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                invitation_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Revoked. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getInvitationPreview: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The invitation. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["InvitationPreview"];
-                };
-            };
-            404: components["responses"]["Problem"];
-            410: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    acceptInvitation: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                token: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["InvitationAccept"];
-            };
-        };
-        responses: {
-            /** @description Joined and signed in. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthResponse"];
-                };
-            };
-            401: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            410: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            429: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listGroups: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Groups. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["Group"][];
-                    };
-                };
-            };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createGroup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupInput"];
-            };
-        };
-        responses: {
-            /** @description Created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Group"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getGroup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The group. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Group"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteGroup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateGroup: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["GroupInput"];
-            };
-        };
-        responses: {
-            /** @description Updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Group"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listGroupMembers: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Members. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["GroupMember"][];
-                    };
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    addGroupMember: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    user_id: string;
-                };
-            };
-        };
-        responses: {
-            /** @description The user is a member. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    removeGroupMember: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                group_id: string;
-                user_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Removed. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listServiceAccounts: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Service accounts. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["ServiceAccount"][];
-                    };
-                };
-            };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createServiceAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServiceAccountCreate"];
-            };
-        };
-        responses: {
-            /** @description Created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServiceAccount"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    getServiceAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description The service account. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServiceAccount"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    deleteServiceAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Deleted. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    updateServiceAccount: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ServiceAccountUpdate"];
-            };
-        };
-        responses: {
-            /** @description Updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ServiceAccount"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    listApiKeys: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Keys. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        data: components["schemas"]["ApiKey"][];
-                    };
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    createApiKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApiKeyCreate"];
-            };
-        };
-        responses: {
-            /** @description Created. */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiKeyCreated"];
-                };
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
-        };
-    };
-    revokeApiKey: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                service_account_id: string;
-                key_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Revoked. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
         };
     };
     getEntitlements: {
@@ -5556,11 +3557,18 @@ export interface operations {
                     "application/json": components["schemas"]["Entitlements"];
                 };
             };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    listPlans: {
+    listEnvironments: {
         parameters: {
             query?: never;
             header?: never;
@@ -5569,19 +3577,1913 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Plans with their entitlements. */
+            /** @description All environments. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["Plan"][];
-                        features: components["schemas"]["FeatureDefinition"][];
-                    };
+                    "application/json": components["schemas"]["ListEnvironments200JSONResponse"];
                 };
             };
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnvironmentCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Environment"];
+                };
+            };
+            /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanProblem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description environment_id */
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description environment_id */
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnvironmentUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Environment"];
+                };
+            };
+            /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanProblem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listGroups: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Groups. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListGroups200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupInput"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description group_id */
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The group. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description group_id */
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateGroup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description group_id */
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupInput"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listGroupMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description group_id */
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Members. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListGroupMembers200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    addGroupMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description group_id */
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description The user is a member. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    removeGroupMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description group_id */
+                group_id: string;
+                /** @description user_id */
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listIdentityProviders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Providers. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListIdentityProviders200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityProviderCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProvider"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description provider_id */
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The provider. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProvider"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description provider_id */
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description provider_id */
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityProviderUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProvider"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listGroupMappings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description provider_id */
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mappings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListGroupMappings200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createGroupMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description provider_id */
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupMappingCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupMapping"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteGroupMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description provider_id */
+                provider_id: string;
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    testIdentityProvider: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description provider_id */
+                provider_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The probe result (ok=false carries a sanitized error). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityProviderTest"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInvitationPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description token */
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The invitation. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationPreview"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    acceptInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description token */
+                token: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["InvitationAccept"];
+            };
+        };
+        responses: {
+            /** @description Joined and signed in. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listInvitations: {
+        parameters: {
+            query?: {
+                /** @description status */
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invitations. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListInvitations200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvitationCreate"];
+            };
+        };
+        responses: {
+            /** @description Invited. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationCreated"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    revokeInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description invitation_id */
+                invitation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listMappings: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mappings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMappings200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingCreate"];
+            };
+        };
+        responses: {
+            /** @description Created mapping. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mapping"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mapping */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mapping"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated mapping */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mapping"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    publishMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Published mapping version. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MappingVersion"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    testMapping: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingTestRequest"];
+            };
+        };
+        responses: {
+            /** @description Mapping evaluation result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MappingTestResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listMappingTests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Test cases. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMappingTests200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createMappingTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingTestCreate"];
+            };
+        };
+        responses: {
+            /** @description Test case. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MappingTest"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteMappingTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+                /** @description test_id */
+                test_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateMappingTest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+                /** @description test_id */
+                test_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingTestUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated test */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MappingTest"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listMappingVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description mapping_id */
+                mapping_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mapping versions. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMappingVersions200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Current identity. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Me"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     getMyPermissions: {
@@ -5602,7 +5504,236 @@ export interface operations {
                     "application/json": components["schemas"]["EffectivePermissions"];
                 };
             };
-            default: components["responses"]["Problem"];
+        };
+    };
+    listMySessions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Active sessions, most recently used first. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMySessions200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    revokeMySession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description session_id */
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Session revoked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignupRequest"];
+            };
+        };
+        responses: {
+            /** @description Organization created; the caller is signed in. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCurrentOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The organization. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateCurrentOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description The updated organization. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Plans with their entitlements. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListPlans200JSONResponse"];
+                };
+            };
         };
     };
     listResourceTypes: {
@@ -5620,13 +5751,160 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["ResourceType"][];
-                    };
+                    "application/json": components["schemas"]["ListResourceTypes200JSONResponse"];
                 };
             };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listRoleBindings: {
+        parameters: {
+            query?: {
+                /** @description user_id */
+                user_id?: string;
+                /** @description group_id */
+                group_id?: string;
+                /** @description service_account_id */
+                service_account_id?: string;
+                /** @description principal_type */
+                principal_type?: string;
+                /** @description scope_type */
+                scope_type?: string;
+                /** @description workspace_id */
+                workspace_id?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Assignments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListRoleBindings200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createRoleBinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RoleBindingCreate"];
+            };
+        };
+        responses: {
+            /** @description Assigned. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleBinding"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteRoleBinding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description binding_id */
+                binding_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     listRoles: {
@@ -5644,13 +5922,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["Role"][];
-                    };
+                    "application/json": components["schemas"]["ListRoles200JSONResponse"];
                 };
             };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     createRole: {
@@ -5660,6 +5943,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RoleCreate"];
@@ -5675,10 +5959,33 @@ export interface operations {
                     "application/json": components["schemas"]["Role"];
                 };
             };
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     getRole: {
@@ -5686,6 +5993,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description role_id */
                 role_id: string;
             };
             cookie?: never;
@@ -5701,8 +6009,15 @@ export interface operations {
                     "application/json": components["schemas"]["Role"];
                 };
             };
-            404: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     updateRole: {
@@ -5710,10 +6025,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description role_id */
                 role_id: string;
             };
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["RoleUpdate"];
@@ -5729,11 +6046,42 @@ export interface operations {
                     "application/json": components["schemas"]["Role"];
                 };
             };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     deleteRole: {
@@ -5741,6 +6089,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description role_id */
                 role_id: string;
             };
             cookie?: never;
@@ -5754,21 +6103,484 @@ export interface operations {
                 };
                 content?: never;
             };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    listRoleBindings: {
+    listServiceAccounts: {
         parameters: {
-            query?: {
-                user_id?: string;
-                group_id?: string;
-                service_account_id?: string;
-                principal_type?: "user" | "group" | "service_account";
-                scope_type?: "org" | "workspace" | "resource";
-                workspace_id?: string;
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service accounts. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListServiceAccounts200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccount"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_account_id */
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The service account. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccount"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_account_id */
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateServiceAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_account_id */
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceAccountUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceAccount"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listApiKeys: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_account_id */
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Keys. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListApiKeys200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_account_id */
+                service_account_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiKeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiKeyCreated"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    revokeApiKey: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_account_id */
+                service_account_id: string;
+                /** @description key_id */
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Revoked. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    tryServiceEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description endpoint_id */
+                endpoint_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceTryRequest"];
+            };
+        };
+        responses: {
+            /** @description Upstream response (bounded to 1 MiB). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceTryResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listServices: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
             };
             header?: never;
             path?: never;
@@ -5776,55 +6588,570 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Assignments. */
+            /** @description Services in the current workspace. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["RoleBinding"][];
-                    };
+                    "application/json": components["schemas"]["ListServices200JSONResponse"];
                 };
             };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    createRoleBinding: {
+    createService: {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
-                "application/json": components["schemas"]["RoleBindingCreate"];
+                "application/json": components["schemas"]["ServiceCreate"];
             };
         };
         responses: {
-            /** @description Assigned. */
+            /** @description Registered service. */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RoleBinding"];
+                    "application/json": components["schemas"]["Service"];
                 };
             };
-            403: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    deleteRoleBinding: {
+    getService: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                binding_id: string;
+                /** @description service_id */
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service and environment bindings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_id */
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_id */
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listServiceEndpoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_id */
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Imported operation catalog. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListServiceEndpoints200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putServiceEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_id */
+                service_id: string;
+                /** @description environment_id */
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceEnvironmentInput"];
+            };
+        };
+        responses: {
+            /** @description Updated environment binding. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceEnvironment"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteServiceEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description service_id */
+                service_id: string;
+                /** @description environment_id */
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    importOpenAPI: {
+        parameters: {
+            query?: {
+                /** @description dry_run */
+                dry_run?: boolean;
+            };
+            header?: never;
+            path: {
+                /** @description service_id */
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenAPIImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Import diff (and applied version when dry_run is false). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenAPIImportResult"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSystemInfo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Build and deployment information. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemInfo"];
+                };
+            };
+        };
+    };
+    listUsers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Organization members. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListUsers200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description user_id */
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The member. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Member"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    removeUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description user_id */
+                user_id: string;
             };
             cookie?: never;
         };
@@ -5837,45 +7164,104 @@ export interface operations {
                 };
                 content?: never;
             };
-            403: components["responses"]["Problem"];
-            404: components["responses"]["Problem"];
-            409: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    evaluateAccess: {
+    updateUser: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                /** @description user_id */
+                user_id: string;
+            };
             cookie?: never;
         };
+        /** @description Request body */
         requestBody: {
             content: {
-                "application/json": components["schemas"]["EvaluateRequest"];
+                "application/json": components["schemas"]["UserUpdate"];
             };
         };
         responses: {
-            /** @description The decision. */
+            /** @description Updated. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AccessDecision"];
+                    "application/json": components["schemas"]["Member"];
                 };
             };
-            403: components["responses"]["Problem"];
-            422: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
-    listAccessDecisions: {
+    listWorkspaces: {
         parameters: {
             query?: {
-                allowed?: boolean;
-                limit?: components["parameters"]["Limit"];
-                cursor?: components["parameters"]["Cursor"];
+                /** @description include_archived */
+                include_archived?: boolean;
             };
             header?: never;
             path?: never;
@@ -5883,20 +7269,436 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description One page. */
+            /** @description Workspaces. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        data: components["schemas"]["LoggedDecision"][];
-                        next_cursor?: string;
-                    };
+                    "application/json": components["schemas"]["ListWorkspaces200JSONResponse"];
                 };
             };
-            403: components["responses"]["Problem"];
-            default: components["responses"]["Problem"];
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceCreate"];
+            };
+        };
+        responses: {
+            /** @description Created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanProblem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The workspace. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspaceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanProblem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    archiveWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Archived. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listWorkspaceMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Members. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListWorkspaceMembers200JSONResponse"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    addWorkspaceMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description The user is a member. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    removeWorkspaceMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: string;
+                /** @description user_id */
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Removed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    restoreWorkspace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Workspace address (slug). */
+                workspace: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Restored. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Workspace"];
+                };
+            };
+            /** @description The organization's plan does not allow this (feature_not_in_plan or plan_limit_reached). */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanProblem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
 }

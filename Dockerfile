@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 # One image, four binaries; the command selects the role.
-FROM golang:1.27.4-alpine AS build
+FROM golang:1.26-alpine AS build
 WORKDIR /src
 ENV CGO_ENABLED=0 GOFLAGS=-trimpath GOTOOLCHAIN=local
 COPY go.mod go.sum ./

@@ -15,7 +15,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/identity"
 	"github.com/nuriansyah/hugimethara/internal/platform/health"
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 func newTestRouter(t *testing.T, checks map[string]health.Check) *httptest.Server {
@@ -43,10 +43,10 @@ func TestSystemInfo(t *testing.T) {
 	require.NotEmpty(t, resp.Header.Get(httpx.RequestIDHeader))
 	require.Equal(t, "nosniff", resp.Header.Get("X-Content-Type-Options"))
 
-	var info apigen.SystemInfo
+	var info dto.SystemInfo
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&info))
 	require.Equal(t, "Hugimethara", info.Name)
-	require.Equal(t, apigen.SystemInfoEnvironment("test"), info.Environment)
+	require.Equal(t, dto.SystemInfoEnvironment("test"), info.Environment)
 	require.Equal(t, "v1", info.ApiVersion)
 }
 
@@ -59,9 +59,9 @@ func TestReadinessReflectsChecks(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, 503, resp.StatusCode)
-	var rep apigen.HealthReport
+	var rep dto.HealthReport
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&rep))
-	require.Equal(t, apigen.HealthReportStatusFail, rep.Status)
+	require.Equal(t, dto.HealthReportStatusFail, rep.Status)
 	require.Equal(t, "not connected", *(*rep.Checks)["nats"].Error)
 
 	resp2, err := srv.Client().Get(srv.URL + "/healthz")
@@ -93,7 +93,7 @@ func TestProtectedOperationsRequireSession(t *testing.T) {
 	}
 }
 
-func TestPublicOperationsComeFromSpec(t *testing.T) {
+func TestPublicOperationsAreExplicit(t *testing.T) {
 	public, err := PublicOperations()
 	require.NoError(t, err)
 	require.Equal(t, map[string]bool{
@@ -102,6 +102,7 @@ func TestPublicOperationsComeFromSpec(t *testing.T) {
 		"GetInvitationPreview": true, "AcceptInvitation": true, // S4: invitation links (token-gated, rate-limited)
 		"ListOidcProviders": true, "StartOidcLogin": true, "CompleteOidcLogin": true, // S5: SSO before a session exists
 	}, public, "adding a public operation is a security decision: update this test deliberately")
+	require.Len(t, routes, 116)
 }
 
 func TestCrossSiteStateChangeRejected(t *testing.T) {
@@ -113,22 +114,4 @@ func TestCrossSiteStateChangeRejected(t *testing.T) {
 	require.NoError(t, err)
 	_ = resp.Body.Close()
 	require.Equal(t, 403, resp.StatusCode)
-}
-
-func TestRequireSessionMatchesGeneratedOperationNames(t *testing.T) {
-	mw := requireSession(map[string]bool{"login": true})
-	called := false
-	next := func(context.Context, http.ResponseWriter, *http.Request, any) (any, error) {
-		called = true
-		return nil, nil
-	}
-
-	_, err := mw(next, "Login")(context.Background(), nil, nil, nil)
-	require.NoError(t, err)
-	require.True(t, called, "public op must pass without a session")
-
-	called = false
-	_, err = mw(next, "GetMe")(context.Background(), nil, nil, nil)
-	require.Error(t, err)
-	require.False(t, called, "protected op must not run without a session")
 }

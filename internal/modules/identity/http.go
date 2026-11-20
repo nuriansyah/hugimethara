@@ -11,7 +11,7 @@ import (
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 // CSRFHeader carries the CSRF token on state-changing requests.
@@ -50,7 +50,7 @@ func (c Cookies) clear() []*http.Cookie {
 	}
 }
 
-// HTTP implements the auth slice of apigen.StrictServerInterface plus the
+// HTTP implements the auth slice of dto.StrictServerInterface plus the
 // session middleware.
 type HTTP struct {
 	svc     *Service
@@ -154,7 +154,18 @@ func (r logoutResponse) VisitLogoutResponse(w http.ResponseWriter) error {
 	return nil
 }
 
-func (h *HTTP) CreateOrganization(ctx context.Context, req apigen.CreateOrganizationRequestObject) (apigen.CreateOrganizationResponseObject, error) {
+// @Summary Sign up — create an organization and its first owner, and sign in
+// @ID createOrganization
+// @Tags auth
+// @Param body body dto.SignupRequest true "Request body"
+// @Success 201 {object} dto.AuthResponse "Organization created; the caller is signed in."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 429 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Router /v1/hugimethara/organizations [post]
+func (h *HTTP) CreateOrganization(ctx context.Context, req dto.CreateOrganizationRequestObject) (dto.CreateOrganizationResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -168,7 +179,18 @@ func (h *HTTP) CreateOrganization(ctx context.Context, req apigen.CreateOrganiza
 	return sessionResponse{status: http.StatusCreated, body: authResponse(g), cookies: h.cookies.issue(g)}, nil
 }
 
-func (h *HTTP) Login(ctx context.Context, req apigen.LoginRequestObject) (apigen.LoginResponseObject, error) {
+// @Summary Sign in with email and password
+// @ID login
+// @Tags auth
+// @Param body body dto.LoginRequest true "Request body"
+// @Success 200 {object} dto.AuthResponse "Signed in."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.OrganizationChoiceProblem "The user must choose an organization."
+// @Failure 429 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Router /v1/hugimethara/auth/login [post]
+func (h *HTTP) Login(ctx context.Context, req dto.LoginRequestObject) (dto.LoginResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -183,14 +205,29 @@ func (h *HTTP) Login(ctx context.Context, req apigen.LoginRequestObject) (apigen
 	return sessionResponse{status: http.StatusOK, body: authResponse(g), cookies: h.cookies.issue(g)}, nil
 }
 
-func (h *HTTP) Logout(ctx context.Context, _ apigen.LogoutRequestObject) (apigen.LogoutResponseObject, error) {
+// @Summary Sign out (revoke the current session)
+// @ID logout
+// @Tags auth
+// @Success 204 "Signed out; cookies cleared."
+// @Produce json
+// @Router /v1/hugimethara/auth/logout [post]
+func (h *HTTP) Logout(ctx context.Context, _ dto.LogoutRequestObject) (dto.LogoutResponseObject, error) {
 	if err := h.svc.Logout(ctx); err != nil {
 		return nil, err
 	}
 	return logoutResponse{cookies: h.cookies.clear()}, nil
 }
 
-func (h *HTTP) GetMe(ctx context.Context, _ apigen.GetMeRequestObject) (apigen.GetMeResponseObject, error) {
+// @Summary The signed-in user, their organization and session
+// @ID getMe
+// @Tags auth
+// @Success 200 {object} dto.Me "Current identity."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/me [get]
+func (h *HTTP) GetMe(ctx context.Context, _ dto.GetMeRequestObject) (dto.GetMeResponseObject, error) {
 	m, err := h.svc.Me(ctx)
 	if err != nil {
 		return nil, err
@@ -210,24 +247,33 @@ func (h *HTTP) GetMe(ctx context.Context, _ apigen.GetMeRequestObject) (apigen.G
 			cur = s
 		}
 	}
-	out := apigen.GetMe200JSONResponse{
+	out := dto.GetMe200JSONResponse{
 		User:         apiUser(m.User),
-		Organization: apigen.OrganizationSummary{Id: org.ID, Slug: org.Slug, Name: org.Name},
-		Session:      apigen.SessionSummary{Id: p.SessionID, ExpiresAt: cur.ExpiresAt, IdleExpiresAt: cur.IdleExpiresAt},
+		Organization: dto.OrganizationSummary{Id: org.ID, Slug: org.Slug, Name: org.Name},
+		Session:      dto.SessionSummary{Id: p.SessionID, ExpiresAt: cur.ExpiresAt, IdleExpiresAt: cur.IdleExpiresAt},
 	}
 	out.Membership.IsOwner = m.IsOwner
 	out.Membership.JoinedAt = m.JoinedAt
 	return out, nil
 }
 
-func (h *HTTP) ListMySessions(ctx context.Context, _ apigen.ListMySessionsRequestObject) (apigen.ListMySessionsResponseObject, error) {
+// @Summary The caller's active sessions in this organization
+// @ID listMySessions
+// @Tags auth
+// @Success 200 {object} dto.ListMySessions200JSONResponse "Active sessions, most recently used first."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/me/sessions [get]
+func (h *HTTP) ListMySessions(ctx context.Context, _ dto.ListMySessionsRequestObject) (dto.ListMySessionsResponseObject, error) {
 	sessions, err := h.svc.ListSessions(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListMySessions200JSONResponse{Data: make([]apigen.SessionInfo, len(sessions))}
+	out := dto.ListMySessions200JSONResponse{Data: make([]dto.SessionInfo, len(sessions))}
 	for i, s := range sessions {
-		out.Data[i] = apigen.SessionInfo{
+		out.Data[i] = dto.SessionInfo{
 			Id: s.ID, Current: s.Current, CreatedAt: s.CreatedAt, LastSeenAt: s.LastSeenAt,
 			IdleExpiresAt: s.IdleExpiresAt, ExpiresAt: s.ExpiresAt, Ip: strPtr(s.IP), UserAgent: strPtr(s.UserAgent),
 		}
@@ -235,23 +281,34 @@ func (h *HTTP) ListMySessions(ctx context.Context, _ apigen.ListMySessionsReques
 	return out, nil
 }
 
-func (h *HTTP) RevokeMySession(ctx context.Context, req apigen.RevokeMySessionRequestObject) (apigen.RevokeMySessionResponseObject, error) {
+// @Summary Revoke one of the caller's sessions
+// @ID revokeMySession
+// @Tags auth
+// @Param session_id path string true "session_id"
+// @Success 204 "Session revoked."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/me/sessions/{session_id} [delete]
+func (h *HTTP) RevokeMySession(ctx context.Context, req dto.RevokeMySessionRequestObject) (dto.RevokeMySessionResponseObject, error) {
 	if err := h.svc.RevokeSession(ctx, req.SessionId); err != nil {
 		return nil, err
 	}
-	return apigen.RevokeMySession204Response{}, nil
+	return dto.RevokeMySession204Response{}, nil
 }
 
-func authResponse(g SessionGrant) apigen.AuthResponse {
-	return apigen.AuthResponse{
+func authResponse(g SessionGrant) dto.AuthResponse {
+	return dto.AuthResponse{
 		User:         apiUser(g.User),
-		Organization: apigen.OrganizationSummary{Id: g.Organization.ID, Slug: g.Organization.Slug, Name: g.Organization.Name},
-		Session:      apigen.SessionSummary{Id: g.SessionID, ExpiresAt: g.ExpiresAt, IdleExpiresAt: g.IdleExpiresAt},
+		Organization: dto.OrganizationSummary{Id: g.Organization.ID, Slug: g.Organization.Slug, Name: g.Organization.Name},
+		Session:      dto.SessionSummary{Id: g.SessionID, ExpiresAt: g.ExpiresAt, IdleExpiresAt: g.IdleExpiresAt},
 	}
 }
 
-func apiUser(u User) apigen.User {
-	return apigen.User{Id: u.ID, Email: u.Email, DisplayName: u.DisplayName, Status: apigen.UserStatus(u.Status)}
+func apiUser(u User) dto.User {
+	return dto.User{Id: u.ID, Email: u.Email, DisplayName: u.DisplayName, Status: dto.UserStatus(u.Status)}
 }
 
 func strPtr(s string) *string {

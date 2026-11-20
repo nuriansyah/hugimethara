@@ -6,15 +6,15 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 type HTTP struct{ svc *Service }
 
 func NewHTTP(svc *Service) *HTTP { return &HTTP{svc: svc} }
 
-func apiCredential(c Credential) apigen.Credential {
-	out := apigen.Credential{Id: c.ID, Name: c.Name, Kind: c.Kind, Configured: true,
+func apiCredential(c Credential) dto.Credential {
+	out := dto.Credential{Id: c.ID, Name: c.Name, Kind: c.Kind, Configured: true,
 		Hint: c.Hint, Version: c.Version, CreatedAt: c.CreatedAt, UpdatedAt: c.UpdatedAt}
 	if c.EnvironmentID != nil {
 		id := *c.EnvironmentID
@@ -23,19 +23,42 @@ func apiCredential(c Credential) apigen.Credential {
 	return out
 }
 
-func (h *HTTP) ListCredentials(ctx context.Context, _ apigen.ListCredentialsRequestObject) (apigen.ListCredentialsResponseObject, error) {
+// @Summary List credential metadata
+// @ID listCredentials
+// @Tags secrets
+// @Success 200 {object} dto.ListCredentials200JSONResponse "Credential metadata."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/credentials [get]
+func (h *HTTP) ListCredentials(ctx context.Context, _ dto.ListCredentialsRequestObject) (dto.ListCredentialsResponseObject, error) {
 	credentials, err := h.svc.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListCredentials200JSONResponse{Data: make([]apigen.Credential, len(credentials))}
+	out := dto.ListCredentials200JSONResponse{Data: make([]dto.Credential, len(credentials))}
 	for i, c := range credentials {
 		out.Data[i] = apiCredential(c)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateCredential(ctx context.Context, req apigen.CreateCredentialRequestObject) (apigen.CreateCredentialResponseObject, error) {
+// @Summary Store an encrypted credential
+// @ID createCredential
+// @Tags secrets
+// @Param body body dto.CredentialCreate true "Request body"
+// @Success 201 {object} dto.Credential "Stored credential metadata."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/credentials [post]
+func (h *HTTP) CreateCredential(ctx context.Context, req dto.CreateCredentialRequestObject) (dto.CreateCredentialResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -49,18 +72,45 @@ func (h *HTTP) CreateCredential(ctx context.Context, req apigen.CreateCredential
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateCredential201JSONResponse(apiCredential(c)), nil
+	return dto.CreateCredential201JSONResponse(apiCredential(c)), nil
 }
 
-func (h *HTTP) GetCredential(ctx context.Context, req apigen.GetCredentialRequestObject) (apigen.GetCredentialResponseObject, error) {
+// @Summary Get credential metadata
+// @ID getCredential
+// @Tags secrets
+// @Param credential_id path string true "credential_id"
+// @Success 200 {object} dto.Credential "Credential metadata."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/credentials/{credential_id} [get]
+func (h *HTTP) GetCredential(ctx context.Context, req dto.GetCredentialRequestObject) (dto.GetCredentialResponseObject, error) {
 	c, err := h.svc.Get(ctx, req.CredentialId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetCredential200JSONResponse(apiCredential(c)), nil
+	return dto.GetCredential200JSONResponse(apiCredential(c)), nil
 }
 
-func (h *HTTP) UpdateCredential(ctx context.Context, req apigen.UpdateCredentialRequestObject) (apigen.UpdateCredentialResponseObject, error) {
+// @Summary Update credential metadata or rotate its value
+// @ID updateCredential
+// @Tags secrets
+// @Param credential_id path string true "credential_id"
+// @Param body body dto.CredentialUpdate true "Request body"
+// @Success 200 {object} dto.Credential "Updated credential metadata."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/credentials/{credential_id} [patch]
+func (h *HTTP) UpdateCredential(ctx context.Context, req dto.UpdateCredentialRequestObject) (dto.UpdateCredentialResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -68,12 +118,24 @@ func (h *HTTP) UpdateCredential(ctx context.Context, req apigen.UpdateCredential
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateCredential200JSONResponse(apiCredential(c)), nil
+	return dto.UpdateCredential200JSONResponse(apiCredential(c)), nil
 }
 
-func (h *HTTP) DeleteCredential(ctx context.Context, req apigen.DeleteCredentialRequestObject) (apigen.DeleteCredentialResponseObject, error) {
+// @Summary Delete a credential
+// @ID deleteCredential
+// @Tags secrets
+// @Param credential_id path string true "credential_id"
+// @Success 204 "Deleted."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/credentials/{credential_id} [delete]
+func (h *HTTP) DeleteCredential(ctx context.Context, req dto.DeleteCredentialRequestObject) (dto.DeleteCredentialResponseObject, error) {
 	if err := h.svc.Delete(ctx, req.CredentialId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteCredential204Response{}, nil
+	return dto.DeleteCredential204Response{}, nil
 }

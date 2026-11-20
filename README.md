@@ -9,7 +9,7 @@ native workflow automation, webhooks, data platform and BI, under one multi-tena
 
 ## Quick start
 
-Requires Docker, Go 1.27+ (auto-downloaded by `go` via `toolchain`), Node 24 + pnpm.
+Requires Docker, Go 1.26+, Node 24 + pnpm.
 
 ```bash
 make up                  # postgres, redis, nats, migrate, api (:8080), worker x2, web (:3000)

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 // oidcRedirect writes a 302 with cookies; it satisfies both browser-facing
@@ -38,19 +38,36 @@ func (h *HTTP) loginFailure(code string) string {
 	return strings.TrimSuffix(h.svc.cfg.PublicURL, "/") + "/login?sso_error=" + url.QueryEscape(code)
 }
 
-func (h *HTTP) ListOidcProviders(ctx context.Context, req apigen.ListOidcProvidersRequestObject) (apigen.ListOidcProvidersResponseObject, error) {
+// @Summary Enabled SSO providers of an organization (public)
+// @ID listOidcProviders
+// @Tags auth
+// @Param organization query string true "Organization slug."
+// @Success 200 {object} dto.ListOidcProviders200JSONResponse "Enabled identity providers."
+// @Failure 429 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Router /v1/hugimethara/auth/oidc/providers [get]
+func (h *HTTP) ListOidcProviders(ctx context.Context, req dto.ListOidcProvidersRequestObject) (dto.ListOidcProvidersResponseObject, error) {
 	options, err := h.svc.OIDCProviderOptions(ctx, req.Params.Organization)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListOidcProviders200JSONResponse{Data: make([]apigen.OidcProviderOption, len(options))}
+	out := dto.ListOidcProviders200JSONResponse{Data: make([]dto.OidcProviderOption, len(options))}
 	for i, o := range options {
-		out.Data[i] = apigen.OidcProviderOption{Id: o.ID, Name: o.Name, Preset: apigen.IdentityProviderPreset(o.Preset)}
+		out.Data[i] = dto.OidcProviderOption{Id: o.ID, Name: o.Name, Preset: dto.IdentityProviderPreset(o.Preset)}
 	}
 	return out, nil
 }
 
-func (h *HTTP) StartOidcLogin(ctx context.Context, req apigen.StartOidcLoginRequestObject) (apigen.StartOidcLoginResponseObject, error) {
+// @Summary Begin an OIDC sign-in (public)
+// @ID startOidcLogin
+// @Tags auth
+// @Param idp_id path string true "idp_id"
+// @Param redirect query string false "redirect"
+// @Success 302 "Redirect to the identity provider (or to the sign-in page on failure)."
+// @Failure 429 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Router /v1/hugimethara/auth/oidc/{idp_id}/start [get]
+func (h *HTTP) StartOidcLogin(ctx context.Context, req dto.StartOidcLoginRequestObject) (dto.StartOidcLoginResponseObject, error) {
 	redirect := ""
 	if req.Params.Redirect != nil {
 		redirect = *req.Params.Redirect
@@ -68,7 +85,18 @@ func (h *HTTP) StartOidcLogin(ctx context.Context, req apigen.StartOidcLoginRequ
 	}, nil
 }
 
-func (h *HTTP) CompleteOidcLogin(ctx context.Context, req apigen.CompleteOidcLoginRequestObject) (apigen.CompleteOidcLoginResponseObject, error) {
+// @Summary Finish an OIDC sign-in (public)
+// @ID completeOidcLogin
+// @Tags auth
+// @Param code query string false "code"
+// @Param state query string false "state"
+// @Param error query string false "error"
+// @Param error_description query string false "error_description"
+// @Success 302 "Redirect to the web app; session cookies are set on success."
+// @Failure 429 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Router /v1/hugimethara/auth/oidc/callback [get]
+func (h *HTTP) CompleteOidcLogin(ctx context.Context, req dto.CompleteOidcLoginRequestObject) (dto.CompleteOidcLoginResponseObject, error) {
 	params := OIDCCallbackParams{}
 	if req.Params.Code != nil {
 		params.Code = *req.Params.Code
@@ -99,8 +127,8 @@ func (h *HTTP) CompleteOidcLogin(ctx context.Context, req apigen.CompleteOidcLog
 
 // Identity provider configuration ---------------------------------------------------
 
-func (h *HTTP) apiProvider(p IdentityProvider) apigen.IdentityProvider {
-	cm := apigen.ClaimMapping{Email: p.ClaimMapping.Email, Name: p.ClaimMapping.Name}
+func (h *HTTP) apiProvider(p IdentityProvider) dto.IdentityProvider {
+	cm := dto.ClaimMapping{Email: p.ClaimMapping.Email, Name: p.ClaimMapping.Name}
 	if p.ClaimMapping.Groups != "" {
 		groups := p.ClaimMapping.Groups
 		cm.Groups = &groups
@@ -113,23 +141,23 @@ func (h *HTTP) apiProvider(p IdentityProvider) apigen.IdentityProvider {
 	if domains == nil {
 		domains = []string{}
 	}
-	return apigen.IdentityProvider{
-		Id: p.ID, Name: p.Name, Protocol: apigen.IdentityProviderProtocol(p.Protocol),
-		Preset: apigen.IdentityProviderPreset(p.Preset), Issuer: p.Issuer, ClientId: p.ClientID,
+	return dto.IdentityProvider{
+		Id: p.ID, Name: p.Name, Protocol: dto.IdentityProviderProtocol(p.Protocol),
+		Preset: dto.IdentityProviderPreset(p.Preset), Issuer: p.Issuer, ClientId: p.ClientID,
 		HasClientSecret: p.HasClientSecret, Scopes: scopes, ClaimMapping: cm, JitProvisioning: p.JITProvisioning,
 		AllowedDomains: domains, Enabled: p.Enabled, RedirectUri: h.svc.RedirectURI(), SsoUrl: h.svc.SSOURL(p.ID),
 		GroupMappingCount: p.GroupMappingCount, CreatedAt: p.CreatedAt, UpdatedAt: p.UpdatedAt,
 	}
 }
 
-func apiGroupMapping(m GroupMapping) apigen.GroupMapping {
-	return apigen.GroupMapping{
+func apiGroupMapping(m GroupMapping) dto.GroupMapping {
+	return dto.GroupMapping{
 		Id: m.ID, ExternalGroup: m.ExternalGroup, GroupId: m.GroupID, GroupName: m.GroupName,
-		GroupSource: apigen.GroupMappingGroupSource(m.GroupSource), CreatedAt: m.CreatedAt,
+		GroupSource: dto.GroupMappingGroupSource(m.GroupSource), CreatedAt: m.CreatedAt,
 	}
 }
 
-func claimMappingFromAPI(cm *apigen.ClaimMapping) *ClaimMapping {
+func claimMappingFromAPI(cm *dto.ClaimMapping) *ClaimMapping {
 	if cm == nil {
 		return nil
 	}
@@ -140,19 +168,41 @@ func claimMappingFromAPI(cm *apigen.ClaimMapping) *ClaimMapping {
 	return &out
 }
 
-func (h *HTTP) ListIdentityProviders(ctx context.Context, _ apigen.ListIdentityProvidersRequestObject) (apigen.ListIdentityProvidersResponseObject, error) {
+// @Summary OIDC identity providers
+// @ID listIdentityProviders
+// @Tags identity
+// @Success 200 {object} dto.ListIdentityProviders200JSONResponse "Providers."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers [get]
+func (h *HTTP) ListIdentityProviders(ctx context.Context, _ dto.ListIdentityProvidersRequestObject) (dto.ListIdentityProvidersResponseObject, error) {
 	providers, err := h.svc.ListIdentityProviders(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListIdentityProviders200JSONResponse{Data: make([]apigen.IdentityProvider, len(providers))}
+	out := dto.ListIdentityProviders200JSONResponse{Data: make([]dto.IdentityProvider, len(providers))}
 	for i, p := range providers {
 		out.Data[i] = h.apiProvider(p)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateIdentityProvider(ctx context.Context, req apigen.CreateIdentityProviderRequestObject) (apigen.CreateIdentityProviderResponseObject, error) {
+// @Summary Configure an OIDC identity provider
+// @ID createIdentityProvider
+// @Tags identity
+// @Param body body dto.IdentityProviderCreate true "Request body"
+// @Success 201 {object} dto.IdentityProvider "Created."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers [post]
+func (h *HTTP) CreateIdentityProvider(ctx context.Context, req dto.CreateIdentityProviderRequestObject) (dto.CreateIdentityProviderResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -172,18 +222,44 @@ func (h *HTTP) CreateIdentityProvider(ctx context.Context, req apigen.CreateIden
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateIdentityProvider201JSONResponse(h.apiProvider(p)), nil
+	return dto.CreateIdentityProvider201JSONResponse(h.apiProvider(p)), nil
 }
 
-func (h *HTTP) GetIdentityProvider(ctx context.Context, req apigen.GetIdentityProviderRequestObject) (apigen.GetIdentityProviderResponseObject, error) {
+// @Summary One identity provider
+// @ID getIdentityProvider
+// @Tags identity
+// @Param provider_id path string true "provider_id"
+// @Success 200 {object} dto.IdentityProvider "The provider."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers/{provider_id} [get]
+func (h *HTTP) GetIdentityProvider(ctx context.Context, req dto.GetIdentityProviderRequestObject) (dto.GetIdentityProviderResponseObject, error) {
 	p, err := h.svc.GetIdentityProvider(ctx, req.ProviderId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetIdentityProvider200JSONResponse(h.apiProvider(p)), nil
+	return dto.GetIdentityProvider200JSONResponse(h.apiProvider(p)), nil
 }
 
-func (h *HTTP) UpdateIdentityProvider(ctx context.Context, req apigen.UpdateIdentityProviderRequestObject) (apigen.UpdateIdentityProviderResponseObject, error) {
+// @Summary Update an identity provider
+// @ID updateIdentityProvider
+// @Tags identity
+// @Param provider_id path string true "provider_id"
+// @Param body body dto.IdentityProviderUpdate true "Request body"
+// @Success 200 {object} dto.IdentityProvider "Updated."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers/{provider_id} [patch]
+func (h *HTTP) UpdateIdentityProvider(ctx context.Context, req dto.UpdateIdentityProviderRequestObject) (dto.UpdateIdentityProviderResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -203,44 +279,92 @@ func (h *HTTP) UpdateIdentityProvider(ctx context.Context, req apigen.UpdateIden
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateIdentityProvider200JSONResponse(h.apiProvider(p)), nil
+	return dto.UpdateIdentityProvider200JSONResponse(h.apiProvider(p)), nil
 }
 
-func (h *HTTP) DeleteIdentityProvider(ctx context.Context, req apigen.DeleteIdentityProviderRequestObject) (apigen.DeleteIdentityProviderResponseObject, error) {
+// @Summary Delete an identity provider, its links and group mappings
+// @ID deleteIdentityProvider
+// @Tags identity
+// @Param provider_id path string true "provider_id"
+// @Success 204 "Deleted."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers/{provider_id} [delete]
+func (h *HTTP) DeleteIdentityProvider(ctx context.Context, req dto.DeleteIdentityProviderRequestObject) (dto.DeleteIdentityProviderResponseObject, error) {
 	if err := h.svc.DeleteIdentityProvider(ctx, req.ProviderId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteIdentityProvider204Response{}, nil
+	return dto.DeleteIdentityProvider204Response{}, nil
 }
 
-func (h *HTTP) TestIdentityProvider(ctx context.Context, req apigen.TestIdentityProviderRequestObject) (apigen.TestIdentityProviderResponseObject, error) {
+// @Summary Check discovery and signing-key reachability
+// @ID testIdentityProvider
+// @Tags identity
+// @Param provider_id path string true "provider_id"
+// @Success 200 {object} dto.IdentityProviderTest "The probe result (ok=false carries a sanitized error)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers/{provider_id}/test [post]
+func (h *HTTP) TestIdentityProvider(ctx context.Context, req dto.TestIdentityProviderRequestObject) (dto.TestIdentityProviderResponseObject, error) {
 	res, err := h.svc.TestIdentityProvider(ctx, req.ProviderId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.IdentityProviderTest{
+	out := dto.IdentityProviderTest{
 		Ok: res.OK, LatencyMs: res.Latency.Milliseconds(), CheckedAt: res.CheckedAt,
 		Issuer: strPtr(res.Issuer), AuthorizationEndpoint: strPtr(res.AuthorizationEndpoint),
 		TokenEndpoint: strPtr(res.TokenEndpoint), JwksUri: strPtr(res.JWKSUri), Error: strPtr(res.Error),
 	}
-	return apigen.TestIdentityProvider200JSONResponse(out), nil
+	return dto.TestIdentityProvider200JSONResponse(out), nil
 }
 
 // Group mappings --------------------------------------------------------------------
 
-func (h *HTTP) ListGroupMappings(ctx context.Context, req apigen.ListGroupMappingsRequestObject) (apigen.ListGroupMappingsResponseObject, error) {
+// @Summary External-group to internal-group mappings
+// @ID listGroupMappings
+// @Tags identity
+// @Param provider_id path string true "provider_id"
+// @Success 200 {object} dto.ListGroupMappings200JSONResponse "Mappings."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers/{provider_id}/group-mappings [get]
+func (h *HTTP) ListGroupMappings(ctx context.Context, req dto.ListGroupMappingsRequestObject) (dto.ListGroupMappingsResponseObject, error) {
 	mappings, err := h.svc.ListGroupMappings(ctx, req.ProviderId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListGroupMappings200JSONResponse{Data: make([]apigen.GroupMapping, len(mappings))}
+	out := dto.ListGroupMappings200JSONResponse{Data: make([]dto.GroupMapping, len(mappings))}
 	for i, m := range mappings {
 		out.Data[i] = apiGroupMapping(m)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateGroupMapping(ctx context.Context, req apigen.CreateGroupMappingRequestObject) (apigen.CreateGroupMappingResponseObject, error) {
+// @Summary Map an IdP group to an internal group
+// @ID createGroupMapping
+// @Tags identity
+// @Param provider_id path string true "provider_id"
+// @Param body body dto.GroupMappingCreate true "Request body"
+// @Success 201 {object} dto.GroupMapping "Created."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 409 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers/{provider_id}/group-mappings [post]
+func (h *HTTP) CreateGroupMapping(ctx context.Context, req dto.CreateGroupMappingRequestObject) (dto.CreateGroupMappingResponseObject, error) {
 	if req.Body == nil {
 		return nil, bodyRequired()
 	}
@@ -248,14 +372,26 @@ func (h *HTTP) CreateGroupMapping(ctx context.Context, req apigen.CreateGroupMap
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateGroupMapping201JSONResponse(apiGroupMapping(m)), nil
+	return dto.CreateGroupMapping201JSONResponse(apiGroupMapping(m)), nil
 }
 
-func (h *HTTP) DeleteGroupMapping(ctx context.Context, req apigen.DeleteGroupMappingRequestObject) (apigen.DeleteGroupMappingResponseObject, error) {
+// @Summary Remove a group mapping
+// @ID deleteGroupMapping
+// @Tags identity
+// @Param provider_id path string true "provider_id"
+// @Param mapping_id path string true "mapping_id"
+// @Success 204 "Removed."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/identity/providers/{provider_id}/group-mappings/{mapping_id} [delete]
+func (h *HTTP) DeleteGroupMapping(ctx context.Context, req dto.DeleteGroupMappingRequestObject) (dto.DeleteGroupMappingResponseObject, error) {
 	if err := h.svc.DeleteGroupMapping(ctx, req.ProviderId, req.MappingId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteGroupMapping204Response{}, nil
+	return dto.DeleteGroupMapping204Response{}, nil
 }
 
 // clearOIDCState expires the flow cookie.

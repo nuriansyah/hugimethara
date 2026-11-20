@@ -5,50 +5,95 @@ import (
 	"encoding/json"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/apigen"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
 type HTTP struct{ svc *Service }
 
 func NewHTTP(svc *Service) *HTTP { return &HTTP{svc: svc} }
 
-func (h *HTTP) ListConnectorDefinitions(ctx context.Context, _ apigen.ListConnectorDefinitionsRequestObject) (apigen.ListConnectorDefinitionsResponseObject, error) {
+// @Summary List available connector definitions
+// @ID listConnectorDefinitions
+// @Tags connectors
+// @Success 200 {object} dto.ListConnectorDefinitions200JSONResponse "Built-in and organization connector catalog."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connector-definitions [get]
+func (h *HTTP) ListConnectorDefinitions(ctx context.Context, _ dto.ListConnectorDefinitionsRequestObject) (dto.ListConnectorDefinitionsResponseObject, error) {
 	rows, err := h.svc.ListDefinitions(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListConnectorDefinitions200JSONResponse{Data: make([]apigen.ConnectorDefinition, len(rows))}
+	out := dto.ListConnectorDefinitions200JSONResponse{Data: make([]dto.ConnectorDefinition, len(rows))}
 	for i, row := range rows {
 		out.Data[i] = apiDefinition(row)
 	}
 	return out, nil
 }
 
-func (h *HTTP) ListConnectorVersions(ctx context.Context, req apigen.ListConnectorVersionsRequestObject) (apigen.ListConnectorVersionsResponseObject, error) {
+// @Summary List connector definition versions
+// @ID listConnectorVersions
+// @Tags connectors
+// @Param definition_id path string true "definition_id"
+// @Success 200 {object} dto.ListConnectorVersions200JSONResponse "Version metadata and JSON schemas."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connector-definitions/{definition_id}/versions [get]
+func (h *HTTP) ListConnectorVersions(ctx context.Context, req dto.ListConnectorVersionsRequestObject) (dto.ListConnectorVersionsResponseObject, error) {
 	rows, err := h.svc.ListVersions(ctx, req.DefinitionId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListConnectorVersions200JSONResponse{Data: make([]apigen.ConnectorVersion, len(rows))}
+	out := dto.ListConnectorVersions200JSONResponse{Data: make([]dto.ConnectorVersion, len(rows))}
 	for i, row := range rows {
 		out.Data[i] = apiVersion(row)
 	}
 	return out, nil
 }
 
-func (h *HTTP) ListConnectors(ctx context.Context, _ apigen.ListConnectorsRequestObject) (apigen.ListConnectorsResponseObject, error) {
+// @Summary List configured connector instances
+// @ID listConnectors
+// @Tags connectors
+// @Success 200 {object} dto.ListConnectors200JSONResponse "Connector instances."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connectors [get]
+func (h *HTTP) ListConnectors(ctx context.Context, _ dto.ListConnectorsRequestObject) (dto.ListConnectorsResponseObject, error) {
 	rows, err := h.svc.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.ListConnectors200JSONResponse{Data: make([]apigen.ConnectorInstance, len(rows))}
+	out := dto.ListConnectors200JSONResponse{Data: make([]dto.ConnectorInstance, len(rows))}
 	for i, row := range rows {
 		out.Data[i] = apiInstance(row)
 	}
 	return out, nil
 }
 
-func (h *HTTP) CreateConnector(ctx context.Context, req apigen.CreateConnectorRequestObject) (apigen.CreateConnectorResponseObject, error) {
+// @Summary Configure a connector instance
+// @ID createConnector
+// @Tags connectors
+// @Param body body dto.ConnectorInstanceCreate true "Request body"
+// @Success 201 {object} dto.ConnectorInstance "Configured connector."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connectors [post]
+func (h *HTTP) CreateConnector(ctx context.Context, req dto.CreateConnectorRequestObject) (dto.CreateConnectorResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -72,18 +117,45 @@ func (h *HTTP) CreateConnector(ctx context.Context, req apigen.CreateConnectorRe
 	if err != nil {
 		return nil, err
 	}
-	return apigen.CreateConnector201JSONResponse(apiInstance(row)), nil
+	return dto.CreateConnector201JSONResponse(apiInstance(row)), nil
 }
 
-func (h *HTTP) GetConnector(ctx context.Context, req apigen.GetConnectorRequestObject) (apigen.GetConnectorResponseObject, error) {
+// @Summary Get a connector instance
+// @ID getConnector
+// @Tags connectors
+// @Param connector_id path string true "connector_id"
+// @Success 200 {object} dto.ConnectorInstance "Connector instance."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connectors/{connector_id} [get]
+func (h *HTTP) GetConnector(ctx context.Context, req dto.GetConnectorRequestObject) (dto.GetConnectorResponseObject, error) {
 	row, err := h.svc.Get(ctx, req.ConnectorId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.GetConnector200JSONResponse(apiInstance(row)), nil
+	return dto.GetConnector200JSONResponse(apiInstance(row)), nil
 }
 
-func (h *HTTP) UpdateConnector(ctx context.Context, req apigen.UpdateConnectorRequestObject) (apigen.UpdateConnectorResponseObject, error) {
+// @Summary Update a connector instance
+// @ID updateConnector
+// @Tags connectors
+// @Param connector_id path string true "connector_id"
+// @Param body body dto.ConnectorInstanceUpdate true "Request body"
+// @Success 200 {object} dto.ConnectorInstance "Updated connector."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 422 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Accept json
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connectors/{connector_id} [patch]
+func (h *HTTP) UpdateConnector(ctx context.Context, req dto.UpdateConnectorRequestObject) (dto.UpdateConnectorResponseObject, error) {
 	if req.Body == nil {
 		return nil, httpx.BadRequest("A JSON body is required.")
 	}
@@ -100,64 +172,100 @@ func (h *HTTP) UpdateConnector(ctx context.Context, req apigen.UpdateConnectorRe
 	if err != nil {
 		return nil, err
 	}
-	return apigen.UpdateConnector200JSONResponse(apiInstance(row)), nil
+	return dto.UpdateConnector200JSONResponse(apiInstance(row)), nil
 }
 
-func (h *HTTP) DeleteConnector(ctx context.Context, req apigen.DeleteConnectorRequestObject) (apigen.DeleteConnectorResponseObject, error) {
+// @Summary Delete a connector instance
+// @ID deleteConnector
+// @Tags connectors
+// @Param connector_id path string true "connector_id"
+// @Success 204 "Deleted."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connectors/{connector_id} [delete]
+func (h *HTTP) DeleteConnector(ctx context.Context, req dto.DeleteConnectorRequestObject) (dto.DeleteConnectorResponseObject, error) {
 	if err := h.svc.Delete(ctx, req.ConnectorId); err != nil {
 		return nil, err
 	}
-	return apigen.DeleteConnector204Response{}, nil
+	return dto.DeleteConnector204Response{}, nil
 }
 
-func (h *HTTP) TestConnector(ctx context.Context, req apigen.TestConnectorRequestObject) (apigen.TestConnectorResponseObject, error) {
+// @Summary Test connector reachability
+// @ID testConnector
+// @Tags connectors
+// @Param connector_id path string true "connector_id"
+// @Success 200 {object} dto.ConnectorTestResult "Test result."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connectors/{connector_id}/test [post]
+func (h *HTTP) TestConnector(ctx context.Context, req dto.TestConnectorRequestObject) (dto.TestConnectorResponseObject, error) {
 	result, err := h.svc.Test(ctx, req.ConnectorId)
 	if err != nil {
 		return nil, err
 	}
-	return apigen.TestConnector200JSONResponse(apiTestResult(result)), nil
+	return dto.TestConnector200JSONResponse(apiTestResult(result)), nil
 }
 
-func (h *HTTP) GetConnectorHealth(ctx context.Context, req apigen.GetConnectorHealthRequestObject) (apigen.GetConnectorHealthResponseObject, error) {
+// @Summary Get connector health history
+// @ID getConnectorHealth
+// @Tags connectors
+// @Param connector_id path string true "connector_id"
+// @Success 200 {object} dto.GetConnectorHealth200JSONResponse "Recent test results."
+// @Failure 401 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 403 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Failure 404 {object} dto.Problem "Error (RFC 9457 problem details)."
+// @Produce json
+// @Security sessionCookie
+// @Security apiKey
+// @Router /v1/hugimethara/connectors/{connector_id}/health [get]
+func (h *HTTP) GetConnectorHealth(ctx context.Context, req dto.GetConnectorHealthRequestObject) (dto.GetConnectorHealthResponseObject, error) {
 	rows, err := h.svc.Health(ctx, req.ConnectorId)
 	if err != nil {
 		return nil, err
 	}
-	out := apigen.GetConnectorHealth200JSONResponse{Data: make([]apigen.ConnectorTestResult, len(rows))}
+	out := dto.GetConnectorHealth200JSONResponse{Data: make([]dto.ConnectorTestResult, len(rows))}
 	for i, row := range rows {
-		out.Data[i] = apigen.ConnectorTestResult{CheckedAt: row.CheckedAt, Ok: row.OK,
+		out.Data[i] = dto.ConnectorTestResult{CheckedAt: row.CheckedAt, Ok: row.OK,
 			LatencyMs: row.LatencyMs, Message: row.Message, ErrorCode: optionalString(row.ErrorCode)}
 	}
 	return out, nil
 }
 
-func apiDefinition(row Definition) apigen.ConnectorDefinition {
-	return apigen.ConnectorDefinition{Id: row.ID, Key: row.Key, Name: row.Name,
-		Category: row.Category, Tier: apigen.ConnectorDefinitionTier(row.Tier), Icon: row.Icon}
+func apiDefinition(row Definition) dto.ConnectorDefinition {
+	return dto.ConnectorDefinition{Id: row.ID, Key: row.Key, Name: row.Name,
+		Category: row.Category, Tier: dto.ConnectorDefinitionTier(row.Tier), Icon: row.Icon}
 }
 
-func apiVersion(row Version) apigen.ConnectorVersion {
+func apiVersion(row Version) dto.ConnectorVersion {
 	var schema map[string]interface{}
 	_ = json.Unmarshal(row.ConfigSchema, &schema)
 	var methods []string
 	_ = json.Unmarshal(row.AuthMethods, &methods)
 	var operations []map[string]interface{}
 	_ = json.Unmarshal(row.Operations, &operations)
-	return apigen.ConnectorVersion{Id: row.ID, DefinitionId: row.DefinitionID, Version: row.Version,
+	return dto.ConnectorVersion{Id: row.ID, DefinitionId: row.DefinitionID, Version: row.Version,
 		ConfigSchema: schema, AuthMethods: methods, Operations: operations, DeprecatedAt: row.DeprecatedAt}
 }
 
-func apiInstance(row Instance) apigen.ConnectorInstance {
+func apiInstance(row Instance) dto.ConnectorInstance {
 	var config map[string]interface{}
 	_ = json.Unmarshal(row.Config, &config)
 	if config == nil {
 		config = map[string]interface{}{}
 	}
-	result := apigen.ConnectorInstance{
+	result := dto.ConnectorInstance{
 		Id: row.ID, WorkspaceId: row.WorkspaceID, EnvironmentId: row.EnvironmentID,
 		RefKey: row.RefKey, Name: row.RefKey, DefinitionId: row.DefinitionID, DefinitionKey: row.DefinitionKey,
 		Version: row.Version, Config: config, AuthMethod: row.AuthMethod, RateLimit: row.RateLimit,
-		TimeoutMs: row.TimeoutMs, Status: apigen.ConnectorInstanceStatus(row.Status),
+		TimeoutMs: row.TimeoutMs, Status: dto.ConnectorInstanceStatus(row.Status),
 		CredentialConfigured: row.CredentialConfigured, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt,
 	}
 	if row.SecretID != nil {
@@ -167,8 +275,8 @@ func apiInstance(row Instance) apigen.ConnectorInstance {
 	return result
 }
 
-func apiTestResult(result TestResult) apigen.ConnectorTestResult {
-	return apigen.ConnectorTestResult{CheckedAt: result.CheckedAt, Ok: result.OK, LatencyMs: result.LatencyMs,
+func apiTestResult(result TestResult) dto.ConnectorTestResult {
+	return dto.ConnectorTestResult{CheckedAt: result.CheckedAt, Ok: result.OK, LatencyMs: result.LatencyMs,
 		ErrorCode: optionalString(result.ErrorCode), Message: result.Message}
 }
 

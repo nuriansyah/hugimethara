@@ -180,7 +180,7 @@ _Last updated: 2026-11-19_
 
 ### 2026-11-18 — S0 Foundation
 - **Implemented**
-  - Root Go module `github.com/nuriansyah/hugimethara` (Go 1.27.4 via `toolchain`), binaries `hugi-api`,
+  - Root Go module `github.com/nuriansyah/hugimethara` (Go 1.26+), binaries `hugi-api`,
     `hugi-worker`, `hugi-migrate`, and `hugi-admin`.
   - `internal/platform`: typed env config with fail-fast validation (never echoes credential URLs); slog JSON logger
     with secret-key redaction + request/trace id enrichment; OpenTelemetry tracing (OTLP export optional) + Prometheus

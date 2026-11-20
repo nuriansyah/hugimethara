@@ -101,11 +101,11 @@ A slice is "done" only against the Definition of Done (PRD §19).
 ## 4. Open questions for blueprint review
 
 Defaults applied when S0 started (change any of them by saying so):
-module path `github.com/nuriansyah/hugimethara` (from the git remote); Go 1.27 (`toolchain go1.27.4`);
+module path `github.com/nuriansyah/hugimethara` (from the git remote); Go 1.26+;
 local password login kept for bootstrap/SMB; deployment model and first SaaS connectors still open.
 
 1. **Deployment model:** multi-tenant SaaS, self-hosted single org, or both? (Affects signup flow, billing, and whether `organizations` signup is public.)
 2. **Go module path / GitHub org** for `go.mod` and image names.
 3. **Local password auth:** keep for bootstrap/SMB (proposed), or SSO-only from day one?
-4. **Toolchain:** this machine has Go 1.22.12; plan targets the current stable Go release (pinned via `toolchain` in `go.mod`, auto-downloaded). OK?
+4. **Go version:** Go 1.26.0 is the minimum required by the current dependency graph. The workspace must use Go 1.26+.
 5. **First built-in SaaS connectors** after HTTP/Postgres/SMTP/Slack: which 3 matter most (HubSpot, Salesforce, Google Sheets, WhatsApp provider)?
