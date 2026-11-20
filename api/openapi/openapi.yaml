@@ -949,6 +949,239 @@ paths:
         "404": { $ref: "#/components/responses/Problem" }
         "422": { $ref: "#/components/responses/Problem" }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/mappings:
+    get:
+      tags: [mappings]
+      operationId: listMappings
+      summary: List mappings in a workspace
+      description: "Permission: mapping:read."
+      parameters:
+        - { name: workspace_id, in: query, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Mappings.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Mapping" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [mappings]
+      operationId: createMapping
+      summary: Create a mapping draft
+      description: "Permission: mapping:create."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MappingCreate" }
+      responses:
+        "201":
+          description: Created mapping.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Mapping" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/mappings/{mapping_id}:
+    parameters:
+      - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [mappings]
+      operationId: getMapping
+      summary: Get a mapping draft
+      description: "Permission: mapping:read."
+      responses:
+        "200": { description: Mapping, content: { application/json: { schema: { $ref: "#/components/schemas/Mapping" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [mappings]
+      operationId: updateMapping
+      summary: Update a mapping draft
+      description: "Permission: mapping:update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MappingUpdate" }
+      responses:
+        "200": { description: Updated mapping, content: { application/json: { schema: { $ref: "#/components/schemas/Mapping" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [mappings]
+      operationId: deleteMapping
+      summary: Delete a mapping and its versions
+      description: "Permission: mapping:delete."
+      responses:
+        "204": { description: Deleted. }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/mappings/{mapping_id}/publish:
+    post:
+      tags: [mappings]
+      operationId: publishMapping
+      summary: Publish a tested immutable mapping version
+      description: "Permission: mapping:publish. Draft test cases must all pass."
+      parameters:
+        - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "201":
+          description: Published mapping version.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MappingVersion" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/mappings/{mapping_id}/versions:
+    get:
+      tags: [mappings]
+      operationId: listMappingVersions
+      summary: List immutable mapping versions
+      description: "Permission: mapping:read."
+      parameters:
+        - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Mapping versions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/MappingVersion" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/mappings/{mapping_id}/test:
+    post:
+      tags: [mappings]
+      operationId: testMapping
+      summary: Evaluate mapping input ad hoc or run stored tests
+      description: "Permission: mapping:test."
+      parameters:
+        - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MappingTestRequest" }
+      responses:
+        "200":
+          description: Mapping evaluation result.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MappingTestResult" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/mappings/{mapping_id}/tests:
+    get:
+      tags: [mappings]
+      operationId: listMappingTests
+      summary: List stored mapping test cases
+      description: "Permission: mapping:read."
+      parameters:
+        - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Test cases.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/MappingTest" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [mappings]
+      operationId: createMappingTest
+      summary: Create a mapping test case
+      description: "Permission: mapping:update."
+      parameters:
+        - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MappingTestCreate" }
+      responses:
+        "201":
+          description: Test case.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MappingTest" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/mappings/{mapping_id}/tests/{test_id}:
+    patch:
+      tags: [mappings]
+      operationId: updateMappingTest
+      summary: Update a mapping test case
+      description: "Permission: mapping:update."
+      parameters:
+        - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: test_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MappingTestUpdate" }
+      responses:
+        "200": { description: Updated test, content: { application/json: { schema: { $ref: "#/components/schemas/MappingTest" } } } }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [mappings]
+      operationId: deleteMappingTest
+      summary: Delete a mapping test case
+      description: "Permission: mapping:update."
+      parameters:
+        - { name: mapping_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: test_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Deleted. }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/hugimethara/departments:
     get:
       tags: [workspace]
@@ -2221,6 +2454,91 @@ components:
         headers: { type: object, additionalProperties: { type: string } }
         body: {}
         duration_ms: { type: integer }
+    Mapping:
+      type: object
+      required: [id, workspace_id, name, draft, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        name: { type: string }
+        draft: { type: object, additionalProperties: true }
+        input_schema: { type: object, additionalProperties: true, nullable: true }
+        output_schema: { type: object, additionalProperties: true, nullable: true }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    MappingCreate:
+      type: object
+      required: [workspace_id, name]
+      properties:
+        workspace_id: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        draft: { type: object, additionalProperties: true }
+        input_schema: { type: object, additionalProperties: true, nullable: true }
+        output_schema: { type: object, additionalProperties: true, nullable: true }
+    MappingUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        draft: { type: object, additionalProperties: true }
+        input_schema: { type: object, additionalProperties: true, nullable: true }
+        output_schema: { type: object, additionalProperties: true, nullable: true }
+    MappingVersion:
+      type: object
+      required: [id, mapping_id, version, definition, checksum, published_by, published_at]
+      properties:
+        id: { type: string, format: uuid }
+        mapping_id: { type: string, format: uuid }
+        version: { type: integer }
+        definition: { type: object, additionalProperties: true }
+        checksum: { type: string }
+        published_by: { type: string, format: uuid }
+        published_at: { type: string, format: date-time }
+    MappingTest:
+      type: object
+      required: [id, mapping_id, name, input, expected, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        mapping_id: { type: string, format: uuid }
+        name: { type: string }
+        input: {}
+        expected: {}
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    MappingTestCreate:
+      type: object
+      required: [name, input, expected]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        input: {}
+        expected: {}
+    MappingTestUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        input: {}
+        expected: {}
+    MappingTestRequest:
+      type: object
+      required: [input]
+      properties:
+        input: {}
+    MappingTestResult:
+      type: object
+      required: [output, stored_tests_passed, stored_tests_failed]
+      properties:
+        output: {}
+        stored_tests_passed: { type: integer }
+        stored_tests_failed:
+          type: array
+          items:
+            type: object
+            required: [name, actual, expected]
+            properties:
+              name: { type: string }
+              actual: {}
+              expected: {}
     Credential:
       type: object
       required: [id, name, kind, configured, hint, version, created_at, updated_at]
