@@ -52,7 +52,7 @@ Repositories turn `Scopes` into a SQL predicate (`workspace_id = ANY($1) OR id =
 
 ## 1a. Status
 
-Implemented in S3 (`internal/authz`): `RBAC` (Authorizer + ScopeResolver), `Service` (roles, bindings,
+Implemented in S3 (`internal/modules/authorization`): `RBAC` (Authorizer + ScopeResolver), `Service` (roles, bindings,
 simulation, effective permissions), version-stamped grant cache, decision log. The S1–S2 `InterimAuthorizer`
 and `org_memberships.is_owner` were removed by migration `00006_rbac` (owners → `org_owner` binding;
 workspace members → workspace-scope bindings: creator `workspace_admin`, others `editor`).

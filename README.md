@@ -32,14 +32,19 @@ make generate            # regenerate oapi-codegen server + TS client after Open
 | [docs/phases/phase-1.md](docs/phases/phase-1.md) | Phase 1 vertical slices + prioritized backlog |
 | [docs/product/roadmap.md](docs/product/roadmap.md) | Three-phase roadmap |
 
-## Planned repository layout
+## Repository layout
 
 ```
-backend/   Go modular monolith (hugi-api, hugi-worker, hugi-migrate binaries)
-web/       Next.js (App Router, TypeScript) frontend
-api/       OpenAPI spec — source of truth for HTTP contracts
-deploy/    Docker Compose, Helm chart, local dev fixtures
-docs/      Product, architecture, ADRs, database, API, security, ops docs
+cmd/                    Go binaries (hugi-api, hugi-worker, hugi-migrate, hugi-admin)
+internal/modules/       Domain modules
+internal/platform/      Cross-cutting services
+internal/transport/http/ HTTP routes and generated OpenAPI server
+internal/bootstrap/     API and worker composition roots
+migrations/postgres/    Embedded PostgreSQL migrations
+apps/web/               Next.js (App Router, TypeScript) frontend
+deployments/            Docker Compose and deployment assets
+api/openapi/            HTTP contract source of truth
+docs/                   Product, architecture, ADRs, database, API, security, ops docs
 ```
 
 ## License

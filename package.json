@@ -1,0 +1,12 @@
+{
+  "name": "hugimethara",
+  "private": true,
+  "packageManager": "pnpm@11.18.0",
+  "scripts": {
+    "dev": "pnpm --filter hugimethara-web dev",
+    "build": "pnpm --filter hugimethara-web build",
+    "lint": "pnpm --filter hugimethara-web lint",
+    "typecheck": "pnpm --filter hugimethara-web typecheck",
+    "generate:api": "pnpm --filter hugimethara-web generate:api"
+  }
+}

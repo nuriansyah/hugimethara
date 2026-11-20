@@ -167,5 +167,5 @@ erDiagram
 | 0014_webhooks | S12 |
 
 Seed: global connector catalog + role templates (idempotent, run by `hugi-migrate seed`).
-Dev fixtures (`deploy/compose/fixtures`): demo org "Acme" with Marketing/Finance/Operations/Engineering/Data
+Dev fixtures (`deployments/compose/fixtures`): demo org "Acme" with Marketing/Finance/Operations/Engineering/Data
 workspaces, users per persona, a mock order/customer/payment service (WireMock-style container) for composition demos.

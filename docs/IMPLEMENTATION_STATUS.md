@@ -137,7 +137,7 @@ _Last updated: 2026-11-19_
 
 ### 2026-11-18 — S1 Org bootstrap, sessions, audit
 - **Implemented**
-  - Domains: `organization` (create, get, update name + session settings), `identity` (signup, login with
+  - Modules: `organization` (create, get, update name + session settings), `identity` (signup, login with
     org choice, logout, session resolution, CSRF, list/revoke own sessions, argon2id, lockout), `audit` (in-tx
     recording with redaction, filtered keyset listing), `principal` (request actor), `authz` (contract +
     deny-by-default `InterimAuthorizer`: owner = all, member = `organization:read`; S3 replaces it).
@@ -160,7 +160,8 @@ _Last updated: 2026-11-19_
     slug/name/settings validation, audit redaction, public-operation set derived from spec, session requirement for
     protected ops, cross-site Origin rejection.
   - `golangci-lint`: 0 issues. Web lint, typecheck, build: pass (7 routes).
-  - Integration suite written (`internal/api/auth_integration_test.go`, `ratelimit_integration_test.go`):
+  - Integration suite written (`internal/transport/http/auth_integration_test.go`,
+    `internal/platform/ratelimit/ratelimit_integration_test.go`):
     **not yet run** — Docker Desktop is stuck mid-shutdown after the earlier disk-full event,
     so testcontainers cannot start. Covers: signup → me → CSRF-guarded update → audit trail → logout → login;
     validation + slug/email conflicts with no partial rows left; wrong password / unknown email indistinguishable,
@@ -179,22 +180,23 @@ _Last updated: 2026-11-19_
 
 ### 2026-11-18 — S0 Foundation
 - **Implemented**
-  - Go module `github.com/nuriansyah/hugimethara/backend` (Go 1.27.4 via `toolchain`), binaries `hugi-api`,
-    `hugi-worker`, `hugi-migrate`.
+  - Root Go module `github.com/nuriansyah/hugimethara` (Go 1.27.4 via `toolchain`), binaries `hugi-api`,
+    `hugi-worker`, `hugi-migrate`, and `hugi-admin`.
   - `internal/platform`: typed env config with fail-fast validation (never echoes credential URLs); slog JSON logger
     with secret-key redaction + request/trace id enrichment; OpenTelemetry tracing (OTLP export optional) + Prometheus
     registry; `httpx` (RFC 9457 problems with opaque 500s, cursor pagination, sort allowlist, request-id, recover,
     trace/metrics/access-log middleware labelled by route pattern, CORS allowlist, security headers, body cap);
-    `db` (pgx pool, `InTenantTx` binding `app.org_id` per transaction for RLS); `egress` (SSRF-guarded HTTP client:
+    `database` (pgx pool, `InTenantTx` binding `app.org_id` per transaction for RLS); `egress` (SSRF-guarded HTTP client:
     dial-time IP check after DNS, allowlist, redirect re-check, no proxy, body limit); `health` (/healthz, /readyz with
     concurrent checks); `bus` (NATS JetStream + stream provisioning `HUGI_WF`, `HUGI_WEBHOOK`, `HUGI_EVENTS`);
-    `cache` (Redis); `migrate` (embedded goose, readiness = schema at least the binary's version); `lifecycle`.
-  - `internal/event`: transactional outbox `Publish` (captures traceparent + request id) and `Relay`
+    `cache` (Redis); `migrate` (embedded goose, readiness = schema at least the binary's version); `shutdown`.
+  - `internal/modules/workflow/event`: transactional outbox `Publish` (captures traceparent + request id) and `Relay`
     (`FOR UPDATE SKIP LOCKED`, JetStream msg-id dedupe, metrics). The worker runs the relay.
-  - OpenAPI-first pipeline: `api/openapi/openapi.yaml` → oapi-codegen strict chi server (`internal/api/apigen`) and
-    openapi-typescript client (`web/src/lib/api/schema.d.ts`). Endpoints: `/healthz`, `/readyz`,
+  - OpenAPI-first pipeline: `api/openapi/openapi.yaml` → oapi-codegen strict chi server
+    (`internal/transport/http/apigen`) and openapi-typescript client (`apps/web/src/lib/api/schema.d.ts`).
+    Endpoints: `/healthz`, `/readyz`,
     `/v1/hugimethara/system/info`.
-  - sqlc v1.31.1 and oapi-codegen v2.8.2 pinned as Go `tool` dependencies (Homebrew sqlc was v1.8.0).
+  - oapi-codegen v2.8.2 pinned as a Go `tool` dependency; database access uses sqlx and handwritten SQL.
   - Web: Next.js 16.4.6, React 19.3, Tailwind v4, shadcn/ui (Radix), TanStack Query, openapi-fetch; app shell with
     permission-ready navigation registry (only shipped pages listed); Overview page showing deployment info and live
     dependency readiness with loading / error (request id + retry) / empty states; runtime `/api` proxy.
@@ -209,7 +211,8 @@ _Last updated: 2026-11-19_
 - **API endpoints:** `GET /healthz`, `GET /readyz`, `GET /v1/hugimethara/system/info`.
 - **Tests executed (local, 2026-11-18)**
   - `go test -race ./...` — pass (config, logging, httpx, egress, health, api router).
-  - `go test -tags integration ./internal/platform/db ./internal/event` — pass against postgres:18.7 + nats:2.15.3
+  - `go test -tags integration ./internal/platform/database ./internal/modules/workflow/event` — pass against
+    postgres:18.7 + nats:2.15.3
     containers: cross-tenant insert rejected and rows invisible across tenants; unbound tx sees nothing; tenant
     binding does not leak across pooled transactions; runtime roles are not superuser/BYPASSRLS; `hugi_app` cannot
     UPDATE outbox; migrations down-to-0/up round trip and readiness flips; two concurrent relays publish 120
@@ -253,7 +256,7 @@ _Last updated: 2026-11-19_
 | S5 OIDC federation | ✅ | 4 mock-IdP integration tests; Keycloak browser E2E verified group-based workspace access |
 | S6 Secrets & connectors | ◐ vault and connector management implemented; runtime incomplete | full integration suite and targeted egress tests pass; no invocation/runtime or protocol adapters |
 | S7 Service registry & API explorer | ✅ | OpenAPI import/diff and guarded explorer integration tests pass |
-| S8 Mapping engine & studio | ☐ | |
+| S8 Mapping engine & studio | ✅ | Mapping drafts, test cases, publish gates, immutable versions, JSONPath/transform/CEL evaluator, and Mapping Studio |
 | S9 API composition | ☐ | |
 | S10 Workflow engine core | ☐ | |
 | S11 Workflow engine complete | ☐ | |

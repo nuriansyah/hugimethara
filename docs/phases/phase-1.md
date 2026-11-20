@@ -101,7 +101,7 @@ A slice is "done" only against the Definition of Done (PRD §19).
 ## 4. Open questions for blueprint review
 
 Defaults applied when S0 started (change any of them by saying so):
-module path `github.com/nuriansyah/hugimethara/backend` (from the git remote); Go 1.27 (`toolchain go1.27.4`);
+module path `github.com/nuriansyah/hugimethara` (from the git remote); Go 1.27 (`toolchain go1.27.4`);
 local password login kept for bootstrap/SMB; deployment model and first SaaS connectors still open.
 
 1. **Deployment model:** multi-tenant SaaS, self-hosted single org, or both? (Affects signup flow, billing, and whether `organizations` signup is public.)

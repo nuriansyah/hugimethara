@@ -74,53 +74,33 @@ ClickHouse joins in Phase 2 (analytics), see [data-architecture.md](data-archite
 ```
 hugimethara/
 ├── api/openapi/                 # OpenAPI 3.0.3 spec, split per domain, bundled in CI
-├── backend/
-│   ├── go.mod                   # module github.com/<org>/hugimethara/backend
-│   ├── cmd/
-│   │   ├── hugi-api/            # composition root for the API process
-│   │   ├── hugi-worker/         # composition root for workers
-│   │   └── hugi-migrate/
-│   ├── internal/
-│   │   ├── platform/            # cross-cutting, domain-free: config, db (pgx pool, tx, RLS session),
-│   │   │                        #   httpx (errors, pagination, middleware), telemetry, crypto (envelope enc),
-│   │   │                        #   egress (SSRF-safe HTTP client), bus (NATS), cache (Redis), ids (UUIDv7), clock
-│   │   ├── audit/
-│   │   ├── organization/        # orgs, settings, workspaces, members, departments, environments
-│   │   ├── identity/            # users, sessions, local auth, OIDC, invitations, groups, service accounts
-│   │   ├── authz/               # Authorizer, RBAC engine, resource registry, roles, bindings
-│   │   ├── secret/              # credential vault (envelope encryption)
-│   │   ├── connector/           # registry, runtime, built-in connectors (connector/builtin/*)
-│   │   ├── servicereg/          # service registry, OpenAPI import
-│   │   ├── mapping/             # mapping IR, compiler, evaluator, test cases
-│   │   ├── composition/         # API composition definitions + sync runtime
-│   │   ├── workflow/            # definitions, validator, engine, node implementations
-│   │   ├── webhook/             # inbound endpoints, outbound subscriptions, deliveries
-│   │   └── event/               # transactional outbox, platform event catalog
-│   ├── migrations/              # goose SQL migrations
-│   └── internal/platform/testsupport/  # integration harness: fresh DB per test, in-process NATS
-├── pkg/connectorsdk/            # public Go SDK for out-of-process connectors (separate module)
-├── web/
+├── cmd/                         # api, worker, migrate, and admin binaries
+├── internal/
+│   ├── bootstrap/               # process composition roots
+│   ├── modules/                 # identity, organization, authorization, integrations, governance, workflow
+│   ├── platform/                # config, database, HTTP middleware, telemetry, crypto, messaging, cache
+│   └── transport/http/          # routes, handlers, and generated strict server
+├── migrations/postgres/         # embedded goose migrations
+├── apps/web/
 │   └── src/
 │       ├── app/                 # Next.js routes: (auth)/…, (app)/[org]/[workspace]/…
 │       ├── features/<feature>/  # api hooks, components, zod schemas per feature
 │       ├── components/ui/       # shadcn/ui primitives
 │       └── lib/                 # generated API client, auth, permission helpers
-├── deploy/
-│   ├── compose/                 # docker-compose.yml (+ keycloak, minio, otel profiles)
-│   └── helm/
+├── deployments/compose/         # Docker Compose and local dev assets
 └── docs/
 ```
 
-Each backend domain package follows the same internal shape:
+Implemented domain packages are grouped by bounded context under `internal/modules`. Several existing modules
+still keep service logic, sqlx persistence helpers, embedded SQL, and HTTP adapters in one Go package; those
+boundaries can be extracted incrementally without changing the domain-level import paths.
 
 ```
-internal/workflow/
-  model.go      # domain types + invariants (no I/O)
-  service.go    # use cases; the ONLY exported entry point for other domains
+internal/modules/identity/
+  service.go    # identity use cases
   queries.sql   # plain, named SQL statements (embedded; ADR-0012)
-  store.go      # row structs + persistence helpers (sqlx)
-  http.go       # handlers; translate HTTP <-> service calls
-  *_test.go
+  authstore.go  # sqlx persistence helpers
+  http*.go      # transport adapters
 ```
 
 Dependency rules are in [domain-boundaries.md](domain-boundaries.md) and are enforced with `depguard`/`go-arch-lint` in CI.

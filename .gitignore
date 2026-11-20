@@ -1,5 +1,8 @@
 .DS_Store
 .env
-deploy/compose/.env
-backend/bin/
+deployments/compose/.env
+bin/
+apps/web/.next/
+apps/web/node_modules/
+/node_modules/
 *.out

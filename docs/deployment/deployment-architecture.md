@@ -2,7 +2,7 @@
 
 ## Local / Docker Compose (Phase 1 acceptance target)
 
-`deploy/compose/docker-compose.yml` services:
+`deployments/compose/docker-compose.yml` services:
 
 | Service | Image | Notes |
 |---|---|---|
@@ -26,7 +26,7 @@ Candidates: SeaweedFS, Garage, RustFS. Application code targets the S3 API only.
 **Database roles** (ADR-0002): `hugi_owner` (migrations, table owner), `hugi_app` (API, RLS-enforced),
 `hugi_system` (worker platform jobs, narrow cross-tenant grants), `hugi_auth` (NOLOGIN; owns the pre-tenant
 authentication functions, read-only except lockout counters; created by migration 00003). Compose creates the login roles in
-`deploy/compose/postgres-init.sh`; in other environments create them before running `hugi-migrate up`.
+`deployments/compose/postgres-init.sh`; in other environments create them before running `hugi-migrate up`.
 
 | Variable | Used by | Purpose |
 |---|---|---|
