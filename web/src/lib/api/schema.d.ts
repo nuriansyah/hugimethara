@@ -402,6 +402,332 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List credential metadata
+         * @description Permission: secret:read. Values and ciphertext are never returned.
+         */
+        get: operations["listCredentials"];
+        put?: never;
+        /**
+         * Store an encrypted credential
+         * @description Permission: secret:create. The plaintext is accepted once and never returned.
+         */
+        post: operations["createCredential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/credentials/{credential_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                credential_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Get credential metadata
+         * @description Permission: secret:read. The value is write-only.
+         */
+        get: operations["getCredential"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a credential
+         * @description Permission: secret:delete.
+         */
+        delete: operations["deleteCredential"];
+        options?: never;
+        head?: never;
+        /**
+         * Update credential metadata or rotate its value
+         * @description Permission: secret:update. Omit value to keep the current value.
+         */
+        patch: operations["updateCredential"];
+        trace?: never;
+    };
+    "/v1/hugimethara/connector-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List available connector definitions
+         * @description Permission: connector:read.
+         */
+        get: operations["listConnectorDefinitions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connector-definitions/{definition_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List connector definition versions
+         * @description Permission: connector:read.
+         */
+        get: operations["listConnectorVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List configured connector instances
+         * @description Permission: connector:read.
+         */
+        get: operations["listConnectors"];
+        put?: never;
+        /**
+         * Configure a connector instance
+         * @description Permission: connector:create. Credential values must be stored separately via /credentials.
+         */
+        post: operations["createConnector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors/{connector_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Get a connector instance
+         * @description Permission: connector:read. Secret values are never returned.
+         */
+        get: operations["getConnector"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a connector instance
+         * @description Permission: connector:delete.
+         */
+        delete: operations["deleteConnector"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a connector instance
+         * @description Permission: connector:update.
+         */
+        patch: operations["updateConnector"];
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors/{connector_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test connector reachability
+         * @description Permission: connector:test. The result is recorded in connector health history.
+         */
+        post: operations["testConnector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/connectors/{connector_id}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get connector health history
+         * @description Permission: connector:read.
+         */
+        get: operations["getConnectorHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List registered services
+         * @description Permission: service:read.
+         */
+        get: operations["listServices"];
+        put?: never;
+        /**
+         * Register an API service
+         * @description Permission: service:create.
+         */
+        post: operations["createService"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Get a registered service
+         * @description Permission: service:read.
+         */
+        get: operations["getService"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete a service and its imported API specs
+         * @description Permission: service:delete.
+         */
+        delete: operations["deleteService"];
+        options?: never;
+        head?: never;
+        /**
+         * Update a registered service
+         * @description Permission: service:update.
+         */
+        patch: operations["updateService"];
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}/environments/{environment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set a service base URL for an environment
+         * @description Permission: service:update.
+         */
+        put: operations["putServiceEnvironment"];
+        post?: never;
+        /**
+         * Remove a service environment binding
+         * @description Permission: service:update.
+         */
+        delete: operations["deleteServiceEnvironment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}/import-openapi": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import an OpenAPI document and preview changes
+         * @description Permission: service:update. Supply exactly one of spec or url. URL fetches use guarded egress.
+         */
+        post: operations["importOpenAPI"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/services/{service_id}/endpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List imported API endpoints
+         * @description Permission: service:read.
+         */
+        get: operations["listServiceEndpoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/service-endpoints/{endpoint_id}/try": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a test request to an imported endpoint
+         * @description Permission: service:invoke. Uses configured service environment and guarded egress.
+         */
+        post: operations["tryServiceEndpoint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/departments": {
         parameters: {
             query?: never;
@@ -1209,6 +1535,242 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ConnectorDefinition: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            name: string;
+            category: string;
+            /** @enum {string} */
+            tier: "builtin" | "declarative";
+            icon: string;
+        };
+        ConnectorVersion: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            definition_id: string;
+            version: string;
+            config_schema: {
+                [key: string]: unknown;
+            };
+            auth_methods: string[];
+            operations: {
+                [key: string]: unknown;
+            }[];
+            /** Format: date-time */
+            deprecated_at?: string | null;
+        };
+        ConnectorInstance: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            environment_id: string;
+            ref_key: string;
+            /** Format: uuid */
+            definition_id: string;
+            definition_key: string;
+            name: string;
+            version: string;
+            config: {
+                [key: string]: unknown;
+            };
+            auth_method: string;
+            /** Format: uuid */
+            secret_id?: string | null;
+            credential_configured: boolean;
+            rate_limit: number;
+            timeout_ms: number;
+            /** @enum {string} */
+            status: "enabled" | "disabled";
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ConnectorInstanceCreate: {
+            /** Format: uuid */
+            workspace_id: string;
+            /** Format: uuid */
+            environment_id: string;
+            ref_key: string;
+            /** Format: uuid */
+            connector_version_id: string;
+            config: {
+                [key: string]: unknown;
+            };
+            auth_method?: string;
+            /** Format: uuid */
+            secret_id?: string | null;
+            rate_limit?: number;
+            timeout_ms?: number;
+        };
+        ConnectorInstanceUpdate: {
+            config?: {
+                [key: string]: unknown;
+            };
+            auth_method?: string;
+            /** Format: uuid */
+            secret_id?: string | null;
+            rate_limit?: number;
+            timeout_ms?: number;
+            /** @enum {string} */
+            status?: "enabled" | "disabled";
+        };
+        ConnectorTestResult: {
+            /** Format: date-time */
+            checked_at: string;
+            ok: boolean;
+            latency_ms: number;
+            error_code?: string;
+            message: string;
+        };
+        Service: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            workspace_id: string;
+            name: string;
+            owner: string;
+            description: string;
+            /** @enum {string} */
+            protocol: "rest" | "graphql" | "grpc";
+            environments: components["schemas"]["ServiceEnvironment"][];
+            /** Format: int64 */
+            endpoint_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ServiceCreate: {
+            /** Format: uuid */
+            workspace_id: string;
+            name: string;
+            owner?: string;
+            description?: string;
+            /** @enum {string} */
+            protocol?: "rest" | "graphql" | "grpc";
+        };
+        ServiceUpdate: {
+            name?: string;
+            owner?: string;
+            description?: string;
+            /** @enum {string} */
+            protocol?: "rest" | "graphql" | "grpc";
+        };
+        ServiceEnvironment: {
+            /** Format: uuid */
+            environment_id: string;
+            /** Format: uri */
+            base_url: string;
+            /** Format: uuid */
+            connector_instance_id: string | null;
+        };
+        ServiceEnvironmentInput: {
+            /** Format: uri */
+            base_url: string;
+            /** Format: uuid */
+            connector_instance_id?: string | null;
+        };
+        OpenAPIImportRequest: {
+            /** @description OpenAPI JSON or YAML document. */
+            spec?: string;
+            /** Format: uri */
+            url?: string;
+            version_label?: string;
+        };
+        OpenAPIChange: {
+            operation_id: string;
+            method: string;
+            path: string;
+            /** @enum {string} */
+            kind: "added" | "removed" | "changed";
+            breaking?: boolean;
+        };
+        OpenAPIImportResult: {
+            dry_run: boolean;
+            /** Format: uuid */
+            spec_id?: string | null;
+            changes: components["schemas"]["OpenAPIChange"][];
+            endpoint_count: number;
+        };
+        ServiceEndpoint: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            service_id: string;
+            operation_id: string;
+            method: string;
+            path: string;
+            summary: string;
+            parameters: {
+                [key: string]: unknown;
+            }[];
+            request_schema?: {
+                [key: string]: unknown;
+            } | null;
+            response_schemas: {
+                [key: string]: unknown;
+            };
+            security: {
+                [key: string]: unknown;
+            }[];
+            deprecated: boolean;
+        };
+        ServiceTryRequest: {
+            /** Format: uuid */
+            environment_id: string;
+            path_values?: {
+                [key: string]: string;
+            };
+            query?: {
+                [key: string]: string;
+            };
+            headers?: {
+                [key: string]: string;
+            };
+            body?: unknown;
+        };
+        ServiceTryResult: {
+            status: number;
+            headers: {
+                [key: string]: string;
+            };
+            body: unknown;
+            duration_ms: number;
+        };
+        Credential: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            kind: string;
+            /** Format: uuid */
+            environment_id?: string | null;
+            /** @constant */
+            configured: true;
+            /** @description At most the last four characters of the stored value. */
+            hint: string;
+            /** Format: int64 */
+            version: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        CredentialCreate: {
+            name: string;
+            kind: string;
+            value: string;
+            /** Format: uuid */
+            environment_id?: string | null;
+        };
+        CredentialUpdate: {
+            name?: string;
+            value?: string;
+        };
         Problem: {
             /** Format: uri */
             type: string;
@@ -2578,6 +3140,665 @@ export interface operations {
             };
             401: components["responses"]["Problem"];
             403: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listCredentials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Credential"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialCreate"];
+            };
+        };
+        responses: {
+            /** @description Stored credential metadata. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Credential"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                credential_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Credential"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                credential_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateCredential: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                credential_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated credential metadata. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Credential"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listConnectorDefinitions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Built-in and organization connector catalog. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConnectorDefinition"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listConnectorVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                definition_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Version metadata and JSON schemas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConnectorVersion"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listConnectors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connector instances. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConnectorInstance"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectorInstanceCreate"];
+            };
+        };
+        responses: {
+            /** @description Configured connector. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorInstance"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Connector instance. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorInstance"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectorInstanceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated connector. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorInstance"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    testConnector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Test result. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorTestResult"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getConnectorHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recent test results. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ConnectorTestResult"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listServices: {
+        parameters: {
+            query: {
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Services in the current workspace. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["Service"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    createService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceCreate"];
+            };
+        };
+        responses: {
+            /** @description Registered service. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    getService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service and environment bindings. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    updateService: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Updated service. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Service"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    putServiceEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceEnvironmentInput"];
+            };
+        };
+        responses: {
+            /** @description Updated environment binding. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceEnvironment"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    deleteServiceEnvironment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+                environment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    importOpenAPI: {
+        parameters: {
+            query?: {
+                dry_run?: boolean;
+            };
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenAPIImportRequest"];
+            };
+        };
+        responses: {
+            /** @description Import diff (and applied version when dry_run is false). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenAPIImportResult"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            422: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    listServiceEndpoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Imported operation catalog. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["ServiceEndpoint"][];
+                    };
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
+            default: components["responses"]["Problem"];
+        };
+    };
+    tryServiceEndpoint: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                endpoint_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceTryRequest"];
+            };
+        };
+        responses: {
+            /** @description Upstream response (bounded to 1 MiB). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceTryResult"];
+                };
+            };
+            401: components["responses"]["Problem"];
+            403: components["responses"]["Problem"];
+            404: components["responses"]["Problem"];
             422: components["responses"]["Problem"];
             default: components["responses"]["Problem"];
         };

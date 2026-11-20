@@ -46,20 +46,31 @@ func New(key []byte) (*Key, error) {
 
 // Seal encrypts and authenticates plaintext. The returned value is nonce||ciphertext.
 func (k *Key) Seal(plaintext []byte) ([]byte, error) {
+	return k.SealWithAAD(plaintext, nil)
+}
+
+// SealWithAAD binds ciphertext to caller-provided context such as tenant and
+// record identifiers, preventing valid ciphertext from being moved elsewhere.
+func (k *Key) SealWithAAD(plaintext, aad []byte) ([]byte, error) {
 	nonce := make([]byte, k.aead.NonceSize())
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, fmt.Errorf("secretbox: nonce: %w", err)
 	}
-	return k.aead.Seal(nonce, nonce, plaintext, nil), nil
+	return k.aead.Seal(nonce, nonce, plaintext, aad), nil
 }
 
 // Open decrypts and authenticates a value produced by Seal.
 func (k *Key) Open(sealed []byte) ([]byte, error) {
+	return k.OpenWithAAD(sealed, nil)
+}
+
+// OpenWithAAD authenticates both ciphertext and its caller-provided context.
+func (k *Key) OpenWithAAD(sealed, aad []byte) ([]byte, error) {
 	if len(sealed) < k.aead.NonceSize() {
 		return nil, errors.New("secretbox: value is truncated")
 	}
 	nonce, ciphertext := sealed[:k.aead.NonceSize()], sealed[k.aead.NonceSize():]
-	plaintext, err := k.aead.Open(nil, nonce, ciphertext, nil)
+	plaintext, err := k.aead.Open(nil, nonce, ciphertext, aad)
 	if err != nil {
 		return nil, errors.New("secretbox: value failed authentication")
 	}

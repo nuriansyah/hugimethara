@@ -43,6 +43,20 @@ func TestOpenRejectsTamperingAndWrongKey(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestAADBindsCiphertextToItsContext(t *testing.T) {
+	key, err := New(bytes.Repeat([]byte{7}, KeySize))
+	require.NoError(t, err)
+	sealed, err := key.SealWithAAD([]byte("credential"), []byte("org-a|secret-1"))
+	require.NoError(t, err)
+	opened, err := key.OpenWithAAD(sealed, []byte("org-a|secret-1"))
+	require.NoError(t, err)
+	require.Equal(t, "credential", string(opened))
+	_, err = key.OpenWithAAD(sealed, []byte("org-b|secret-1"))
+	require.Error(t, err)
+	_, err = key.OpenWithAAD(sealed, []byte("org-a|secret-2"))
+	require.Error(t, err)
+}
+
 func TestNewRejectsBadKeySize(t *testing.T) {
 	_, err := New([]byte("short"))
 	require.Error(t, err)

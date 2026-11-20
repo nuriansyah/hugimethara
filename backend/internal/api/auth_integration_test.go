@@ -23,12 +23,16 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/api"
 	"github.com/nuriansyah/hugimethara/backend/internal/audit"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
+	"github.com/nuriansyah/hugimethara/backend/internal/connector"
 	"github.com/nuriansyah/hugimethara/backend/internal/entitlement"
 	"github.com/nuriansyah/hugimethara/backend/internal/identity"
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
+	"github.com/nuriansyah/hugimethara/backend/internal/platform/egress"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/health"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/secretbox"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/testsupport"
+	secretvault "github.com/nuriansyah/hugimethara/backend/internal/secret"
+	"github.com/nuriansyah/hugimethara/backend/internal/servicereg"
 )
 
 const base = "/v1/hugimethara"
@@ -37,9 +41,10 @@ const base = "/v1/hugimethara"
 var testArgon = identity.Argon2Params{MemoryKiB: 1024, Iterations: 1, Parallelism: 1, SaltLen: 16, KeyLen: 32}
 
 type env struct {
-	t   *testing.T
-	pg  *testsupport.Postgres
-	srv *httptest.Server
+	t       *testing.T
+	pg      *testsupport.Postgres
+	srv     *httptest.Server
+	secrets *secretvault.Service
 }
 
 func setup(t *testing.T) *env {
@@ -53,6 +58,14 @@ func setup(t *testing.T) *env {
 	orgs := organization.NewService(pg.App, az, acl)
 	sealer, err := secretbox.New(secretbox.DeriveKey("integration-test"))
 	require.NoError(t, err)
+	masterKey := secretbox.DeriveKey("integration-test")
+	secrets, err := secretvault.NewService(pg.App, az, masterKey, "test-v1")
+	require.NoError(t, err)
+	connectors, err := connector.NewService(pg.App, az)
+	require.NoError(t, err)
+	servicePolicy, err := egress.ParsePolicy(nil)
+	require.NoError(t, err)
+	services := servicereg.NewService(pg.App, az, servicePolicy)
 	ids := identity.NewService(pg.App, orgs, az, acl, nil, log, identity.Config{
 		Hasher: identity.NewHasher(testArgon), MaxFailedLogins: 3,
 		PublicURL: "http://localhost:3000", Sealer: sealer,
@@ -64,11 +77,14 @@ func setup(t *testing.T) *env {
 		Audit:        audit.NewHTTP(audit.NewService(pg.App, az)),
 		Entitlement:  entitlement.NewHTTP(entitlement.NewService(pg.App, az, usage())),
 		Access:       authz.NewHTTP(acl),
+		Secrets:      secretvault.NewHTTP(secrets),
+		Connectors:   connector.NewHTTP(connectors),
+		Services:     servicereg.NewHTTP(services),
 	})
 	require.NoError(t, err)
 	srv := httptest.NewServer(router)
 	t.Cleanup(srv.Close)
-	return &env{t: t, pg: pg, srv: srv}
+	return &env{t: t, pg: pg, srv: srv, secrets: secrets}
 }
 
 func usage() map[string]entitlement.UsageFunc {

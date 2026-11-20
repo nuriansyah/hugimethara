@@ -65,7 +65,7 @@ export function SignupForm() {
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-4">
+    <form method="post" noValidate onSubmit={form.handleSubmit(submit)} className="flex flex-col gap-4">
       <FormField id="organization_name" label="Organization name" error={errors.organization_name?.message}>
         <Input autoComplete="organization" autoFocus {...fieldAria("organization_name", errors.organization_name?.message)} {...orgName} />
       </FormField>

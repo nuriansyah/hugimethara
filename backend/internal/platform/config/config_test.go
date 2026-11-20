@@ -13,6 +13,7 @@ func TestLoadDefaults(t *testing.T) {
 	require.Equal(t, "development", c.Env)
 	require.Equal(t, "hugi-test", c.ServiceName)
 	require.Equal(t, ":8080", c.HTTPAddr)
+	require.Equal(t, "env-v1", c.MasterKeyID)
 }
 
 func TestLoadRequiresDependencies(t *testing.T) {

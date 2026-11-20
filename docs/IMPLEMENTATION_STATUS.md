@@ -2,16 +2,28 @@
 
 _Last updated: 2026-11-19_
 
-## Current stage: Phase 1 — S5 OIDC federation (code complete; Keycloak E2E pending)
+## Current stage: Phase 1 — S6 connector runtime (implementation in progress)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | ~40% — S0–S5 implemented and integration-tested; compose E2E not yet run |
+| Phase 1 | In progress | S0–S7 implementation underway; S6 execution runtime and S8–S14 remain |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-19 — S6 connector management and S7 service registry
+- **S6 implemented:** connector catalog/version and instance APIs, schema-validated configuration, credential
+  references, health history, and egress-guarded reachability checks using the selected environment's allowlist.
+  The vault and connector management UI are available.
+- **S6 still incomplete:** there is no connector invocation API/runtime, shared timeout/retry/rate-limit/circuit-breaker
+  wrapper, or working protocol adapter suite for the seeded built-ins. Do not treat catalog entries as runtimes.
+- **S7 implemented:** service and environment-binding management, OpenAPI import/diff, endpoint catalog, and guarded
+  explorer requests using the selected environment's egress policy.
+- **Verification:** the complete backend integration suite passed with `-race` against disposable Postgres/Redis;
+  targeted connector egress and service import/explorer tests passed; the web production build, backend binary build,
+  Compose configuration validation, and `git diff --check` passed.
 
 ### 2026-11-19 — S5 OIDC federation
 - **Implemented:** OIDC Authorization Code + PKCE sign-in with Entra ID, Google Workspace, Keycloak and generic
@@ -37,10 +49,27 @@ _Last updated: 2026-11-19_
 - **Tests:** 4 new integration tests with an in-process mock IdP covering provider security/lifecycle, public
   discovery scoping, JIT login + group sync + suspension + invalid signature, and linking rules (existing member,
   no account, cross-tenant conflict, email-domain allowlist). Full integration suite (83) and unit suite green;
-  web lint/typecheck green.
-- **Known limitations:** the Keycloak compose `sso` profile and browser E2E have not been run (Docker daemon was
-  unavailable); discovery cache is per process; SAML is reserved but not implemented; SSO-only enforcement and
-  domain-based provider discovery are not built; IdP group sync applies on sign-in, not as a background job.
+  web lint/typecheck green. Keycloak browser E2E verified login and group-mapped workspace access.
+- **Known limitations:** discovery cache is per process; SAML is reserved but not implemented; SSO-only enforcement
+  and domain-based provider discovery are not built; IdP group sync applies on sign-in, not as a background job.
+
+### 2026-11-19 — S5 Keycloak E2E fixture and S6 vault foundation
+- **S5:** Added an opt-in Compose `sso` profile with an imported Keycloak realm, confidential OIDC client, test
+  user, and `engineering` group claim. The callback URL matches the exact public redirect URI. Started the profile,
+  verified the imported realm's OIDC discovery document, and completed browser login with group-mapped workspace
+  access.
+- **S6 vault:** Added `00009_secrets_vault` with RLS-protected organization DEKs wrapped by the configured
+  AES-256-GCM master key and secret ciphertext authenticated with `org_id|secret_id` AAD. Added audited,
+  permission-gated `GET/POST/PATCH/DELETE /credentials`; plaintext is accepted for create/rotation, never returned,
+  and only the final-four-character hint is exposed. `secret:use`-authorized `Resolve` is restricted to backend
+  callers. Added Settings → Credentials with write-only create/rotate UX.
+- **Tests:** Secretbox additional-authenticated-data binding test; fresh-Postgres integration tests for credential
+  create/list/get/rotate/delete, successful authorized resolution, secret absence from API/DB ciphertext,
+  tenant isolation, and permission/input rejection. Targeted backend tests, web typecheck/lint, and Compose config
+  validation pass.
+- **Still pending in S6:** connector invocation/runtime, timeout/retry/rate-limit/circuit-breaker controls, and
+  protocol implementations and execution tests for the seeded built-ins. Existing S5 IdP client secrets still use
+  the legacy single-key format; migration to the vault is not yet implemented.
 
 ### 2026-11-19 — S4 Users, groups, invitations, service accounts
 - **Implemented:** invitations by email with an optional org role and per-workspace roles (authorized and
@@ -221,9 +250,9 @@ _Last updated: 2026-11-19_
 | S2 Workspaces & environments | ✅ (+ paid features) | integration + browser smoke |
 | S3 Dynamic RBAC | ✅ | 8 RBAC integration tests + unit tests; browser check |
 | S4 Users, groups, invitations, service accounts | ✅ | 5 integration tests + browser check |
-| S5 OIDC federation | ◐ code + tests complete; Keycloak browser E2E pending | 4 integration tests; web UI added |
-| S6 Secrets & connectors | ☐ | |
-| S7 Service registry & API explorer | ☐ | |
+| S5 OIDC federation | ✅ | 4 mock-IdP integration tests; Keycloak browser E2E verified group-based workspace access |
+| S6 Secrets & connectors | ◐ vault and connector management implemented; runtime incomplete | full integration suite and targeted egress tests pass; no invocation/runtime or protocol adapters |
+| S7 Service registry & API explorer | ✅ | OpenAPI import/diff and guarded explorer integration tests pass |
 | S8 Mapping engine & studio | ☐ | |
 | S9 API composition | ☐ | |
 | S10 Workflow engine core | ☐ | |

@@ -38,10 +38,10 @@ type Config struct {
 	// post-login redirects are built from it (the web app proxies /api to this
 	// listener, so the browser sees one origin).
 	PublicURL string `env:"HUGI_PUBLIC_URL" envDefault:"http://localhost:3000"`
-	// MasterKey is a base64-encoded 32-byte key that encrypts identity-provider
-	// client secrets and the short-lived OIDC state cookie. Required in
-	// production; development falls back to a documented key.
-	MasterKey string `env:"HUGI_MASTER_KEY"`
+	// MasterKey is a base64-encoded 32-byte key that seals OIDC state and legacy
+	// IdP client secrets, and wraps organization data keys. Required in production.
+	MasterKey   string `env:"HUGI_MASTER_KEY"`
+	MasterKeyID string `env:"HUGI_MASTER_KEY_ID" envDefault:"env-v1"`
 
 	Log LogConfig
 

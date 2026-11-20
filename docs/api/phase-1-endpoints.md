@@ -40,7 +40,7 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | POST | /connectors/{id}/test | connector:test | S6 |
 | POST | /connectors/{id}/operations/{op}/invoke (dry-run/test) | connector:invoke | S6 |
 | GET | /connectors/{id}/health | connector:read | S6 |
-| CRUD | /credentials (standalone secrets: write-only values) | secret:* | S6 |
+| CRUD | /credentials (standalone secrets: write-only values) | secret:* | ◐ S6 vault |
 | **Service registry** ||||
 | CRUD | /services, /services/{id}/environments | service:* | S7 |
 | POST | /services/{id}/import-openapi (upload or url; `?dry_run=true` returns diff) | service:update | S7 |

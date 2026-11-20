@@ -16,6 +16,7 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/api/apigen"
 	"github.com/nuriansyah/hugimethara/backend/internal/audit"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
+	"github.com/nuriansyah/hugimethara/backend/internal/connector"
 	"github.com/nuriansyah/hugimethara/backend/internal/entitlement"
 	"github.com/nuriansyah/hugimethara/backend/internal/identity"
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
@@ -23,6 +24,8 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/health"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/httpx"
 	"github.com/nuriansyah/hugimethara/backend/internal/principal"
+	secretvault "github.com/nuriansyah/hugimethara/backend/internal/secret"
+	"github.com/nuriansyah/hugimethara/backend/internal/servicereg"
 )
 
 // MaxRequestBody is the default request body cap for API routes.
@@ -41,6 +44,9 @@ type Deps struct {
 	Audit        *audit.HTTP
 	Entitlement  *entitlement.HTTP
 	Access       *authz.HTTP
+	Secrets      *secretvault.HTTP
+	Connectors   *connector.HTTP
+	Services     *servicereg.HTTP
 }
 
 // NewRouter returns the root handler for the API listener.
@@ -74,6 +80,9 @@ func NewRouter(d Deps) (http.Handler, error) {
 		system: system{env: d.Env, health: d.Health},
 		HTTP:   d.Identity, orgHTTP: orgHTTP{d.Organization}, auditHTTP: auditHTTP{d.Audit},
 		entHTTP: entHTTP{d.Entitlement}, accessHTTP: accessHTTP{d.Access},
+		secretHTTP:    secretHTTP{d.Secrets},
+		connectorHTTP: connectorHTTP{d.Connectors},
+		serviceHTTP:   serviceHTTP{d.Services},
 	}
 	strict := apigen.NewStrictHandlerWithOptions(srv,
 		[]apigen.StrictMiddlewareFunc{requireSession(public)},
@@ -141,12 +150,18 @@ type server struct {
 	auditHTTP
 	entHTTP
 	accessHTTP
+	secretHTTP
+	connectorHTTP
+	serviceHTTP
 }
 
 type orgHTTP struct{ *organization.HTTP }
 type auditHTTP struct{ *audit.HTTP }
 type entHTTP struct{ *entitlement.HTTP }
 type accessHTTP struct{ *authz.HTTP }
+type secretHTTP struct{ *secretvault.HTTP }
+type connectorHTTP struct{ *connector.HTTP }
+type serviceHTTP struct{ *servicereg.HTTP }
 
 var _ apigen.StrictServerInterface = (*server)(nil)
 

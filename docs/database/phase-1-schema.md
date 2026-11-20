@@ -159,7 +159,8 @@ erDiagram
 | ✅ 00006_rbac (resource_types, role_templates, roles, role_permissions, role_bindings, authz_decisions, views workspace_access / org_member_roles; backfill; drops workspace_members and is_owner) | S3 |
 | ✅ 00007_groups_invitations_service_accounts (groups, group_members, invitations, invitation_workspaces, service_accounts, api_keys; role_bindings gain group/service-account principals; 2 pre-tenant `SECURITY DEFINER` lookups) | S4 |
 | ✅ 00008_identity_providers (identity_providers, identity_links, group_mappings; RLS; 5 pre-tenant `SECURITY DEFINER` lookups; `identity_provider` catalog + `org_admin` grant) | S5 |
-| 0008_secrets_connectors | S6 |
+| ◐ 00009_secrets_vault (data_keys, secrets; tenant RLS; secret resource + org_admin grant) | S6 vault |
+| 00010_connector_registry | S6 connectors |
 | 0009_service_registry | S7 |
 | 0010_mappings · 0011_compositions | S8–S9 |
 | 0012_workflows · 0013_workflow_timers_approvals | S10–S11 |

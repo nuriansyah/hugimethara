@@ -90,6 +90,60 @@ func (e BindingScopeType) Valid() bool {
 	}
 }
 
+// Defines values for ConnectorDefinitionTier.
+const (
+	Builtin     ConnectorDefinitionTier = "builtin"
+	Declarative ConnectorDefinitionTier = "declarative"
+)
+
+// Valid indicates whether the value is a known member of the ConnectorDefinitionTier enum.
+func (e ConnectorDefinitionTier) Valid() bool {
+	switch e {
+	case Builtin:
+		return true
+	case Declarative:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConnectorInstanceStatus.
+const (
+	ConnectorInstanceStatusDisabled ConnectorInstanceStatus = "disabled"
+	ConnectorInstanceStatusEnabled  ConnectorInstanceStatus = "enabled"
+)
+
+// Valid indicates whether the value is a known member of the ConnectorInstanceStatus enum.
+func (e ConnectorInstanceStatus) Valid() bool {
+	switch e {
+	case ConnectorInstanceStatusDisabled:
+		return true
+	case ConnectorInstanceStatusEnabled:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ConnectorInstanceUpdateStatus.
+const (
+	ConnectorInstanceUpdateStatusDisabled ConnectorInstanceUpdateStatus = "disabled"
+	ConnectorInstanceUpdateStatusEnabled  ConnectorInstanceUpdateStatus = "enabled"
+)
+
+// Valid indicates whether the value is a known member of the ConnectorInstanceUpdateStatus enum.
+func (e ConnectorInstanceUpdateStatus) Valid() bool {
+	switch e {
+	case ConnectorInstanceUpdateStatusDisabled:
+		return true
+	case ConnectorInstanceUpdateStatusEnabled:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for EntitlementFeatureKind.
 const (
 	EntitlementFeatureKindFlag  EntitlementFeatureKind = "flag"
@@ -303,6 +357,27 @@ func (e MemberMembershipStatus) Valid() bool {
 	}
 }
 
+// Defines values for OpenAPIChangeKind.
+const (
+	Added   OpenAPIChangeKind = "added"
+	Changed OpenAPIChangeKind = "changed"
+	Removed OpenAPIChangeKind = "removed"
+)
+
+// Valid indicates whether the value is a known member of the OpenAPIChangeKind enum.
+func (e OpenAPIChangeKind) Valid() bool {
+	switch e {
+	case Added:
+		return true
+	case Changed:
+		return true
+	case Removed:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for OrganizationStatus.
 const (
 	OrganizationStatusActive    OrganizationStatus = "active"
@@ -336,6 +411,69 @@ func (e PrincipalType) Valid() bool {
 	case PrincipalTypeServiceAccount:
 		return true
 	case PrincipalTypeUser:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ServiceProtocol.
+const (
+	ServiceProtocolGraphql ServiceProtocol = "graphql"
+	ServiceProtocolGrpc    ServiceProtocol = "grpc"
+	ServiceProtocolRest    ServiceProtocol = "rest"
+)
+
+// Valid indicates whether the value is a known member of the ServiceProtocol enum.
+func (e ServiceProtocol) Valid() bool {
+	switch e {
+	case ServiceProtocolGraphql:
+		return true
+	case ServiceProtocolGrpc:
+		return true
+	case ServiceProtocolRest:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ServiceCreateProtocol.
+const (
+	ServiceCreateProtocolGraphql ServiceCreateProtocol = "graphql"
+	ServiceCreateProtocolGrpc    ServiceCreateProtocol = "grpc"
+	ServiceCreateProtocolRest    ServiceCreateProtocol = "rest"
+)
+
+// Valid indicates whether the value is a known member of the ServiceCreateProtocol enum.
+func (e ServiceCreateProtocol) Valid() bool {
+	switch e {
+	case ServiceCreateProtocolGraphql:
+		return true
+	case ServiceCreateProtocolGrpc:
+		return true
+	case ServiceCreateProtocolRest:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ServiceUpdateProtocol.
+const (
+	ServiceUpdateProtocolGraphql ServiceUpdateProtocol = "graphql"
+	ServiceUpdateProtocolGrpc    ServiceUpdateProtocol = "grpc"
+	ServiceUpdateProtocolRest    ServiceUpdateProtocol = "rest"
+)
+
+// Valid indicates whether the value is a known member of the ServiceUpdateProtocol enum.
+func (e ServiceUpdateProtocol) Valid() bool {
+	switch e {
+	case ServiceUpdateProtocolGraphql:
+		return true
+	case ServiceUpdateProtocolGrpc:
+		return true
+	case ServiceUpdateProtocolRest:
 		return true
 	default:
 		return false
@@ -555,6 +693,118 @@ type ClaimMapping struct {
 
 	// Name Claim carrying the display name.
 	Name string `json:"name"`
+}
+
+// ConnectorDefinition defines model for ConnectorDefinition.
+type ConnectorDefinition struct {
+	Category string                  `json:"category"`
+	Icon     string                  `json:"icon"`
+	Id       openapi_types.UUID      `json:"id"`
+	Key      string                  `json:"key"`
+	Name     string                  `json:"name"`
+	Tier     ConnectorDefinitionTier `json:"tier"`
+}
+
+// ConnectorDefinitionTier defines model for ConnectorDefinition.Tier.
+type ConnectorDefinitionTier string
+
+// ConnectorInstance defines model for ConnectorInstance.
+type ConnectorInstance struct {
+	AuthMethod           string                  `json:"auth_method"`
+	Config               map[string]interface{}  `json:"config"`
+	CreatedAt            time.Time               `json:"created_at"`
+	CredentialConfigured bool                    `json:"credential_configured"`
+	DefinitionId         openapi_types.UUID      `json:"definition_id"`
+	DefinitionKey        string                  `json:"definition_key"`
+	EnvironmentId        openapi_types.UUID      `json:"environment_id"`
+	Id                   openapi_types.UUID      `json:"id"`
+	Name                 string                  `json:"name"`
+	RateLimit            int                     `json:"rate_limit"`
+	RefKey               string                  `json:"ref_key"`
+	SecretId             *openapi_types.UUID     `json:"secret_id,omitempty"`
+	Status               ConnectorInstanceStatus `json:"status"`
+	TimeoutMs            int                     `json:"timeout_ms"`
+	UpdatedAt            time.Time               `json:"updated_at"`
+	Version              string                  `json:"version"`
+	WorkspaceId          openapi_types.UUID      `json:"workspace_id"`
+}
+
+// ConnectorInstanceStatus defines model for ConnectorInstance.Status.
+type ConnectorInstanceStatus string
+
+// ConnectorInstanceCreate defines model for ConnectorInstanceCreate.
+type ConnectorInstanceCreate struct {
+	AuthMethod         *string                `json:"auth_method,omitempty"`
+	Config             map[string]interface{} `json:"config"`
+	ConnectorVersionId openapi_types.UUID     `json:"connector_version_id"`
+	EnvironmentId      openapi_types.UUID     `json:"environment_id"`
+	RateLimit          *int                   `json:"rate_limit,omitempty"`
+	RefKey             string                 `json:"ref_key"`
+	SecretId           *openapi_types.UUID    `json:"secret_id,omitempty"`
+	TimeoutMs          *int                   `json:"timeout_ms,omitempty"`
+	WorkspaceId        openapi_types.UUID     `json:"workspace_id"`
+}
+
+// ConnectorInstanceUpdate defines model for ConnectorInstanceUpdate.
+type ConnectorInstanceUpdate struct {
+	AuthMethod *string                        `json:"auth_method,omitempty"`
+	Config     *map[string]interface{}        `json:"config,omitempty"`
+	RateLimit  *int                           `json:"rate_limit,omitempty"`
+	SecretId   *openapi_types.UUID            `json:"secret_id,omitempty"`
+	Status     *ConnectorInstanceUpdateStatus `json:"status,omitempty"`
+	TimeoutMs  *int                           `json:"timeout_ms,omitempty"`
+}
+
+// ConnectorInstanceUpdateStatus defines model for ConnectorInstanceUpdate.Status.
+type ConnectorInstanceUpdateStatus string
+
+// ConnectorTestResult defines model for ConnectorTestResult.
+type ConnectorTestResult struct {
+	CheckedAt time.Time `json:"checked_at"`
+	ErrorCode *string   `json:"error_code,omitempty"`
+	LatencyMs int       `json:"latency_ms"`
+	Message   string    `json:"message"`
+	Ok        bool      `json:"ok"`
+}
+
+// ConnectorVersion defines model for ConnectorVersion.
+type ConnectorVersion struct {
+	AuthMethods  []string                 `json:"auth_methods"`
+	ConfigSchema map[string]interface{}   `json:"config_schema"`
+	DefinitionId openapi_types.UUID       `json:"definition_id"`
+	DeprecatedAt *time.Time               `json:"deprecated_at,omitempty"`
+	Id           openapi_types.UUID       `json:"id"`
+	Operations   []map[string]interface{} `json:"operations"`
+	Version      string                   `json:"version"`
+}
+
+// Credential defines model for Credential.
+type Credential struct {
+	Configured    bool                `json:"configured"`
+	CreatedAt     time.Time           `json:"created_at"`
+	EnvironmentId *openapi_types.UUID `json:"environment_id,omitempty"`
+
+	// Hint At most the last four characters of the stored value.
+	Hint      string             `json:"hint"`
+	Id        openapi_types.UUID `json:"id"`
+	Kind      string             `json:"kind"`
+	Name      string             `json:"name"`
+	UpdatedAt time.Time          `json:"updated_at"`
+	Version   int64              `json:"version"`
+}
+
+// CredentialCreate defines model for CredentialCreate.
+type CredentialCreate struct {
+	EnvironmentId *openapi_types.UUID `json:"environment_id,omitempty"`
+	Kind          string              `json:"kind"`
+	Name          string              `json:"name"`
+	Value         string              `json:"value"`
+}
+
+// CredentialUpdate defines model for CredentialUpdate.
+type CredentialUpdate struct {
+	Name  *string `json:"name,omitempty"`
+	Value *string `json:"value,omitempty"`
 }
 
 // Department defines model for Department.
@@ -971,6 +1221,34 @@ type OidcProviderOption struct {
 	Preset IdentityProviderPreset `json:"preset"`
 }
 
+// OpenAPIChange defines model for OpenAPIChange.
+type OpenAPIChange struct {
+	Breaking    *bool             `json:"breaking,omitempty"`
+	Kind        OpenAPIChangeKind `json:"kind"`
+	Method      string            `json:"method"`
+	OperationId string            `json:"operation_id"`
+	Path        string            `json:"path"`
+}
+
+// OpenAPIChangeKind defines model for OpenAPIChange.Kind.
+type OpenAPIChangeKind string
+
+// OpenAPIImportRequest defines model for OpenAPIImportRequest.
+type OpenAPIImportRequest struct {
+	// Spec OpenAPI JSON or YAML document.
+	Spec         *string `json:"spec,omitempty"`
+	Url          *string `json:"url,omitempty"`
+	VersionLabel *string `json:"version_label,omitempty"`
+}
+
+// OpenAPIImportResult defines model for OpenAPIImportResult.
+type OpenAPIImportResult struct {
+	Changes       []OpenAPIChange     `json:"changes"`
+	DryRun        bool                `json:"dry_run"`
+	EndpointCount int                 `json:"endpoint_count"`
+	SpecId        *openapi_types.UUID `json:"spec_id,omitempty"`
+}
+
 // Organization defines model for Organization.
 type Organization struct {
 	CreatedAt time.Time            `json:"created_at"`
@@ -1141,6 +1419,23 @@ type RoleUpdate struct {
 	Permissions []string `json:"permissions"`
 }
 
+// Service defines model for Service.
+type Service struct {
+	CreatedAt     time.Time            `json:"created_at"`
+	Description   string               `json:"description"`
+	EndpointCount int64                `json:"endpoint_count"`
+	Environments  []ServiceEnvironment `json:"environments"`
+	Id            openapi_types.UUID   `json:"id"`
+	Name          string               `json:"name"`
+	Owner         string               `json:"owner"`
+	Protocol      ServiceProtocol      `json:"protocol"`
+	UpdatedAt     time.Time            `json:"updated_at"`
+	WorkspaceId   openapi_types.UUID   `json:"workspace_id"`
+}
+
+// ServiceProtocol defines model for Service.Protocol.
+type ServiceProtocol string
+
 // ServiceAccount defines model for ServiceAccount.
 type ServiceAccount struct {
 	ActiveKeyCount int64              `json:"active_key_count"`
@@ -1164,6 +1459,74 @@ type ServiceAccountUpdate struct {
 	Disabled    bool    `json:"disabled"`
 	Name        string  `json:"name"`
 }
+
+// ServiceCreate defines model for ServiceCreate.
+type ServiceCreate struct {
+	Description *string                `json:"description,omitempty"`
+	Name        string                 `json:"name"`
+	Owner       *string                `json:"owner,omitempty"`
+	Protocol    *ServiceCreateProtocol `json:"protocol,omitempty"`
+	WorkspaceId openapi_types.UUID     `json:"workspace_id"`
+}
+
+// ServiceCreateProtocol defines model for ServiceCreate.Protocol.
+type ServiceCreateProtocol string
+
+// ServiceEndpoint defines model for ServiceEndpoint.
+type ServiceEndpoint struct {
+	Deprecated      bool                     `json:"deprecated"`
+	Id              openapi_types.UUID       `json:"id"`
+	Method          string                   `json:"method"`
+	OperationId     string                   `json:"operation_id"`
+	Parameters      []map[string]interface{} `json:"parameters"`
+	Path            string                   `json:"path"`
+	RequestSchema   *map[string]interface{}  `json:"request_schema,omitempty"`
+	ResponseSchemas map[string]interface{}   `json:"response_schemas"`
+	Security        []map[string]interface{} `json:"security"`
+	ServiceId       openapi_types.UUID       `json:"service_id"`
+	Summary         string                   `json:"summary"`
+}
+
+// ServiceEnvironment defines model for ServiceEnvironment.
+type ServiceEnvironment struct {
+	BaseUrl             string              `json:"base_url"`
+	ConnectorInstanceId *openapi_types.UUID `json:"connector_instance_id"`
+	EnvironmentId       openapi_types.UUID  `json:"environment_id"`
+}
+
+// ServiceEnvironmentInput defines model for ServiceEnvironmentInput.
+type ServiceEnvironmentInput struct {
+	BaseUrl             string              `json:"base_url"`
+	ConnectorInstanceId *openapi_types.UUID `json:"connector_instance_id,omitempty"`
+}
+
+// ServiceTryRequest defines model for ServiceTryRequest.
+type ServiceTryRequest struct {
+	Body          interface{}        `json:"body,omitempty"`
+	EnvironmentId openapi_types.UUID `json:"environment_id"`
+	Headers       *map[string]string `json:"headers,omitempty"`
+	PathValues    *map[string]string `json:"path_values,omitempty"`
+	Query         *map[string]string `json:"query,omitempty"`
+}
+
+// ServiceTryResult defines model for ServiceTryResult.
+type ServiceTryResult struct {
+	Body       interface{}       `json:"body"`
+	DurationMs int               `json:"duration_ms"`
+	Headers    map[string]string `json:"headers"`
+	Status     int               `json:"status"`
+}
+
+// ServiceUpdate defines model for ServiceUpdate.
+type ServiceUpdate struct {
+	Description *string                `json:"description,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	Owner       *string                `json:"owner,omitempty"`
+	Protocol    *ServiceUpdateProtocol `json:"protocol,omitempty"`
+}
+
+// ServiceUpdateProtocol defines model for ServiceUpdate.Protocol.
+type ServiceUpdateProtocol string
 
 // SessionInfo defines model for SessionInfo.
 type SessionInfo struct {
@@ -1347,6 +1710,16 @@ type ListRoleBindingsParamsPrincipalType string
 // ListRoleBindingsParamsScopeType defines parameters for ListRoleBindings.
 type ListRoleBindingsParamsScopeType string
 
+// ListServicesParams defines parameters for ListServices.
+type ListServicesParams struct {
+	WorkspaceId openapi_types.UUID `form:"workspace_id" json:"workspace_id"`
+}
+
+// ImportOpenAPIParams defines parameters for ImportOpenAPI.
+type ImportOpenAPIParams struct {
+	DryRun *bool `form:"dry_run,omitempty" json:"dry_run,omitempty"`
+}
+
 // ListWorkspacesParams defines parameters for ListWorkspaces.
 type ListWorkspacesParams struct {
 	IncludeArchived *bool `form:"include_archived,omitempty" json:"include_archived,omitempty"`
@@ -1364,6 +1737,18 @@ type LoginJSONRequestBody = LoginRequest
 
 // EvaluateAccessJSONRequestBody defines body for EvaluateAccess for application/json ContentType.
 type EvaluateAccessJSONRequestBody = EvaluateRequest
+
+// CreateConnectorJSONRequestBody defines body for CreateConnector for application/json ContentType.
+type CreateConnectorJSONRequestBody = ConnectorInstanceCreate
+
+// UpdateConnectorJSONRequestBody defines body for UpdateConnector for application/json ContentType.
+type UpdateConnectorJSONRequestBody = ConnectorInstanceUpdate
+
+// CreateCredentialJSONRequestBody defines body for CreateCredential for application/json ContentType.
+type CreateCredentialJSONRequestBody = CredentialCreate
+
+// UpdateCredentialJSONRequestBody defines body for UpdateCredential for application/json ContentType.
+type UpdateCredentialJSONRequestBody = CredentialUpdate
 
 // CreateDepartmentJSONRequestBody defines body for CreateDepartment for application/json ContentType.
 type CreateDepartmentJSONRequestBody = DepartmentCreate
@@ -1425,6 +1810,21 @@ type UpdateServiceAccountJSONRequestBody = ServiceAccountUpdate
 // CreateApiKeyJSONRequestBody defines body for CreateApiKey for application/json ContentType.
 type CreateApiKeyJSONRequestBody = ApiKeyCreate
 
+// TryServiceEndpointJSONRequestBody defines body for TryServiceEndpoint for application/json ContentType.
+type TryServiceEndpointJSONRequestBody = ServiceTryRequest
+
+// CreateServiceJSONRequestBody defines body for CreateService for application/json ContentType.
+type CreateServiceJSONRequestBody = ServiceCreate
+
+// UpdateServiceJSONRequestBody defines body for UpdateService for application/json ContentType.
+type UpdateServiceJSONRequestBody = ServiceUpdate
+
+// PutServiceEnvironmentJSONRequestBody defines body for PutServiceEnvironment for application/json ContentType.
+type PutServiceEnvironmentJSONRequestBody = ServiceEnvironmentInput
+
+// ImportOpenAPIJSONRequestBody defines body for ImportOpenAPI for application/json ContentType.
+type ImportOpenAPIJSONRequestBody = OpenAPIImportRequest
+
 // UpdateUserJSONRequestBody defines body for UpdateUser for application/json ContentType.
 type UpdateUserJSONRequestBody = UserUpdate
 
@@ -1469,6 +1869,48 @@ type ServerInterface interface {
 	// EvaluateAccess Check whether a member could perform an action (simulation; not logged as a decision)
 	// (POST /v1/hugimethara/authorization/evaluate)
 	EvaluateAccess(w http.ResponseWriter, r *http.Request)
+	// ListConnectorDefinitions List available connector definitions
+	// (GET /v1/hugimethara/connector-definitions)
+	ListConnectorDefinitions(w http.ResponseWriter, r *http.Request)
+	// ListConnectorVersions List connector definition versions
+	// (GET /v1/hugimethara/connector-definitions/{definition_id}/versions)
+	ListConnectorVersions(w http.ResponseWriter, r *http.Request, definitionId openapi_types.UUID)
+	// ListConnectors List configured connector instances
+	// (GET /v1/hugimethara/connectors)
+	ListConnectors(w http.ResponseWriter, r *http.Request)
+	// CreateConnector Configure a connector instance
+	// (POST /v1/hugimethara/connectors)
+	CreateConnector(w http.ResponseWriter, r *http.Request)
+	// DeleteConnector Delete a connector instance
+	// (DELETE /v1/hugimethara/connectors/{connector_id})
+	DeleteConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID)
+	// GetConnector Get a connector instance
+	// (GET /v1/hugimethara/connectors/{connector_id})
+	GetConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID)
+	// UpdateConnector Update a connector instance
+	// (PATCH /v1/hugimethara/connectors/{connector_id})
+	UpdateConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID)
+	// GetConnectorHealth Get connector health history
+	// (GET /v1/hugimethara/connectors/{connector_id}/health)
+	GetConnectorHealth(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID)
+	// TestConnector Test connector reachability
+	// (POST /v1/hugimethara/connectors/{connector_id}/test)
+	TestConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID)
+	// ListCredentials List credential metadata
+	// (GET /v1/hugimethara/credentials)
+	ListCredentials(w http.ResponseWriter, r *http.Request)
+	// CreateCredential Store an encrypted credential
+	// (POST /v1/hugimethara/credentials)
+	CreateCredential(w http.ResponseWriter, r *http.Request)
+	// DeleteCredential Delete a credential
+	// (DELETE /v1/hugimethara/credentials/{credential_id})
+	DeleteCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID)
+	// GetCredential Get credential metadata
+	// (GET /v1/hugimethara/credentials/{credential_id})
+	GetCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID)
+	// UpdateCredential Update credential metadata or rotate its value
+	// (PATCH /v1/hugimethara/credentials/{credential_id})
+	UpdateCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID)
 	// ListDepartments List departments
 	// (GET /v1/hugimethara/departments)
 	ListDepartments(w http.ResponseWriter, r *http.Request)
@@ -1637,6 +2079,36 @@ type ServerInterface interface {
 	// RevokeApiKey Revoke an API key
 	// (DELETE /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id})
 	RevokeApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID, keyId openapi_types.UUID)
+	// TryServiceEndpoint Send a test request to an imported endpoint
+	// (POST /v1/hugimethara/service-endpoints/{endpoint_id}/try)
+	TryServiceEndpoint(w http.ResponseWriter, r *http.Request, endpointId openapi_types.UUID)
+	// ListServices List registered services
+	// (GET /v1/hugimethara/services)
+	ListServices(w http.ResponseWriter, r *http.Request, params ListServicesParams)
+	// CreateService Register an API service
+	// (POST /v1/hugimethara/services)
+	CreateService(w http.ResponseWriter, r *http.Request)
+	// DeleteService Delete a service and its imported API specs
+	// (DELETE /v1/hugimethara/services/{service_id})
+	DeleteService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID)
+	// GetService Get a registered service
+	// (GET /v1/hugimethara/services/{service_id})
+	GetService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID)
+	// UpdateService Update a registered service
+	// (PATCH /v1/hugimethara/services/{service_id})
+	UpdateService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID)
+	// ListServiceEndpoints List imported API endpoints
+	// (GET /v1/hugimethara/services/{service_id}/endpoints)
+	ListServiceEndpoints(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID)
+	// DeleteServiceEnvironment Remove a service environment binding
+	// (DELETE /v1/hugimethara/services/{service_id}/environments/{environment_id})
+	DeleteServiceEnvironment(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, environmentId openapi_types.UUID)
+	// PutServiceEnvironment Set a service base URL for an environment
+	// (PUT /v1/hugimethara/services/{service_id}/environments/{environment_id})
+	PutServiceEnvironment(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, environmentId openapi_types.UUID)
+	// ImportOpenAPI Import an OpenAPI document and preview changes
+	// (POST /v1/hugimethara/services/{service_id}/import-openapi)
+	ImportOpenAPI(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, params ImportOpenAPIParams)
 	// GetSystemInfo Build and deployment information
 	// (GET /v1/hugimethara/system/info)
 	GetSystemInfo(w http.ResponseWriter, r *http.Request)
@@ -1742,6 +2214,90 @@ func (_ Unimplemented) ListAccessDecisions(w http.ResponseWriter, r *http.Reques
 // EvaluateAccess Check whether a member could perform an action (simulation; not logged as a decision)
 // (POST /v1/hugimethara/authorization/evaluate)
 func (_ Unimplemented) EvaluateAccess(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListConnectorDefinitions List available connector definitions
+// (GET /v1/hugimethara/connector-definitions)
+func (_ Unimplemented) ListConnectorDefinitions(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListConnectorVersions List connector definition versions
+// (GET /v1/hugimethara/connector-definitions/{definition_id}/versions)
+func (_ Unimplemented) ListConnectorVersions(w http.ResponseWriter, r *http.Request, definitionId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListConnectors List configured connector instances
+// (GET /v1/hugimethara/connectors)
+func (_ Unimplemented) ListConnectors(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateConnector Configure a connector instance
+// (POST /v1/hugimethara/connectors)
+func (_ Unimplemented) CreateConnector(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteConnector Delete a connector instance
+// (DELETE /v1/hugimethara/connectors/{connector_id})
+func (_ Unimplemented) DeleteConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetConnector Get a connector instance
+// (GET /v1/hugimethara/connectors/{connector_id})
+func (_ Unimplemented) GetConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateConnector Update a connector instance
+// (PATCH /v1/hugimethara/connectors/{connector_id})
+func (_ Unimplemented) UpdateConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetConnectorHealth Get connector health history
+// (GET /v1/hugimethara/connectors/{connector_id}/health)
+func (_ Unimplemented) GetConnectorHealth(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// TestConnector Test connector reachability
+// (POST /v1/hugimethara/connectors/{connector_id}/test)
+func (_ Unimplemented) TestConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListCredentials List credential metadata
+// (GET /v1/hugimethara/credentials)
+func (_ Unimplemented) ListCredentials(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateCredential Store an encrypted credential
+// (POST /v1/hugimethara/credentials)
+func (_ Unimplemented) CreateCredential(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteCredential Delete a credential
+// (DELETE /v1/hugimethara/credentials/{credential_id})
+func (_ Unimplemented) DeleteCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetCredential Get credential metadata
+// (GET /v1/hugimethara/credentials/{credential_id})
+func (_ Unimplemented) GetCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateCredential Update credential metadata or rotate its value
+// (PATCH /v1/hugimethara/credentials/{credential_id})
+func (_ Unimplemented) UpdateCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2078,6 +2634,66 @@ func (_ Unimplemented) CreateApiKey(w http.ResponseWriter, r *http.Request, serv
 // RevokeApiKey Revoke an API key
 // (DELETE /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id})
 func (_ Unimplemented) RevokeApiKey(w http.ResponseWriter, r *http.Request, serviceAccountId openapi_types.UUID, keyId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// TryServiceEndpoint Send a test request to an imported endpoint
+// (POST /v1/hugimethara/service-endpoints/{endpoint_id}/try)
+func (_ Unimplemented) TryServiceEndpoint(w http.ResponseWriter, r *http.Request, endpointId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListServices List registered services
+// (GET /v1/hugimethara/services)
+func (_ Unimplemented) ListServices(w http.ResponseWriter, r *http.Request, params ListServicesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// CreateService Register an API service
+// (POST /v1/hugimethara/services)
+func (_ Unimplemented) CreateService(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteService Delete a service and its imported API specs
+// (DELETE /v1/hugimethara/services/{service_id})
+func (_ Unimplemented) DeleteService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// GetService Get a registered service
+// (GET /v1/hugimethara/services/{service_id})
+func (_ Unimplemented) GetService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// UpdateService Update a registered service
+// (PATCH /v1/hugimethara/services/{service_id})
+func (_ Unimplemented) UpdateService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ListServiceEndpoints List imported API endpoints
+// (GET /v1/hugimethara/services/{service_id}/endpoints)
+func (_ Unimplemented) ListServiceEndpoints(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// DeleteServiceEnvironment Remove a service environment binding
+// (DELETE /v1/hugimethara/services/{service_id}/environments/{environment_id})
+func (_ Unimplemented) DeleteServiceEnvironment(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, environmentId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// PutServiceEnvironment Set a service base URL for an environment
+// (PUT /v1/hugimethara/services/{service_id}/environments/{environment_id})
+func (_ Unimplemented) PutServiceEnvironment(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, environmentId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// ImportOpenAPI Import an OpenAPI document and preview changes
+// (POST /v1/hugimethara/services/{service_id}/import-openapi)
+func (_ Unimplemented) ImportOpenAPI(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, params ImportOpenAPIParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2552,6 +3168,310 @@ func (siw *ServerInterfaceWrapper) EvaluateAccess(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.EvaluateAccess(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListConnectorDefinitions operation middleware
+func (siw *ServerInterfaceWrapper) ListConnectorDefinitions(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListConnectorDefinitions(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListConnectorVersions operation middleware
+func (siw *ServerInterfaceWrapper) ListConnectorVersions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "definition_id" -------------
+	var definitionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "definition_id", chi.URLParam(r, "definition_id"), &definitionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "definition_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListConnectorVersions(w, r, definitionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListConnectors operation middleware
+func (siw *ServerInterfaceWrapper) ListConnectors(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListConnectors(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateConnector operation middleware
+func (siw *ServerInterfaceWrapper) CreateConnector(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateConnector(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteConnector operation middleware
+func (siw *ServerInterfaceWrapper) DeleteConnector(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "connector_id" -------------
+	var connectorId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "connector_id", chi.URLParam(r, "connector_id"), &connectorId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "connector_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteConnector(w, r, connectorId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetConnector operation middleware
+func (siw *ServerInterfaceWrapper) GetConnector(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "connector_id" -------------
+	var connectorId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "connector_id", chi.URLParam(r, "connector_id"), &connectorId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "connector_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetConnector(w, r, connectorId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateConnector operation middleware
+func (siw *ServerInterfaceWrapper) UpdateConnector(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "connector_id" -------------
+	var connectorId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "connector_id", chi.URLParam(r, "connector_id"), &connectorId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "connector_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateConnector(w, r, connectorId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetConnectorHealth operation middleware
+func (siw *ServerInterfaceWrapper) GetConnectorHealth(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "connector_id" -------------
+	var connectorId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "connector_id", chi.URLParam(r, "connector_id"), &connectorId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "connector_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetConnectorHealth(w, r, connectorId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TestConnector operation middleware
+func (siw *ServerInterfaceWrapper) TestConnector(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "connector_id" -------------
+	var connectorId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "connector_id", chi.URLParam(r, "connector_id"), &connectorId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "connector_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TestConnector(w, r, connectorId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListCredentials operation middleware
+func (siw *ServerInterfaceWrapper) ListCredentials(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCredentials(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCredential operation middleware
+func (siw *ServerInterfaceWrapper) CreateCredential(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCredential(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteCredential operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCredential(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "credential_id" -------------
+	var credentialId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "credential_id", chi.URLParam(r, "credential_id"), &credentialId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "credential_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteCredential(w, r, credentialId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetCredential operation middleware
+func (siw *ServerInterfaceWrapper) GetCredential(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "credential_id" -------------
+	var credentialId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "credential_id", chi.URLParam(r, "credential_id"), &credentialId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "credential_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetCredential(w, r, credentialId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateCredential operation middleware
+func (siw *ServerInterfaceWrapper) UpdateCredential(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "credential_id" -------------
+	var credentialId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "credential_id", chi.URLParam(r, "credential_id"), &credentialId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "credential_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateCredential(w, r, credentialId)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -3847,6 +4767,295 @@ func (siw *ServerInterfaceWrapper) RevokeApiKey(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
+// TryServiceEndpoint operation middleware
+func (siw *ServerInterfaceWrapper) TryServiceEndpoint(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "endpoint_id" -------------
+	var endpointId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "endpoint_id", chi.URLParam(r, "endpoint_id"), &endpointId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "endpoint_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TryServiceEndpoint(w, r, endpointId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListServices operation middleware
+func (siw *ServerInterfaceWrapper) ListServices(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListServicesParams
+
+	// ------------- Required query parameter "workspace_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, true, "workspace_id", r.URL.Query(), &params.WorkspaceId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "workspace_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "workspace_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListServices(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateService operation middleware
+func (siw *ServerInterfaceWrapper) CreateService(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateService(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteService operation middleware
+func (siw *ServerInterfaceWrapper) DeleteService(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_id" -------------
+	var serviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_id", chi.URLParam(r, "service_id"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteService(w, r, serviceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetService operation middleware
+func (siw *ServerInterfaceWrapper) GetService(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_id" -------------
+	var serviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_id", chi.URLParam(r, "service_id"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetService(w, r, serviceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateService operation middleware
+func (siw *ServerInterfaceWrapper) UpdateService(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_id" -------------
+	var serviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_id", chi.URLParam(r, "service_id"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateService(w, r, serviceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListServiceEndpoints operation middleware
+func (siw *ServerInterfaceWrapper) ListServiceEndpoints(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_id" -------------
+	var serviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_id", chi.URLParam(r, "service_id"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListServiceEndpoints(w, r, serviceId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteServiceEnvironment operation middleware
+func (siw *ServerInterfaceWrapper) DeleteServiceEnvironment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_id" -------------
+	var serviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_id", chi.URLParam(r, "service_id"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "environment_id" -------------
+	var environmentId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "environment_id", chi.URLParam(r, "environment_id"), &environmentId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "environment_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteServiceEnvironment(w, r, serviceId, environmentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutServiceEnvironment operation middleware
+func (siw *ServerInterfaceWrapper) PutServiceEnvironment(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_id" -------------
+	var serviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_id", chi.URLParam(r, "service_id"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_id", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "environment_id" -------------
+	var environmentId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "environment_id", chi.URLParam(r, "environment_id"), &environmentId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "environment_id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutServiceEnvironment(w, r, serviceId, environmentId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ImportOpenAPI operation middleware
+func (siw *ServerInterfaceWrapper) ImportOpenAPI(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "service_id" -------------
+	var serviceId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "service_id", chi.URLParam(r, "service_id"), &serviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: r.URL.RawPath == ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "service_id", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ImportOpenAPIParams
+
+	// ------------- Optional query parameter "dry_run" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "dry_run", r.URL.Query(), &params.DryRun, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "dry_run"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "dry_run", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ImportOpenAPI(w, r, serviceId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetSystemInfo operation middleware
 func (siw *ServerInterfaceWrapper) GetSystemInfo(w http.ResponseWriter, r *http.Request) {
 
@@ -4375,6 +5584,78 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hugimethara/audit-events", wrapper.ListAuditEvents)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/credentials", wrapper.ListCredentials)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/credentials", wrapper.CreateCredential)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/credentials/{credential_id}", wrapper.DeleteCredential)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/credentials/{credential_id}", wrapper.GetCredential)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/v1/hugimethara/credentials/{credential_id}", wrapper.UpdateCredential)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/connector-definitions", wrapper.ListConnectorDefinitions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/connector-definitions/{definition_id}/versions", wrapper.ListConnectorVersions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/connectors", wrapper.ListConnectors)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/connectors", wrapper.CreateConnector)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/connectors/{connector_id}", wrapper.DeleteConnector)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/connectors/{connector_id}", wrapper.GetConnector)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/v1/hugimethara/connectors/{connector_id}", wrapper.UpdateConnector)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/connectors/{connector_id}/test", wrapper.TestConnector)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/connectors/{connector_id}/health", wrapper.GetConnectorHealth)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/services", wrapper.ListServices)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/services", wrapper.CreateService)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/services/{service_id}", wrapper.DeleteService)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/services/{service_id}", wrapper.GetService)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/v1/hugimethara/services/{service_id}", wrapper.UpdateService)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/v1/hugimethara/services/{service_id}/environments/{environment_id}", wrapper.DeleteServiceEnvironment)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/v1/hugimethara/services/{service_id}/environments/{environment_id}", wrapper.PutServiceEnvironment)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/services/{service_id}/import-openapi", wrapper.ImportOpenAPI)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/v1/hugimethara/services/{service_id}/endpoints", wrapper.ListServiceEndpoints)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/v1/hugimethara/service-endpoints/{endpoint_id}/try", wrapper.TryServiceEndpoint)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/v1/hugimethara/departments", wrapper.ListDepartments)
@@ -5094,6 +6375,1151 @@ type EvaluateAccessdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response EvaluateAccessdefaultApplicationProblemPlusJSONResponse) VisitEvaluateAccessResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorDefinitionsRequestObject struct {
+}
+
+type ListConnectorDefinitionsResponseObject interface {
+	VisitListConnectorDefinitionsResponse(w http.ResponseWriter) error
+}
+
+type ListConnectorDefinitions200JSONResponse struct {
+	Data []ConnectorDefinition `json:"data"`
+}
+
+func (response ListConnectorDefinitions200JSONResponse) VisitListConnectorDefinitionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorDefinitions401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListConnectorDefinitions401ApplicationProblemPlusJSONResponse) VisitListConnectorDefinitionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorDefinitions403ApplicationProblemPlusJSONResponse Problem
+
+func (response ListConnectorDefinitions403ApplicationProblemPlusJSONResponse) VisitListConnectorDefinitionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorDefinitionsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListConnectorDefinitionsdefaultApplicationProblemPlusJSONResponse) VisitListConnectorDefinitionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorVersionsRequestObject struct {
+	DefinitionId openapi_types.UUID `json:"definition_id"`
+}
+
+type ListConnectorVersionsResponseObject interface {
+	VisitListConnectorVersionsResponse(w http.ResponseWriter) error
+}
+
+type ListConnectorVersions200JSONResponse struct {
+	Data []ConnectorVersion `json:"data"`
+}
+
+func (response ListConnectorVersions200JSONResponse) VisitListConnectorVersionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorVersions401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListConnectorVersions401ApplicationProblemPlusJSONResponse) VisitListConnectorVersionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorVersions403ApplicationProblemPlusJSONResponse Problem
+
+func (response ListConnectorVersions403ApplicationProblemPlusJSONResponse) VisitListConnectorVersionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorVersions404ApplicationProblemPlusJSONResponse Problem
+
+func (response ListConnectorVersions404ApplicationProblemPlusJSONResponse) VisitListConnectorVersionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorVersionsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListConnectorVersionsdefaultApplicationProblemPlusJSONResponse) VisitListConnectorVersionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorsRequestObject struct {
+}
+
+type ListConnectorsResponseObject interface {
+	VisitListConnectorsResponse(w http.ResponseWriter) error
+}
+
+type ListConnectors200JSONResponse struct {
+	Data []ConnectorInstance `json:"data"`
+}
+
+func (response ListConnectors200JSONResponse) VisitListConnectorsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectors401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListConnectors401ApplicationProblemPlusJSONResponse) VisitListConnectorsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectors403ApplicationProblemPlusJSONResponse Problem
+
+func (response ListConnectors403ApplicationProblemPlusJSONResponse) VisitListConnectorsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListConnectorsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListConnectorsdefaultApplicationProblemPlusJSONResponse) VisitListConnectorsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateConnectorRequestObject struct {
+	Body *CreateConnectorJSONRequestBody
+}
+
+type CreateConnectorResponseObject interface {
+	VisitCreateConnectorResponse(w http.ResponseWriter) error
+}
+
+type CreateConnector201JSONResponse ConnectorInstance
+
+func (response CreateConnector201JSONResponse) VisitCreateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateConnector401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateConnector401ApplicationProblemPlusJSONResponse) VisitCreateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateConnector403ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateConnector403ApplicationProblemPlusJSONResponse) VisitCreateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateConnector422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateConnector422ApplicationProblemPlusJSONResponse) VisitCreateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateConnectordefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateConnectordefaultApplicationProblemPlusJSONResponse) VisitCreateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteConnectorRequestObject struct {
+	ConnectorId openapi_types.UUID `json:"connector_id"`
+}
+
+type DeleteConnectorResponseObject interface {
+	VisitDeleteConnectorResponse(w http.ResponseWriter) error
+}
+
+type DeleteConnector204Response struct {
+}
+
+func (response DeleteConnector204Response) VisitDeleteConnectorResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteConnector401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteConnector401ApplicationProblemPlusJSONResponse) VisitDeleteConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteConnector403ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteConnector403ApplicationProblemPlusJSONResponse) VisitDeleteConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteConnector404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteConnector404ApplicationProblemPlusJSONResponse) VisitDeleteConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteConnectordefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteConnectordefaultApplicationProblemPlusJSONResponse) VisitDeleteConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnectorRequestObject struct {
+	ConnectorId openapi_types.UUID `json:"connector_id"`
+}
+
+type GetConnectorResponseObject interface {
+	VisitGetConnectorResponse(w http.ResponseWriter) error
+}
+
+type GetConnector200JSONResponse ConnectorInstance
+
+func (response GetConnector200JSONResponse) VisitGetConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnector401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetConnector401ApplicationProblemPlusJSONResponse) VisitGetConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnector403ApplicationProblemPlusJSONResponse Problem
+
+func (response GetConnector403ApplicationProblemPlusJSONResponse) VisitGetConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnector404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetConnector404ApplicationProblemPlusJSONResponse) VisitGetConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnectordefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetConnectordefaultApplicationProblemPlusJSONResponse) VisitGetConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateConnectorRequestObject struct {
+	ConnectorId openapi_types.UUID `json:"connector_id"`
+	Body        *UpdateConnectorJSONRequestBody
+}
+
+type UpdateConnectorResponseObject interface {
+	VisitUpdateConnectorResponse(w http.ResponseWriter) error
+}
+
+type UpdateConnector200JSONResponse ConnectorInstance
+
+func (response UpdateConnector200JSONResponse) VisitUpdateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateConnector401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateConnector401ApplicationProblemPlusJSONResponse) VisitUpdateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateConnector403ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateConnector403ApplicationProblemPlusJSONResponse) VisitUpdateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateConnector404ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateConnector404ApplicationProblemPlusJSONResponse) VisitUpdateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateConnector422ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateConnector422ApplicationProblemPlusJSONResponse) VisitUpdateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateConnectordefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateConnectordefaultApplicationProblemPlusJSONResponse) VisitUpdateConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnectorHealthRequestObject struct {
+	ConnectorId openapi_types.UUID `json:"connector_id"`
+}
+
+type GetConnectorHealthResponseObject interface {
+	VisitGetConnectorHealthResponse(w http.ResponseWriter) error
+}
+
+type GetConnectorHealth200JSONResponse struct {
+	Data []ConnectorTestResult `json:"data"`
+}
+
+func (response GetConnectorHealth200JSONResponse) VisitGetConnectorHealthResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnectorHealth401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetConnectorHealth401ApplicationProblemPlusJSONResponse) VisitGetConnectorHealthResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnectorHealth403ApplicationProblemPlusJSONResponse Problem
+
+func (response GetConnectorHealth403ApplicationProblemPlusJSONResponse) VisitGetConnectorHealthResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnectorHealth404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetConnectorHealth404ApplicationProblemPlusJSONResponse) VisitGetConnectorHealthResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetConnectorHealthdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetConnectorHealthdefaultApplicationProblemPlusJSONResponse) VisitGetConnectorHealthResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestConnectorRequestObject struct {
+	ConnectorId openapi_types.UUID `json:"connector_id"`
+}
+
+type TestConnectorResponseObject interface {
+	VisitTestConnectorResponse(w http.ResponseWriter) error
+}
+
+type TestConnector200JSONResponse ConnectorTestResult
+
+func (response TestConnector200JSONResponse) VisitTestConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestConnector401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response TestConnector401ApplicationProblemPlusJSONResponse) VisitTestConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestConnector403ApplicationProblemPlusJSONResponse Problem
+
+func (response TestConnector403ApplicationProblemPlusJSONResponse) VisitTestConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestConnector404ApplicationProblemPlusJSONResponse Problem
+
+func (response TestConnector404ApplicationProblemPlusJSONResponse) VisitTestConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TestConnectordefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response TestConnectordefaultApplicationProblemPlusJSONResponse) VisitTestConnectorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCredentialsRequestObject struct {
+}
+
+type ListCredentialsResponseObject interface {
+	VisitListCredentialsResponse(w http.ResponseWriter) error
+}
+
+type ListCredentials200JSONResponse struct {
+	Data []Credential `json:"data"`
+}
+
+func (response ListCredentials200JSONResponse) VisitListCredentialsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCredentials401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListCredentials401ApplicationProblemPlusJSONResponse) VisitListCredentialsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCredentials403ApplicationProblemPlusJSONResponse Problem
+
+func (response ListCredentials403ApplicationProblemPlusJSONResponse) VisitListCredentialsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCredentialsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListCredentialsdefaultApplicationProblemPlusJSONResponse) VisitListCredentialsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCredentialRequestObject struct {
+	Body *CreateCredentialJSONRequestBody
+}
+
+type CreateCredentialResponseObject interface {
+	VisitCreateCredentialResponse(w http.ResponseWriter) error
+}
+
+type CreateCredential201JSONResponse Credential
+
+func (response CreateCredential201JSONResponse) VisitCreateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCredential401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateCredential401ApplicationProblemPlusJSONResponse) VisitCreateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCredential403ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateCredential403ApplicationProblemPlusJSONResponse) VisitCreateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCredential422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateCredential422ApplicationProblemPlusJSONResponse) VisitCreateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCredentialdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateCredentialdefaultApplicationProblemPlusJSONResponse) VisitCreateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCredentialRequestObject struct {
+	CredentialId openapi_types.UUID `json:"credential_id"`
+}
+
+type DeleteCredentialResponseObject interface {
+	VisitDeleteCredentialResponse(w http.ResponseWriter) error
+}
+
+type DeleteCredential204Response struct {
+}
+
+func (response DeleteCredential204Response) VisitDeleteCredentialResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteCredential401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteCredential401ApplicationProblemPlusJSONResponse) VisitDeleteCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCredential403ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteCredential403ApplicationProblemPlusJSONResponse) VisitDeleteCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCredential404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteCredential404ApplicationProblemPlusJSONResponse) VisitDeleteCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCredentialdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteCredentialdefaultApplicationProblemPlusJSONResponse) VisitDeleteCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCredentialRequestObject struct {
+	CredentialId openapi_types.UUID `json:"credential_id"`
+}
+
+type GetCredentialResponseObject interface {
+	VisitGetCredentialResponse(w http.ResponseWriter) error
+}
+
+type GetCredential200JSONResponse Credential
+
+func (response GetCredential200JSONResponse) VisitGetCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCredential401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetCredential401ApplicationProblemPlusJSONResponse) VisitGetCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCredential403ApplicationProblemPlusJSONResponse Problem
+
+func (response GetCredential403ApplicationProblemPlusJSONResponse) VisitGetCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCredential404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetCredential404ApplicationProblemPlusJSONResponse) VisitGetCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCredentialdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetCredentialdefaultApplicationProblemPlusJSONResponse) VisitGetCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCredentialRequestObject struct {
+	CredentialId openapi_types.UUID `json:"credential_id"`
+	Body         *UpdateCredentialJSONRequestBody
+}
+
+type UpdateCredentialResponseObject interface {
+	VisitUpdateCredentialResponse(w http.ResponseWriter) error
+}
+
+type UpdateCredential200JSONResponse Credential
+
+func (response UpdateCredential200JSONResponse) VisitUpdateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCredential401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateCredential401ApplicationProblemPlusJSONResponse) VisitUpdateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCredential403ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateCredential403ApplicationProblemPlusJSONResponse) VisitUpdateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCredential404ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateCredential404ApplicationProblemPlusJSONResponse) VisitUpdateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCredential422ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateCredential422ApplicationProblemPlusJSONResponse) VisitUpdateCredentialResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCredentialdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateCredentialdefaultApplicationProblemPlusJSONResponse) VisitUpdateCredentialResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
@@ -9260,6 +11686,863 @@ func (response RevokeApiKeydefaultApplicationProblemPlusJSONResponse) VisitRevok
 	return err
 }
 
+type TryServiceEndpointRequestObject struct {
+	EndpointId openapi_types.UUID `json:"endpoint_id"`
+	Body       *TryServiceEndpointJSONRequestBody
+}
+
+type TryServiceEndpointResponseObject interface {
+	VisitTryServiceEndpointResponse(w http.ResponseWriter) error
+}
+
+type TryServiceEndpoint200JSONResponse ServiceTryResult
+
+func (response TryServiceEndpoint200JSONResponse) VisitTryServiceEndpointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TryServiceEndpoint401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response TryServiceEndpoint401ApplicationProblemPlusJSONResponse) VisitTryServiceEndpointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TryServiceEndpoint403ApplicationProblemPlusJSONResponse Problem
+
+func (response TryServiceEndpoint403ApplicationProblemPlusJSONResponse) VisitTryServiceEndpointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TryServiceEndpoint404ApplicationProblemPlusJSONResponse Problem
+
+func (response TryServiceEndpoint404ApplicationProblemPlusJSONResponse) VisitTryServiceEndpointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TryServiceEndpoint422ApplicationProblemPlusJSONResponse Problem
+
+func (response TryServiceEndpoint422ApplicationProblemPlusJSONResponse) VisitTryServiceEndpointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TryServiceEndpointdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response TryServiceEndpointdefaultApplicationProblemPlusJSONResponse) VisitTryServiceEndpointResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServicesRequestObject struct {
+	Params ListServicesParams
+}
+
+type ListServicesResponseObject interface {
+	VisitListServicesResponse(w http.ResponseWriter) error
+}
+
+type ListServices200JSONResponse struct {
+	Data []Service `json:"data"`
+}
+
+func (response ListServices200JSONResponse) VisitListServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServices401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListServices401ApplicationProblemPlusJSONResponse) VisitListServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServices403ApplicationProblemPlusJSONResponse Problem
+
+func (response ListServices403ApplicationProblemPlusJSONResponse) VisitListServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServicesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListServicesdefaultApplicationProblemPlusJSONResponse) VisitListServicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateServiceRequestObject struct {
+	Body *CreateServiceJSONRequestBody
+}
+
+type CreateServiceResponseObject interface {
+	VisitCreateServiceResponse(w http.ResponseWriter) error
+}
+
+type CreateService201JSONResponse Service
+
+func (response CreateService201JSONResponse) VisitCreateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateService401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response CreateService401ApplicationProblemPlusJSONResponse) VisitCreateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateService403ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateService403ApplicationProblemPlusJSONResponse) VisitCreateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateService422ApplicationProblemPlusJSONResponse Problem
+
+func (response CreateService422ApplicationProblemPlusJSONResponse) VisitCreateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateServicedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateServicedefaultApplicationProblemPlusJSONResponse) VisitCreateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceRequestObject struct {
+	ServiceId openapi_types.UUID `json:"service_id"`
+}
+
+type DeleteServiceResponseObject interface {
+	VisitDeleteServiceResponse(w http.ResponseWriter) error
+}
+
+type DeleteService204Response struct {
+}
+
+func (response DeleteService204Response) VisitDeleteServiceResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteService401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteService401ApplicationProblemPlusJSONResponse) VisitDeleteServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteService403ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteService403ApplicationProblemPlusJSONResponse) VisitDeleteServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteService404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteService404ApplicationProblemPlusJSONResponse) VisitDeleteServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServicedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteServicedefaultApplicationProblemPlusJSONResponse) VisitDeleteServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServiceRequestObject struct {
+	ServiceId openapi_types.UUID `json:"service_id"`
+}
+
+type GetServiceResponseObject interface {
+	VisitGetServiceResponse(w http.ResponseWriter) error
+}
+
+type GetService200JSONResponse Service
+
+func (response GetService200JSONResponse) VisitGetServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetService401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response GetService401ApplicationProblemPlusJSONResponse) VisitGetServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetService403ApplicationProblemPlusJSONResponse Problem
+
+func (response GetService403ApplicationProblemPlusJSONResponse) VisitGetServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetService404ApplicationProblemPlusJSONResponse Problem
+
+func (response GetService404ApplicationProblemPlusJSONResponse) VisitGetServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServicedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetServicedefaultApplicationProblemPlusJSONResponse) VisitGetServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceRequestObject struct {
+	ServiceId openapi_types.UUID `json:"service_id"`
+	Body      *UpdateServiceJSONRequestBody
+}
+
+type UpdateServiceResponseObject interface {
+	VisitUpdateServiceResponse(w http.ResponseWriter) error
+}
+
+type UpdateService200JSONResponse Service
+
+func (response UpdateService200JSONResponse) VisitUpdateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateService401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response UpdateService401ApplicationProblemPlusJSONResponse) VisitUpdateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateService403ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateService403ApplicationProblemPlusJSONResponse) VisitUpdateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateService404ApplicationProblemPlusJSONResponse Problem
+
+func (response UpdateService404ApplicationProblemPlusJSONResponse) VisitUpdateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServicedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateServicedefaultApplicationProblemPlusJSONResponse) VisitUpdateServiceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceEndpointsRequestObject struct {
+	ServiceId openapi_types.UUID `json:"service_id"`
+}
+
+type ListServiceEndpointsResponseObject interface {
+	VisitListServiceEndpointsResponse(w http.ResponseWriter) error
+}
+
+type ListServiceEndpoints200JSONResponse struct {
+	Data []ServiceEndpoint `json:"data"`
+}
+
+func (response ListServiceEndpoints200JSONResponse) VisitListServiceEndpointsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceEndpoints401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ListServiceEndpoints401ApplicationProblemPlusJSONResponse) VisitListServiceEndpointsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceEndpoints403ApplicationProblemPlusJSONResponse Problem
+
+func (response ListServiceEndpoints403ApplicationProblemPlusJSONResponse) VisitListServiceEndpointsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceEndpoints404ApplicationProblemPlusJSONResponse Problem
+
+func (response ListServiceEndpoints404ApplicationProblemPlusJSONResponse) VisitListServiceEndpointsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceEndpointsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListServiceEndpointsdefaultApplicationProblemPlusJSONResponse) VisitListServiceEndpointsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceEnvironmentRequestObject struct {
+	ServiceId     openapi_types.UUID `json:"service_id"`
+	EnvironmentId openapi_types.UUID `json:"environment_id"`
+}
+
+type DeleteServiceEnvironmentResponseObject interface {
+	VisitDeleteServiceEnvironmentResponse(w http.ResponseWriter) error
+}
+
+type DeleteServiceEnvironment204Response struct {
+}
+
+func (response DeleteServiceEnvironment204Response) VisitDeleteServiceEnvironmentResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteServiceEnvironment401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response DeleteServiceEnvironment401ApplicationProblemPlusJSONResponse) VisitDeleteServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceEnvironment403ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteServiceEnvironment403ApplicationProblemPlusJSONResponse) VisitDeleteServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceEnvironment404ApplicationProblemPlusJSONResponse Problem
+
+func (response DeleteServiceEnvironment404ApplicationProblemPlusJSONResponse) VisitDeleteServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteServiceEnvironmentdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeleteServiceEnvironmentdefaultApplicationProblemPlusJSONResponse) VisitDeleteServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutServiceEnvironmentRequestObject struct {
+	ServiceId     openapi_types.UUID `json:"service_id"`
+	EnvironmentId openapi_types.UUID `json:"environment_id"`
+	Body          *PutServiceEnvironmentJSONRequestBody
+}
+
+type PutServiceEnvironmentResponseObject interface {
+	VisitPutServiceEnvironmentResponse(w http.ResponseWriter) error
+}
+
+type PutServiceEnvironment200JSONResponse ServiceEnvironment
+
+func (response PutServiceEnvironment200JSONResponse) VisitPutServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutServiceEnvironment401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response PutServiceEnvironment401ApplicationProblemPlusJSONResponse) VisitPutServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutServiceEnvironment403ApplicationProblemPlusJSONResponse Problem
+
+func (response PutServiceEnvironment403ApplicationProblemPlusJSONResponse) VisitPutServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutServiceEnvironment404ApplicationProblemPlusJSONResponse Problem
+
+func (response PutServiceEnvironment404ApplicationProblemPlusJSONResponse) VisitPutServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutServiceEnvironment422ApplicationProblemPlusJSONResponse Problem
+
+func (response PutServiceEnvironment422ApplicationProblemPlusJSONResponse) VisitPutServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutServiceEnvironmentdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response PutServiceEnvironmentdefaultApplicationProblemPlusJSONResponse) VisitPutServiceEnvironmentResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ImportOpenAPIRequestObject struct {
+	ServiceId openapi_types.UUID `json:"service_id"`
+	Params    ImportOpenAPIParams
+	Body      *ImportOpenAPIJSONRequestBody
+}
+
+type ImportOpenAPIResponseObject interface {
+	VisitImportOpenAPIResponse(w http.ResponseWriter) error
+}
+
+type ImportOpenAPI200JSONResponse OpenAPIImportResult
+
+func (response ImportOpenAPI200JSONResponse) VisitImportOpenAPIResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ImportOpenAPI401ApplicationProblemPlusJSONResponse struct {
+	ProblemApplicationProblemPlusJSONResponse
+}
+
+func (response ImportOpenAPI401ApplicationProblemPlusJSONResponse) VisitImportOpenAPIResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ImportOpenAPI403ApplicationProblemPlusJSONResponse Problem
+
+func (response ImportOpenAPI403ApplicationProblemPlusJSONResponse) VisitImportOpenAPIResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ImportOpenAPI404ApplicationProblemPlusJSONResponse Problem
+
+func (response ImportOpenAPI404ApplicationProblemPlusJSONResponse) VisitImportOpenAPIResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ImportOpenAPI422ApplicationProblemPlusJSONResponse Problem
+
+func (response ImportOpenAPI422ApplicationProblemPlusJSONResponse) VisitImportOpenAPIResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ImportOpenAPIdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ImportOpenAPIdefaultApplicationProblemPlusJSONResponse) VisitImportOpenAPIResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetSystemInfoRequestObject struct {
 }
 
@@ -10350,6 +13633,48 @@ type StrictServerInterface interface {
 	// EvaluateAccess Check whether a member could perform an action (simulation; not logged as a decision)
 	// (POST /v1/hugimethara/authorization/evaluate)
 	EvaluateAccess(ctx context.Context, request EvaluateAccessRequestObject) (EvaluateAccessResponseObject, error)
+	// ListConnectorDefinitions List available connector definitions
+	// (GET /v1/hugimethara/connector-definitions)
+	ListConnectorDefinitions(ctx context.Context, request ListConnectorDefinitionsRequestObject) (ListConnectorDefinitionsResponseObject, error)
+	// ListConnectorVersions List connector definition versions
+	// (GET /v1/hugimethara/connector-definitions/{definition_id}/versions)
+	ListConnectorVersions(ctx context.Context, request ListConnectorVersionsRequestObject) (ListConnectorVersionsResponseObject, error)
+	// ListConnectors List configured connector instances
+	// (GET /v1/hugimethara/connectors)
+	ListConnectors(ctx context.Context, request ListConnectorsRequestObject) (ListConnectorsResponseObject, error)
+	// CreateConnector Configure a connector instance
+	// (POST /v1/hugimethara/connectors)
+	CreateConnector(ctx context.Context, request CreateConnectorRequestObject) (CreateConnectorResponseObject, error)
+	// DeleteConnector Delete a connector instance
+	// (DELETE /v1/hugimethara/connectors/{connector_id})
+	DeleteConnector(ctx context.Context, request DeleteConnectorRequestObject) (DeleteConnectorResponseObject, error)
+	// GetConnector Get a connector instance
+	// (GET /v1/hugimethara/connectors/{connector_id})
+	GetConnector(ctx context.Context, request GetConnectorRequestObject) (GetConnectorResponseObject, error)
+	// UpdateConnector Update a connector instance
+	// (PATCH /v1/hugimethara/connectors/{connector_id})
+	UpdateConnector(ctx context.Context, request UpdateConnectorRequestObject) (UpdateConnectorResponseObject, error)
+	// GetConnectorHealth Get connector health history
+	// (GET /v1/hugimethara/connectors/{connector_id}/health)
+	GetConnectorHealth(ctx context.Context, request GetConnectorHealthRequestObject) (GetConnectorHealthResponseObject, error)
+	// TestConnector Test connector reachability
+	// (POST /v1/hugimethara/connectors/{connector_id}/test)
+	TestConnector(ctx context.Context, request TestConnectorRequestObject) (TestConnectorResponseObject, error)
+	// ListCredentials List credential metadata
+	// (GET /v1/hugimethara/credentials)
+	ListCredentials(ctx context.Context, request ListCredentialsRequestObject) (ListCredentialsResponseObject, error)
+	// CreateCredential Store an encrypted credential
+	// (POST /v1/hugimethara/credentials)
+	CreateCredential(ctx context.Context, request CreateCredentialRequestObject) (CreateCredentialResponseObject, error)
+	// DeleteCredential Delete a credential
+	// (DELETE /v1/hugimethara/credentials/{credential_id})
+	DeleteCredential(ctx context.Context, request DeleteCredentialRequestObject) (DeleteCredentialResponseObject, error)
+	// GetCredential Get credential metadata
+	// (GET /v1/hugimethara/credentials/{credential_id})
+	GetCredential(ctx context.Context, request GetCredentialRequestObject) (GetCredentialResponseObject, error)
+	// UpdateCredential Update credential metadata or rotate its value
+	// (PATCH /v1/hugimethara/credentials/{credential_id})
+	UpdateCredential(ctx context.Context, request UpdateCredentialRequestObject) (UpdateCredentialResponseObject, error)
 	// ListDepartments List departments
 	// (GET /v1/hugimethara/departments)
 	ListDepartments(ctx context.Context, request ListDepartmentsRequestObject) (ListDepartmentsResponseObject, error)
@@ -10518,6 +13843,36 @@ type StrictServerInterface interface {
 	// RevokeApiKey Revoke an API key
 	// (DELETE /v1/hugimethara/service-accounts/{service_account_id}/keys/{key_id})
 	RevokeApiKey(ctx context.Context, request RevokeApiKeyRequestObject) (RevokeApiKeyResponseObject, error)
+	// TryServiceEndpoint Send a test request to an imported endpoint
+	// (POST /v1/hugimethara/service-endpoints/{endpoint_id}/try)
+	TryServiceEndpoint(ctx context.Context, request TryServiceEndpointRequestObject) (TryServiceEndpointResponseObject, error)
+	// ListServices List registered services
+	// (GET /v1/hugimethara/services)
+	ListServices(ctx context.Context, request ListServicesRequestObject) (ListServicesResponseObject, error)
+	// CreateService Register an API service
+	// (POST /v1/hugimethara/services)
+	CreateService(ctx context.Context, request CreateServiceRequestObject) (CreateServiceResponseObject, error)
+	// DeleteService Delete a service and its imported API specs
+	// (DELETE /v1/hugimethara/services/{service_id})
+	DeleteService(ctx context.Context, request DeleteServiceRequestObject) (DeleteServiceResponseObject, error)
+	// GetService Get a registered service
+	// (GET /v1/hugimethara/services/{service_id})
+	GetService(ctx context.Context, request GetServiceRequestObject) (GetServiceResponseObject, error)
+	// UpdateService Update a registered service
+	// (PATCH /v1/hugimethara/services/{service_id})
+	UpdateService(ctx context.Context, request UpdateServiceRequestObject) (UpdateServiceResponseObject, error)
+	// ListServiceEndpoints List imported API endpoints
+	// (GET /v1/hugimethara/services/{service_id}/endpoints)
+	ListServiceEndpoints(ctx context.Context, request ListServiceEndpointsRequestObject) (ListServiceEndpointsResponseObject, error)
+	// DeleteServiceEnvironment Remove a service environment binding
+	// (DELETE /v1/hugimethara/services/{service_id}/environments/{environment_id})
+	DeleteServiceEnvironment(ctx context.Context, request DeleteServiceEnvironmentRequestObject) (DeleteServiceEnvironmentResponseObject, error)
+	// PutServiceEnvironment Set a service base URL for an environment
+	// (PUT /v1/hugimethara/services/{service_id}/environments/{environment_id})
+	PutServiceEnvironment(ctx context.Context, request PutServiceEnvironmentRequestObject) (PutServiceEnvironmentResponseObject, error)
+	// ImportOpenAPI Import an OpenAPI document and preview changes
+	// (POST /v1/hugimethara/services/{service_id}/import-openapi)
+	ImportOpenAPI(ctx context.Context, request ImportOpenAPIRequestObject) (ImportOpenAPIResponseObject, error)
 	// GetSystemInfo Build and deployment information
 	// (GET /v1/hugimethara/system/info)
 	GetSystemInfo(ctx context.Context, request GetSystemInfoRequestObject) (GetSystemInfoResponseObject, error)
@@ -10859,6 +14214,388 @@ func (sh *strictHandler) EvaluateAccess(w http.ResponseWriter, r *http.Request) 
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(EvaluateAccessResponseObject); ok {
 		if err := validResponse.VisitEvaluateAccessResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListConnectorDefinitions operation middleware
+func (sh *strictHandler) ListConnectorDefinitions(w http.ResponseWriter, r *http.Request) {
+	var request ListConnectorDefinitionsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListConnectorDefinitions(ctx, request.(ListConnectorDefinitionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListConnectorDefinitions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListConnectorDefinitionsResponseObject); ok {
+		if err := validResponse.VisitListConnectorDefinitionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListConnectorVersions operation middleware
+func (sh *strictHandler) ListConnectorVersions(w http.ResponseWriter, r *http.Request, definitionId openapi_types.UUID) {
+	var request ListConnectorVersionsRequestObject
+
+	request.DefinitionId = definitionId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListConnectorVersions(ctx, request.(ListConnectorVersionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListConnectorVersions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListConnectorVersionsResponseObject); ok {
+		if err := validResponse.VisitListConnectorVersionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListConnectors operation middleware
+func (sh *strictHandler) ListConnectors(w http.ResponseWriter, r *http.Request) {
+	var request ListConnectorsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListConnectors(ctx, request.(ListConnectorsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListConnectors")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListConnectorsResponseObject); ok {
+		if err := validResponse.VisitListConnectorsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateConnector operation middleware
+func (sh *strictHandler) CreateConnector(w http.ResponseWriter, r *http.Request) {
+	var request CreateConnectorRequestObject
+
+	var body CreateConnectorJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateConnector(ctx, request.(CreateConnectorRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateConnector")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateConnectorResponseObject); ok {
+		if err := validResponse.VisitCreateConnectorResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteConnector operation middleware
+func (sh *strictHandler) DeleteConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	var request DeleteConnectorRequestObject
+
+	request.ConnectorId = connectorId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteConnector(ctx, request.(DeleteConnectorRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteConnector")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteConnectorResponseObject); ok {
+		if err := validResponse.VisitDeleteConnectorResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetConnector operation middleware
+func (sh *strictHandler) GetConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	var request GetConnectorRequestObject
+
+	request.ConnectorId = connectorId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetConnector(ctx, request.(GetConnectorRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetConnector")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetConnectorResponseObject); ok {
+		if err := validResponse.VisitGetConnectorResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateConnector operation middleware
+func (sh *strictHandler) UpdateConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	var request UpdateConnectorRequestObject
+
+	request.ConnectorId = connectorId
+
+	var body UpdateConnectorJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateConnector(ctx, request.(UpdateConnectorRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateConnector")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateConnectorResponseObject); ok {
+		if err := validResponse.VisitUpdateConnectorResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetConnectorHealth operation middleware
+func (sh *strictHandler) GetConnectorHealth(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	var request GetConnectorHealthRequestObject
+
+	request.ConnectorId = connectorId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetConnectorHealth(ctx, request.(GetConnectorHealthRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetConnectorHealth")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetConnectorHealthResponseObject); ok {
+		if err := validResponse.VisitGetConnectorHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TestConnector operation middleware
+func (sh *strictHandler) TestConnector(w http.ResponseWriter, r *http.Request, connectorId openapi_types.UUID) {
+	var request TestConnectorRequestObject
+
+	request.ConnectorId = connectorId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TestConnector(ctx, request.(TestConnectorRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TestConnector")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TestConnectorResponseObject); ok {
+		if err := validResponse.VisitTestConnectorResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListCredentials operation middleware
+func (sh *strictHandler) ListCredentials(w http.ResponseWriter, r *http.Request) {
+	var request ListCredentialsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCredentials(ctx, request.(ListCredentialsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCredentials")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCredentialsResponseObject); ok {
+		if err := validResponse.VisitListCredentialsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCredential operation middleware
+func (sh *strictHandler) CreateCredential(w http.ResponseWriter, r *http.Request) {
+	var request CreateCredentialRequestObject
+
+	var body CreateCredentialJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCredential(ctx, request.(CreateCredentialRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCredential")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCredentialResponseObject); ok {
+		if err := validResponse.VisitCreateCredentialResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteCredential operation middleware
+func (sh *strictHandler) DeleteCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID) {
+	var request DeleteCredentialRequestObject
+
+	request.CredentialId = credentialId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteCredential(ctx, request.(DeleteCredentialRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteCredential")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteCredentialResponseObject); ok {
+		if err := validResponse.VisitDeleteCredentialResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCredential operation middleware
+func (sh *strictHandler) GetCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID) {
+	var request GetCredentialRequestObject
+
+	request.CredentialId = credentialId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCredential(ctx, request.(GetCredentialRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCredential")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetCredentialResponseObject); ok {
+		if err := validResponse.VisitGetCredentialResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateCredential operation middleware
+func (sh *strictHandler) UpdateCredential(w http.ResponseWriter, r *http.Request, credentialId openapi_types.UUID) {
+	var request UpdateCredentialRequestObject
+
+	request.CredentialId = credentialId
+
+	var body UpdateCredentialJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateCredential(ctx, request.(UpdateCredentialRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateCredential")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateCredentialResponseObject); ok {
+		if err := validResponse.VisitUpdateCredentialResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -12422,6 +16159,302 @@ func (sh *strictHandler) RevokeApiKey(w http.ResponseWriter, r *http.Request, se
 	}
 }
 
+// TryServiceEndpoint operation middleware
+func (sh *strictHandler) TryServiceEndpoint(w http.ResponseWriter, r *http.Request, endpointId openapi_types.UUID) {
+	var request TryServiceEndpointRequestObject
+
+	request.EndpointId = endpointId
+
+	var body TryServiceEndpointJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TryServiceEndpoint(ctx, request.(TryServiceEndpointRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TryServiceEndpoint")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TryServiceEndpointResponseObject); ok {
+		if err := validResponse.VisitTryServiceEndpointResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListServices operation middleware
+func (sh *strictHandler) ListServices(w http.ResponseWriter, r *http.Request, params ListServicesParams) {
+	var request ListServicesRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListServices(ctx, request.(ListServicesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListServices")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListServicesResponseObject); ok {
+		if err := validResponse.VisitListServicesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateService operation middleware
+func (sh *strictHandler) CreateService(w http.ResponseWriter, r *http.Request) {
+	var request CreateServiceRequestObject
+
+	var body CreateServiceJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateService(ctx, request.(CreateServiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateService")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateServiceResponseObject); ok {
+		if err := validResponse.VisitCreateServiceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteService operation middleware
+func (sh *strictHandler) DeleteService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	var request DeleteServiceRequestObject
+
+	request.ServiceId = serviceId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteService(ctx, request.(DeleteServiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteService")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteServiceResponseObject); ok {
+		if err := validResponse.VisitDeleteServiceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetService operation middleware
+func (sh *strictHandler) GetService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	var request GetServiceRequestObject
+
+	request.ServiceId = serviceId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetService(ctx, request.(GetServiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetService")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetServiceResponseObject); ok {
+		if err := validResponse.VisitGetServiceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateService operation middleware
+func (sh *strictHandler) UpdateService(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	var request UpdateServiceRequestObject
+
+	request.ServiceId = serviceId
+
+	var body UpdateServiceJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateService(ctx, request.(UpdateServiceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateService")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateServiceResponseObject); ok {
+		if err := validResponse.VisitUpdateServiceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListServiceEndpoints operation middleware
+func (sh *strictHandler) ListServiceEndpoints(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID) {
+	var request ListServiceEndpointsRequestObject
+
+	request.ServiceId = serviceId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListServiceEndpoints(ctx, request.(ListServiceEndpointsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListServiceEndpoints")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListServiceEndpointsResponseObject); ok {
+		if err := validResponse.VisitListServiceEndpointsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteServiceEnvironment operation middleware
+func (sh *strictHandler) DeleteServiceEnvironment(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, environmentId openapi_types.UUID) {
+	var request DeleteServiceEnvironmentRequestObject
+
+	request.ServiceId = serviceId
+	request.EnvironmentId = environmentId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteServiceEnvironment(ctx, request.(DeleteServiceEnvironmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteServiceEnvironment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteServiceEnvironmentResponseObject); ok {
+		if err := validResponse.VisitDeleteServiceEnvironmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutServiceEnvironment operation middleware
+func (sh *strictHandler) PutServiceEnvironment(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, environmentId openapi_types.UUID) {
+	var request PutServiceEnvironmentRequestObject
+
+	request.ServiceId = serviceId
+	request.EnvironmentId = environmentId
+
+	var body PutServiceEnvironmentJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutServiceEnvironment(ctx, request.(PutServiceEnvironmentRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutServiceEnvironment")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutServiceEnvironmentResponseObject); ok {
+		if err := validResponse.VisitPutServiceEnvironmentResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ImportOpenAPI operation middleware
+func (sh *strictHandler) ImportOpenAPI(w http.ResponseWriter, r *http.Request, serviceId openapi_types.UUID, params ImportOpenAPIParams) {
+	var request ImportOpenAPIRequestObject
+
+	request.ServiceId = serviceId
+	request.Params = params
+
+	var body ImportOpenAPIJSONRequestBody
+	if err := runtime.BindJSONBody(r, &body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ImportOpenAPI(ctx, request.(ImportOpenAPIRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ImportOpenAPI")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ImportOpenAPIResponseObject); ok {
+		if err := validResponse.VisitImportOpenAPIResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetSystemInfo operation middleware
 func (sh *strictHandler) GetSystemInfo(w http.ResponseWriter, r *http.Request) {
 	var request GetSystemInfoRequestObject
@@ -12814,183 +16847,224 @@ func (sh *strictHandler) RestoreWorkspace(w http.ResponseWriter, r *http.Request
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7H3tcty2suCroGZv1ZF2qRnZUXJO5Lq1JctOonuSa5XkbHYr9o4gsmcGEQfgAUDJE5Wq7kPsM+yD3Se5",
-	"hQ+SIAl+zLfs41+2hiQ+uhvdjf58HIRsnjAKVIrB6eMgwRzPQQLXf52nXDCu/kfo4HTwjxT4YhAMKJ7D",
-	"4HQQmqfBQIQzmGP12hx/+hnoVM4Gp9++eBkM5CJRbwrJCZ0Onp6Cwc9kTmTTiLF+6A4YwQSnsRycfnsc",
-	"qNHJPJ0PTl8eq78INX+9yOchVMIUuJ7oN8bvRIJDuI7TqRlKhJwkkjA1c/4Y4SjiIAQ6EHE6PRwOArO0",
-	"BMtZsbKH7PVBMODwj5RwiAankqfQsP2T4/run9S3ImFUgAbvZYzpJWe3MczVnyGjEqgGDk6SmIRYrXWU",
-	"mDf+xx9CLfzRme5fOEwGp4P/NipwODJPxcgdW89c3v77GSDGp5iSP/UsfxEoiTFFEQOBKJMIxzF7QHJG",
-	"BDqYAJYphzFlckzoWL/IuP5grFE25oDDGUSHw8FTMNjalpq385ZzxtHB1Q/n6PuTb/+K7AQoAolJLNS6",
-	"njJEadCfhSEI8QZCIohZQ8JZAlwSgxq9fYXixwyLt4zFgKna4BxLtdsxT2PzNpEwF867GcZzEsCc44X6",
-	"O2ExCRfje+DZvBPG51ga4v3uZFCnZUU02AKqfp4KYvw9X3T+RXWptfk/5tOx2z8glGq2s4T8HRZ1kIQc",
-	"sIRojGVp2RGWcCTJHAZBffvwKSEcxFLfkKj0bpqSyPdajIUcp2LJBZnj7EFUwmFCPtX5xEUEVJIJAYHk",
-	"DNAdLNDBLJ2S8Yf0+Pib0Hym/w/j//yP/3/4Sp8eASEHOfStgMM9u1tq1RUsa3DofeSrDlzkNOP0XL9U",
-	"x+wqWMoA6bC8F8fHXWvXX3UtMKqv8A4WXdzBjKDGMsCvo1LxvEkaxwqJQ3Q9Yw8UMRrCKyQk44CIRIQi",
-	"bJGH5pjiKfBhJ0LU4vJZvZtLIyLf3ltGWGE0obSMAD7heRLrLx3GPEyTSMPEgwMcSsbHMMck9tK0ed7z",
-	"PJmXzc+PA6BKsv4+SAVoCQ/8noQwxmHIUqpF9EJImA+CAaaMLuYsFYOPnlEtA9Y7jSKidoTjSwcCRoTW",
-	"QNZz0STxbpyFYcr5kqyBpTJk89LuRarFxCAYTDCJU66+i4ASiLybVUQBQlqIex4LlvIQOp9nSKi9kWsh",
-	"/ZDqYxwuaEpIDzJSrC6kgEyBznYqv8RTD5eJsMQlYdl6mvPBfFKUwic5DnPltH3bel7/guXsyupj9eW6",
-	"h7Brte+cd6/T+Rxzy4iE6PH1tXnN+VCfuo6vfhXAa3u1x7W09mIdPiC8JjQidHodssQDhArJOsz+pYfZ",
-	"9yHhKoNhfDoIKuq1GcN7xNY7AfqpDwrnMSbzX3CSqK/q8jHjsGV5oj9CIeZ8QehUqwf3wJWuECH9SXa1",
-	"GA6CbtBNOUsT0TmLfg0pOSqG6O08kQsUEYFvYxD22dxso9ekmRTv3FhERBLjhZ64x8gVuBsABs3i/w0k",
-	"mMu5V0KuoneW9vO4so7ZqC0Ke6esPbDSeqnFFjRthGufS4GPtetF5aqhC4L6HCWNsbTsdvQ0qZAVgLt2",
-	"gFbC61AfC0h3XK3L4HAh0b6fX/XGd7afvurw28kEQknu4RL4nGjuLbpFVPkUO58iOcMSqRv4AsE98MXD",
-	"DJTCS/XZLqmbg2CJ22xOVS0K3jK348ql/pPkGCXONhLgKJ8TkQgdTDibOz9xFoM4HA5qIK0AviIgnX14",
-	"sUElkTEoevnBmEKsieDdZHD6e7uYth+8gQmhGjqDp6AmX6ji3w3GhjgzmJWBc3YrgEr0ryil+g2I0IH+",
-	"D7LWGgOGHtYFdg+ckygCDw39yDFVQ4sEQjIhIY7jBZowbgxDVcKpL17dz1fhZxlESquro+ZjGTmeI6KV",
-	"XSrHCXDCojHQqD9fzgDZW2n10InPBBRj2njD7SuCvFfQRnYiJJapcNUurLmL2jUnOFZDBoNEWVSiVP0a",
-	"YhpC7L3mVGbWu8lncIDmP0j3hDO6OTkPUw5CjLXhKybCc04uqAROcYzOL95cIY7pFARiqbxlKY2QImiB",
-	"5niBtAUTHSSYRNkJOlyOGfa9sopxwlmUhhXlxDk1u1A7uhWI8kI9sF5Oh3Bw32iH8mAzh78jWb878cB1",
-	"jj9dmHddwVtgpz/Y96OTOPBpUko+D/j4dJzq+F4A3OM4xRKujBWlfpTffsKhjBeIUUBsgtRdd6x0AELD",
-	"OI3y+4/RAZSDomK1GpNoOAgqMMVh4yVh85ff+oJ6sQy7017vrndBrlp+cDO66opNlxJdW2uTzLsjNHKF",
-	"1STG6ugYTejjMve0lBLpedAsPav3Jr0UO44XCgTiSHufPAKNRf5VTdRH3idzEMIaz9qXbIYIzBzFd74l",
-	"/qhOxbO6Vs9hfgt8idtum0jU9OpSC7ESf6DWk3jpZTPi0kswdj2VTS4nKjXGLmiSymd3MdVLazSUreYi",
-	"NOgaTzM69ZvG+jJA83IjvZjHK1HNyjb3yhadDZWWW1lcp1PPxUWza68K3X6GSAvtsgB+p66XkiGzLoQp",
-	"uoguj4yfLHIskxHCEwlcGxeyBZjHpStpLwBWNtAMB33c6gDAUbQskzOmzmYSana4rU4h1kBamjsoFt+4",
-	"7SuY1Pe8nnWzkdX5FvET4Fh5URLGfVe6GYR3rbah8vuQCdI6m6/dYNmddct131Htx77197gqb2YiE0cg",
-	"F5ec3ZPIS6kmemMcsTkmVHj0X+1TsI+RfV2dR0GmFBGa+QP0E2EMffZ1fRQvokuEhQAuxXI321D5A8bz",
-	"guu3GUFKrhT9MQHa6BNdSWK0mcsM97JrXUrFmGExtottiyAwzxCRAuIJIgJRBWjEQaacQuS3g/W2DYgU",
-	"/AfgDyLVBepexytZNFS8NoYrG71DIEbRhHAhNXUcKep4N5mcIkaVDfgTEVK5drKXQ0xRTOidf/VtQTMC",
-	"ZBdFVEn/0nylv2eShSwuHTcShQ3e9YhwCOU45aThcoiyd9CvVxfqZHCYEqFEEZb6CBC7FJTYtXhDdIRy",
-	"hi5puhaCjVPu8RK+5uxBAEe/Xv1szPBCYi5NNNH19Ts0UXF2BwkjVIpsmQ9wixgnU0IPvQvcqP6aIyHH",
-	"Z06I7un1HZAcVFUe4aHXoMbgAsfMW0JuAU3/eV5Om66SX5Oq5OG/PuPKy2+/bbWuvDzeJgPtXEgHB/uN",
-	"EwlHigkMkVbnlDE/SW9jEiLzqUCpUKzh8u/nb0vqWoKFeGA8Knt/T46//66dR+chvKVQH5c55lyvYrrV",
-	"v6uD80r5n0OmBRoRylYbIe35GQ0fII6P7ih7oCOWACXRUcjohExTnrslOu9Ift7asere1sJ1maSHG/W3",
-	"9dWp0W+eazv5fQ7VZb7JjI8DlRyrA8zYNFZT3MEijBlW2tQUKHDiZ/PVkd9bW2DlsKZyxrj1PSm3jmag",
-	"fhVDKaHLqhiZIlqmyGtMiSR/QoRsPBgygbboYQYUsTtFnBMcCxguK90f7kQm1zyRrhJouBjPRWkDLR69",
-	"O79uJNkdtAKr6iW9G5RmL8GyD1UUhuw5oa7i/yL4Z2S+2f35DiB5hUAr6+ZjxGHO7kFshOG2cdiVeOEX",
-	"xfzqREvvicR+CzYOQ0iWvZ+sdKdptClsMYSeqJ1DNL5tMXYwPh0rj8rKVob1HNt6zKW92wnQyOqcFoGD",
-	"PPB+kIE0ag8w7O/2LwgoTyqq3xDarD6589yZvKLjOlTwsZWGz/SG69iqWrW6T27Gfaovvzzx3S5altRo",
-	"m8xovsRXT1rSSAgdR3ghSvrZX528sG860sIKcvbbN514Fu1G1PkA1nKlGLcxMvYwYjbSURkCzkq27Ngr",
-	"fR3kE/toqeCf33YpjwaDH3tgP2rirWOdZ1e/p8AtUk+Uo1df3PPxUIKnECAYTodopH+GkcnF0eqN/m+D",
-	"/lVi9P1OdK42eZTBPIFkiM7oQnmlH4ic6eUqW4o2qphNIiyKXUDkxgV3sL9iIdk6ghLg2mF/yeGewIMX",
-	"9toBrQ1BHlPje57Cabb4fFf2K5UraJnDEP2g1N1TFM4YE4Cwtv8jTKPiFa9JacPyrp8gWy+evz2EMOPl",
-	"zvKDKpjbkVUIj7X4hH63EQpLchH3gx5jNsQntfOiygwFc3L34gPdz2w6haglh7M5tKM1vbOvF3v1LNCV",
-	"8pMSTmhIEhyPG/IRjH+ATRDWsTEBYsYFZ6NOjiw15jH8LTP0BEHxgXnUlb9r336vXm7La/0cU6lKwGtJ",
-	"pupM0m0gdUKdwKhVFSmXaY37hbGVNcGOy2lD0r8vFyQfwLffXzxM0PoqZsQTzELEmD1QrxGRSuBkjlIq",
-	"SYyuXp+do4Prbw5PkX5foBmLI+Uxc+PM/SLrD0boWjb3bI3uUL7Nf0GZZw7O2tPQnoX7vikFS3vajQZn",
-	"NoRuIWZ0KtSd4GCkti5GjyR60t61cthwGyBzD/5a0cQ54W+AZF2MjYt7dcs1KSZCCr3voXboVMLLRSrU",
-	"ZbwpYZbFnqimwZW6et3BQqADl56OYriHWN3JDMiDIvGjeJT/lKFKL3DJUO5i56vHbuSX+hxFPrp/R6Iw",
-	"s3q9S/xGqHWT1dazwbVXHxANKe/vKjxs/TixdaEgQEpCp2Ipjpp90xZ735Jc0U792wjaz6ku3+5yzlJ3",
-	"9+czRny3kWXTE5YMhK8vwSko0y/pKvugnmrl8pP+Fj4PVLoMfOWJ/KlLXlKrgduKzTG+FSxOJYwVbbBU",
-	"jmcs5ZlF3Ji8/vqy0wCWjUaiuBhpTmgqoTzWi5MTd7BvO3O2WkcOurbRRQmZjrJx7tiPaGtHzbfeS29m",
-	"l0lBC/1W8K6Iaqhkt/WMo+uVULhqUl6vOLolzf76/hTCeM6onMWLcZhtuCHrMUyFZHOkPrK57svupiXo",
-	"P8dYBf5NON8gfzJT9w1ZmxTZqHWvcW80FymJHTkHdjb7vp+nlS/59UoyWQh0taKMT0A6cPVnVlQMslLR",
-	"J5rjcEYoHHHAkf5BO/OR+mY4aCxR4z996sv+YsJJBvEolR0mjZrO6eBH02BrOY2C/3HSrwxGNqqjM2iw",
-	"+oj8ytowMpz67GzrpHp71TUqiFKjxisN32D38QOifPqz+Xxr8ALH6x29NXVVlopA3WNKDpnPU318mgII",
-	"xrbgk/fx8sy+XNagP143ozO38P5ipy5QyisOKthdTsVW9GKr7jz7Inu5UbN3URxlHCrsAeve4spjv3GK",
-	"0AROvomT69lt5F7BUu3nGu2JEc89ZiJk3WAo1YZyjIOVOiMctFKmIknVGwgLQaY6kVmggztIzCMWR8Cz",
-	"GNPDeiLus0m78YFrC14wvYDifFmKyTDTmfzlcJEivqJPvrQ9OPp/fRKkV+EuSyXsLePcXIlst551XcFs",
-	"4b80y21C36ZqKVlu0eXG6R/50yCcnQ//dtwReNcVOVKSwO6ETcDacaGm3UCh5/6vDQGfhbkyWVfA72F8",
-	"B4u9q5u2Ft16nvXmdP7t5W3nCw/q4FxOvytja8cF0/rmcZcXuanD1Y79teqH5EP7d6NPzwWdsM2o1I4Z",
-	"pr6PbUbkKtvpSuMnDakDQo4FAF1qMC358BT65AjofWTgqhyU0uz1zXVGtVbc0xupW71dRPiz/50dV8f1",
-	"bptMqfILN0R7dEXyzgnN/26LNC8ri/8Lx0SzNa0UAj8SJIJXKmJRPcgiFkHYRFeEkS5BYoxr1Yqg3bEn",
-	"2eKLotdn4RzQBY0YBUHwIGjb18u+oS3F8Dicw5HRubGUwNWe/+/v+OjP46PvPx78z1P736OPjy+Cb/72",
-	"lD05/JfBehExL17+rYySzgCZOpx8m6v5m3vF1Vxr04afT+KEuH0JCtDdv/CySDafE9ngtCiVecsswJHy",
-	"0bNkbjiFkHhq6865VcYkCL8xeMrc1TXKx2LZP6VTMgc5wzoNrfaBf6vHwxfD40FPmZQNkQOjtMoyHIIS",
-	"fH24MULY9Xk5LKArf6oHM/AdmvWc4j6/z6/CF8az7ct9qxfeozqsHs/xsWHPTSrUitEB/QtLtIQNYx7O",
-	"yP0OspeivJ5u38u180UjTTzHalO7LMBYvqCsUU8qJ5Hmy0gH/mgax8Y7UEqHbsTVM6//nAOk+eLzTAHS",
-	"735nmqCknMjFteLguYC3jX0qftOK6fzs8kJF352imzM3y/oUvQbMgaOm9jfmJ5P8an66GaJ/Z+j8+uoH",
-	"pJNXEAWIIBp+oG9tErJA+JalpuqFIFMK0RGhKAEuGEUHI2Xnt4Ej4hBhDqY31T0mGvoq/tKuVgw/0Kxz",
-	"mL6v6bUWx24mZeLEv5wzdkd8PmTzGIX6ORIg0e0CxWxK6EhovRwd3IzHPzEhjzQc7Hg3JgVc684RUpUK",
-	"0E/v319eHw4/0GupuEA4w3RqUn21VBdongrVZ0swJIBG6OZ/HylIHb1XkLopsm5UWUzI8qBu9KSh4JMb",
-	"u0azb6IWb34ompa5CywgYclAd9EiVhOs+HCoaWLwOhWEghDoXQKmnIJACrEvv0MqrDqOyRRoCOgyxlId",
-	"EIWL4Qd6zug9UPP6gXGhBypri1A9RoBIBPOE6bTyAKlM/sNTFLFQjHBCRmHx9XAemd3FJATbpMNu7SxR",
-	"DceOXmplTddd0RgWp6PRw8PDEOvHQ8anI/utGP18cf7236/f6m8Kn7qrJqr1O2rd6cBog+pykQDFCRmc",
-	"Dr4ZHg+/MbeImT5Vo5kugfWn+v/UhFmyDFwXkYoeBvkzuQdqGsmUGsC9PD5u6ZK2XHe0UiUuT4u0S85C",
-	"hUuiSkeRexiW2MTg9PePSiOxN+1BtmLdSU1LLzwVmrUa5+hH9fGIA44WrTu/AhyRfW/9LI5RBFrXoiEB",
-	"U0BkoXvVfXv8ze6WIVEMWEjtkMnXoyuaKK6WLaoFKzk0DVrQQWlXKutuTqYGAchS8WET7u5fjGYF6Y9w",
-	"GhF5BPdZ3NUUZFtLgVOkPxjrD07V0pUNoIz+n4mQRR8fMQhK3SV/91dwMpEWur2gli3oQGd63ig2cYNM",
-	"powwfw7/+03RrrHSSTJPv/E2Z/RL1semkUwTLXesToeQf6xqLpB3cd+d9B5PEBqCf2Gtmqd/NJ0is9Jo",
-	"vlNR4Hpken72eNH2G336uEVmUWlT5Tmn7yjoJGMlc82B0Kzi5PhF09j5Yp3IvsHJ8TfLvf/y5VLv5xnw",
-	"vb95cnlJtQOoOdBIckziAFF4ACFNBTmHg+h3mhiInI20oqTVaear4H2pC00N0TuKbGs1pWEJm6VY0rwO",
-	"fpIyeafSaTRfU29oPTJ7nEf33S70Q4WwVx8ohDNmG/lV9ClGkfArYodD9JtS3pwUZzfBR8A9cBx/oC60",
-	"DLelipMTgaZKWgbIgDwS6OT4e3Tjvj7OlHar12Fafi5udJ6K0XYqXFSDNA8ffM2ixcbOQimt8Kl8uVD3",
-	"mqetnkOn+5rnFF7r24Aqa7na4ft+4/1nmxMTGhrs6mgYreVn6fG00jNFH/vvd3DsGxSKa1M51BCl7Vnm",
-	"5O6XTr6qNtB28Fkq3ZNfo2L1vEZPJ54rmEE8S+Ure9oFCmPAHKLhdgCgLqAHpjyMZgLWnZWxpMP+YGAk",
-	"CkeqqcgtDu+a1SjLBjOfizCcKWMpIQQIPmk2ZbvOlqqd6UhmgzFVoy/Ims7pVz/Qizf2rq2uqzpgO0Cm",
-	"/pMeX3Fw0FOoGhVCKVp/pEIeEarlO8prP5mZTSK5PjsgPtBShznDAxsYuBiis/gBL0Rek1Mz06y6JU6S",
-	"V1kRNWFazX2gWMFB8fQbIdhY3xxvTNy2hy+eM2Wzl6Ay6DIeWdEvvU3LTcH8hp7dntJajbqXQtlyzc/9",
-	"A+l9Ng308vh4uYHGlXL03tX5Bq3qXN8cv/RkZlpc1lBZQb421QiQiOWSXmnqM8CRbS3/Mwvz5MBikdVF",
-	"Pe2bQf5AKBFaXr+7eHOe1dJFB6Zk5rKcIas6KzpZw68Coky1ySbVOqlkiE0m6jCjD4NzRiWhqeUG19fv",
-	"PgzQbSolo0N0pf206oyaSnMfqNIwTJQm1QUzUVmhUXaoOJ2q00jVffQWkHJZqDMH0RBdKQ6VtRpL8lBO",
-	"dHHp1VqIkG5ua+ftr5RUrNbRdLOrZJiv3Ix/3TvGGs1tPUm/XemEDU1sPZ3wTZJWvdKx2L+2ka1NlT3O",
-	"l6ULlpRpcdXj9UgiFXX6NNIlljvP2LWSXBgJwDGoYNgZ4/JImcYiK4+zu4b+K8hEsxK6mczl5naSi7gP",
-	"VB3YW1vy2TLJetFpdJN9caPtcYhDjJVXUDNUXfdKMhSrodXFbCKBf6A577E40fL0ZnRzqIowWUHKK/y5",
-	"xDo0k3BEq+/cXivIdYlUtcDiQBqgtx7Flc0lZjdLSdmV5FgNRarygBeIqqy6gfbh5ynRXsOU0PUFWq6O",
-	"jiJbgKmv2dD5VhsOx/kADSZErT68yWfppeYVVXZqqMgj+Z6j5WoNqVIph7WltunN5rLhKkavNY1YZs+V",
-	"+1FOT+jA9sAASnBsbys2pc90yThstnRpqutD/2D71rWYvRrpX5B5GmMJdcrPuuEZ6t+S/afacm/XJqDS",
-	"yW6yomToHH4GRtVzVR9buYLlTKvotgZNyNJYK83aS6rLQho9x+KfMPpK+4BiS89KJ8j2fdiTKouYhX6c",
-	"uHi/xX/zxhl0f6ytWMXmFGXrFMx2txMT/7rcTl3gohJGMsLIs88GKgm/mw05yDeRREP0i+6Cq4N7T45f",
-	"mngGbVmPMUURA+Ol1GwTEVknFxNc5KBqOzyr1ou+F9N6sYX5fVRl1hRZaurDe5z6Eavwt+PvnzU/tJ3i",
-	"HHprINp2hjZ6LEVkPRnijkFCbzI3r9fJ9o3+vUK2XTZq81G0mkg6Plny/e93iTKztT4o63M5LKFtrTvi",
-	"RzWdDGe9EW6CIusINzF/O+RTZsJdK1ftfMqsaZd86uQ58ykDjhX5VLVGU6fmJdLb/FGD7vUjyLfusFsk",
-	"lNI8PoviZAI6ZB25G93Hba8asqAKkceYBsjt2i8C9I+USWy8U6lui1yg8pbEseInDYjM8zX6IdL5oEWH",
-	"fusOuz8l2lnGZrVoF2yfjRoNZaSsqke7FLBZRfptKXloK7f/Yob9qNIlivyqS/fVpctpZb2FVP6RGD06",
-	"fy2jTjufdejTVer9qlD3wVsfjbqMuh2o1C7S23XqnbKs/WjVHSzrq1rtV6tXYllFOfZORUy/2qKCmQru",
-	"e1S+9AI2p3aZ/exDB88hmSExc532VJgMpqyq1KD6/GhrhG6Dg+ixL2iSyl1rO5YEuvScL1Nnycq+eqim",
-	"8eSPHrM6Yr0VFP1Bh2pSUNdzUko2pWSYCE119SVSmCZ2Tj2+pnO7FoP9EWQDTI+3f3iUTUAv7nPA0jtq",
-	"F9vIPzvVv+xI7EDxMzhvV/meE6veAbWV9bvndU3ZMWu/gqz0qgHR7QbY/Mh2n9mczveLHXDPmp9Zxub0",
-	"P7utz4Hn2aWavnTPhfn1VFPnmOIpjC1VBlqsLlhqcnoUwdsaBFOOqUQm2EiLXJlJJd1fzBPYdhZFLmGs",
-	"zkDLlLlyzdLsQz/xdXFej+6U5z/p+Na5bZz75V1xz6Io358ihUwDO8iLHMjD9Rni6NEiaElNuEzAdTK8",
-	"0m3nq5TYhVvz1WehF5ulFhiacDZ/Jnwo8A6dHcS1OJyHtLId9slBccgo+2ycfWYELrrWVV5Mng9VjM96",
-	"PKBBGFe7i+1TIlfXsjmxfFnOtditZUbHc9fTPlY31dRxn3m4FHO36T+m3I/i8g+cSDjKKv/77Do1wG/n",
-	"3lCdZj/OrTqV/XNZfhidkGnKIU81qJFmb7FY512jx+y/y8jEOkFbSxHKlFQh8eKV0t4Wuns7ZUiVAQCO",
-	"hE2UljPO0unM67c1NhgvkX+BliZaR2igbU4mr1ipyuVs4ZVtTw0yyGeH6gb+8U4PuGKUedbXZ2Kg6nlO",
-	"++hJziHdgb2qTifWdoXezYmUEFVk1h1AIkoJ/4zCK4TpB6ozZpGZH3GtQwp15j0Zc8YktCfRth8naB/K",
-	"/2opq3lB6RZFoLk6HuW8dg3dvsWYVnDy/VrTzDo2aE6zG/scWPTbTxI4xfGRka6SIUJLv3TJ292y7RVu",
-	"GRnX/o3ImSrNcpNdt29y64pNZdbF1NQQicqj/kBtUVxzy1eMHSywTJuwA6WeWFuIvrlKFZpnbCR5tYWL",
-	"6NK2cfcVHSn80xkRbtH3YafYz/2lfNI2fXf5ohj8L1h5XDXl5IcS0/xcLukVWZLVjx7t/9a7CTW5+Ryf",
-	"uUvxX6KJsMQ+9889/fbBAtk7MBFWCE9m/UieuwRRCx2iH8AUC1Vc3VTA+otAEREhM1nhLEznSutXV9V/",
-	"++3v13Xifw9ir1fK93lStvdaeQuIg0hjiQ7Y3b9OcCxAl9LSBZiQwJRI8ifYHi2Hn8NZNPnTBY4UagSZ",
-	"UkKnR3egwupxOMO3JFbHsTdDpfdEanQc6cpoYvSo/31qK1x8kX90yeGewMNW8V6brAHpxVaGK8nRF8f7",
-	"Kzzy2wxLIxazPWhTkTIdq6JUngokSzJejdS+JaF0X55eXLGJekY4DCHpyRA3sLYmVpgXykTY8jq1Ysh7",
-	"Np0qM+YtixZZ9X30Ts6APxABpvC8KZ9qKj7aOvMfKHwiQirrh62IGqhID4wipwVvqVSk0nmM+q2sKLa4",
-	"UrUkoEejPtNALA7Atgwn+QRmQluJZ2/VTf+NEYW0jL+tU+h0y6r0i+Otqt57rYVkaKHClDKcaHO/qQDl",
-	"K04WIK6qCduKeIcrSKN+VppUAD/VH0GDa9UZsFdtpLzff0HKOVQHCZjO5EHer6j4Bcexr1XRHmseFXvf",
-	"nDHIgec+3LjO9I3FiZZ05Dok9ArlSRc6UklooVD8WIkYUdTPIagV6FOf6i9NiPHpLaFRER6lXGfKhIJm",
-	"6hdlwnE63Oo3VFSUKlF5pFelxQzN5BXikMQ41AZ3gVgC7uk0vmetN5gqt0TkkQeI0bAxp2CHEmZP/ubK",
-	"/FEjbX+ZDmezNSTYHBjVZeGzRm5L8+XRY/HHMlaVVlZ9petLV8iw24yiPvoi0yLN1jRnKR/x1S8AJaxt",
-	"3DwyB0de1+6Lv8A2L4i/eJXIc+u2zMC0kgK5gZoMReMuUy5czoDwSnMJXXtPiDJ+m0tMzmFUacDeCPjF",
-	"pfPiNlM/szoY7nw+rDAacpBQEnpYluEhQpbYCxTwQvwON4QRVYJem7sgW3RpNQfqwv3rBZpiJXt1wIvu",
-	"oyYkieO8RCEIG9KsRutbhW4OI4vnZqwprfWXxTVsBmdrqI9u3/DNlcQw8M6gEKA5ExJxCIHKeKGOSGQU",
-	"un0d15w4cHmlJr6JCFQpsd3rtGaDjB7t/+qC0ycPczLoVWq4GHpdq3KPNhRmLsRLIvjF8/ZkaJGq1B/b",
-	"LjBHtSgOWzc6XfyL7m4+19UOEIqtOc16hNsFYMk68kaXfVev+b5p9b3cdH3HunuXtcjdv7WyRa8cBKtb",
-	"UNWM9P2Xa7ZRuEJpgv7zP/5fZnOsXlCzBFjNaBF7oLqNSWHZWf4cjGyQWC+jjftlc7Si1d9q1L0lBaY0",
-	"T4ODod6e6HnXcirJswa5Vfr541OvWMISArOAFN06zpTnLcEpzWLd/LGBTWjePBNrbiG/4wjBPqRmobZ7",
-	"kttP+J9cnlI9LCmJcYdifanf2J9Oreb3FZ/PyvP1HugH88EbmBBK+pt4nZl6pewocOXNlgmvFzlcE/1q",
-	"AhRiiWM21Y5O9S3mRDDaty5h1jb0SO2mn9dAW2Wbwzmv7Ijv9YD7IxZ3HZu7gZ0baO/Del/gIMf5QYY+",
-	"pNFnurDp+u+i76VaYfNI2dh7x/Z24Z/F8Dobr5fTqMhLXLuti5M9ufZYwvSuH1sv9YZGTTihIUlwXG/U",
-	"m3nFFDwGwSAL7ausY/Cx91zaEtQ8D+PTQeBUygryJsJLzJF/vix89ujac0h0g7aZohTOPrjDVXM5nvz4",
-	"93Ho5T43ZVdUioXEfArSWBXNxVC9ourjOlY/XbUAx7GqXDCDWEc8K2ec9vE1+c1cNGxHaXVm2I/nrERp",
-	"TTTzZTrNzN5UAzJmKllkifKBjYZlHFnWlrdGVlFchtJWkV6jR/u/ZRxrNXovztBfhFlLU+RylX6fU+Dy",
-	"zj1uNtC5UhUMHSiQxjgzlDgNIE3qW3TYwKg6DbYFrjfujlOb2JgutFcdmMUb1H31bsx9xuH9+xJ2IjNE",
-	"N7kUlpZ6WQmC/+PGmRAaxmkE3jATv+utTdxtUc7tT8D9sxaeDFMh2VzTzhLiSowe1T9Ly6j2ypM5cX2t",
-	"ho0pSql2hXYgKGh0/Puhebz1U/PeatfDPXj4zlrg1C2NLUmvnZGT9mHUudE8ioyjr3wPudV+Sjca8GI+",
-	"T037dxOYqNLzrU2uJMn8RvYtM+79JNo3keDX5HpHqdXBolar/YvQmQkBcuCVRdk4MUJ9xIC99hzZa0/P",
-	"zj5lM1CL1nlt3jzLRt9nEIy7ks1potfle+NedNDqGlaPoa5iNtNDf9SlH4lEvFC8yzfeJlWzAvcthTWU",
-	"JtmP+lklsH9ORbRiRukdl1zlQ6PHus27t5JapeJ2fdVDoV9iyfQKZkwVqztYGFfNxkqo95MNP4LsAvvx",
-	"Dk+mDu8tw+dzqWPV68D1izr0+Ji2XcyqSi2ZOv2GCKUjR7lIy6x1KoxJbStsqda+B5GzH8W5m7C/qtCV",
-	"Su5BXsc9QJEhMmX953AEVP+xZRE2Uhx3w0r2WUL+rkbdn3JtVrA5pVpt53NgwCqbQItQXfa96kI6MCWD",
-	"TcxwyEEePivuvPRlwCZN3mnk+LV9SwjbYblm8P1o9+7c0ddCUb0uAxTZ84EOijNQS2U93AKDHT3ewWKd",
-	"G0MrqZsEBIfUv+Y3Frh+NizOX1jK0MXG3bRiISTMR4ROWFsW37V+TSdibVMtLGbxMKrXKYlNSY4Ikpgt",
-	"tG+cULPrLDh5o4kMXTM6JGPg6D/+qehbzl+92aIv/Sr2W5l/021ySnkz8zV65myuB06LM7ydx6dipT4g",
-	"FuMqjEMVXJjrSsbGq2Islk6hbrPKGUnMr0Cj7NUsfcyUX8jUOCIFxBN0IGaYQ2Rsn0zOoJz7Kw6VZLuD",
-	"RDb1H/lVPMPGI/sKznEblfQjlmCtc/8jSD/8N5m9bo6137y0w95AG7AqZeFxTsbAtL0laqd430jLl15G",
-	"JU0GmSXpOhW2tE9+0u3unHzRV1lBF2ViEuYL9RPXJ59xVA4dazI85RS2hZwnsa8y6M1k/dW4VHjgLM1o",
-	"U5JOODfukHnWbqqf9Msj2Jv1nHeKABXlgi1bkH/zKi/6rB4qii2GM80+bkH1+UCS+fWi34rZeyVL2Hi0",
-	"MebhjNxD5K+1pQt25kf5lrEYMN1v0H2+0c3pYAXs9lHvoJgd3RNBbL++IhevuRF/pxEofz/3BZ8bgzye",
-	"YkKFCVRW+Xp/EcW76B8pkxgdnBy/RA8zoKaiKUSHTXaj30qZH5tnn/n4+7EeOQTXZTnaRTf9z8OVXFCT",
-	"Nh9p8mMc3ULI5iCcvHfD9g77t9zPH4vRY/7/p15Xy+I4KD0THczLd578sS4kyvj06IFEcGiLkQqk0ldO",
-	"jk+8+mn5DGxJmrdS4nt3B/sJ/CuQfrvQKLbl8po5WFlO+WYtXim2fx2n00FPfbLAeXuX6J0xsf0ogq2k",
-	"U9YFd8HETj6HZjjITWlcizuNrJblKcS8PM0vIfXttJ7evubB/rmWXcgXaS+xeytLwwkHU/o+ZtJUs4Kq",
-	"6rW2MFyqR3lZKHZcLvbfq3y7bcr313a8i9cEO2UcXU2Zz6KoQhMb6w+uMwCUL6q21N9KZYGLpuYHFg8I",
-	"IiJ1F4nALVV/clyzRQVfu5A//7zfKKqVzCp6mJfZZkMn87WY5/J+jP7Hx1jSfSfoq3sBm9OQOxe2zBh3",
-	"2+K8geQ4CMn43tRDn1Wo2Rw0SeP40EfTeg/7VyntQp7xdWbX50rDQ5evt9p2982mHBHwmJU1PdfVMlWM",
-	"gDo42ETRqL8+mvoyGdmmPB6cDkaaIu349TD8PJxgDhIrhU27dGeAYzkbFmfRhhU8BdURVI3FozQJdMFE",
-	"VdoZ08ixmzouImc0XUrxKfBJYW/ps7xMowAps1wZO5b7nmfMkmsfq8J8SHJM4tJqIiI9nxY2YRXzmmAu",
-	"FaBEgIDeE85MmL9eWuERH3qK6XiGVsQuApRgEqGsDJkeSZ9zd3tZwa/6GDpvPnAz1oJaEoItIhWCEChU",
-	"PbMEOrh6fXZ+6G5fP/ZMYFXjwKm5Lmy9DxFUYzXNVFk4pzN87q95+vj0XwMA",
+	"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",
+	"dFovC1v2XwzLJVvMVGlVF2f4zF/z5eOX/z8A",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

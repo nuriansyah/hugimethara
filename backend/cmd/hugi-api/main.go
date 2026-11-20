@@ -12,6 +12,7 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/api"
 	"github.com/nuriansyah/hugimethara/backend/internal/audit"
 	"github.com/nuriansyah/hugimethara/backend/internal/authz"
+	"github.com/nuriansyah/hugimethara/backend/internal/connector"
 	"github.com/nuriansyah/hugimethara/backend/internal/entitlement"
 	"github.com/nuriansyah/hugimethara/backend/internal/identity"
 	"github.com/nuriansyah/hugimethara/backend/internal/organization"
@@ -20,6 +21,7 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/cache"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/config"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/db"
+	"github.com/nuriansyah/hugimethara/backend/internal/platform/egress"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/health"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/lifecycle"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/logging"
@@ -27,6 +29,8 @@ import (
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/ratelimit"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/secretbox"
 	"github.com/nuriansyah/hugimethara/backend/internal/platform/telemetry"
+	secretvault "github.com/nuriansyah/hugimethara/backend/internal/secret"
+	"github.com/nuriansyah/hugimethara/backend/internal/servicereg"
 )
 
 func main() {
@@ -96,6 +100,22 @@ func run() error {
 		log.Error("master key unusable", "err", err)
 		return err
 	}
+	secretSvc, err := secretvault.NewService(pool, az, masterKey, cfg.MasterKeyID)
+	if err != nil {
+		log.Error("secret vault setup failed", "err", err)
+		return err
+	}
+	connectorSvc, err := connector.NewService(pool, az)
+	if err != nil {
+		log.Error("connector service setup failed", "err", err)
+		return err
+	}
+	serviceEgress, err := egress.ParsePolicy(nil)
+	if err != nil {
+		log.Error("service registry egress policy invalid", "err", err)
+		return err
+	}
+	serviceSvc := servicereg.NewService(pool, az, serviceEgress)
 	orgSvc := organization.NewService(pool, az, acl)
 	idSvc := identity.NewService(pool, orgSvc, az, acl, limiter, log, identity.Config{
 		PublicURL: cfg.PublicURL, Sealer: sealer,
@@ -108,6 +128,9 @@ func run() error {
 		Audit:        audit.NewHTTP(audit.NewService(pool, az)),
 		Entitlement:  entitlement.NewHTTP(entitlement.NewService(pool, az, usageCounters())),
 		Access:       authz.NewHTTP(acl),
+		Secrets:      secretvault.NewHTTP(secretSvc),
+		Connectors:   connector.NewHTTP(connectorSvc),
+		Services:     servicereg.NewHTTP(serviceSvc),
 	})
 	if err != nil {
 		log.Error("router setup failed", "err", err)

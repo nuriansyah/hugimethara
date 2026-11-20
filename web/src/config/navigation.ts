@@ -5,10 +5,13 @@ import {
   CreditCard,
   Fingerprint,
   FolderKanban,
+  Key,
   KeyRound,
   Layers,
   MonitorSmartphone,
   Network,
+  PlugZap,
+  Code2,
   ScrollText,
   ShieldCheck,
   UserRound,
@@ -40,6 +43,13 @@ export const navigation: NavSection[] = [
     items: [{ title: "Workspaces", href: "/workspaces", icon: FolderKanban }],
   },
   {
+    title: "Integrations",
+    items: [
+      { title: "Connectors", href: "/integrations/connectors", icon: PlugZap, permission: "connector:read" },
+      { title: "Service registry", href: "/integrations/services", icon: Code2, permission: "service:read" },
+    ],
+  },
+  {
     title: "People",
     items: [
       { title: "Members", href: "/settings/members", icon: UserRound, permission: "user:read" },
@@ -59,6 +69,7 @@ export const navigation: NavSection[] = [
     title: "Settings",
     items: [
       { title: "Single sign-on", href: "/settings/identity-providers", icon: Fingerprint, permission: "identity_provider:read" },
+      { title: "Credentials", href: "/settings/credentials", icon: Key, permission: "secret:read" },
       { title: "Organization", href: "/settings/organization", icon: Building2 },
       { title: "Departments", href: "/settings/departments", icon: Layers },
       { title: "Environments", href: "/settings/environments", icon: Network },

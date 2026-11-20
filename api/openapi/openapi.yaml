@@ -476,6 +476,479 @@ paths:
         "403": { $ref: "#/components/responses/Problem" }
         "422": { $ref: "#/components/responses/Problem" }
         default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/credentials:
+    get:
+      tags: [secrets]
+      operationId: listCredentials
+      summary: List credential metadata
+      description: "Permission: secret:read. Values and ciphertext are never returned."
+      responses:
+        "200":
+          description: Credential metadata.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Credential" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [secrets]
+      operationId: createCredential
+      summary: Store an encrypted credential
+      description: "Permission: secret:create. The plaintext is accepted once and never returned."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CredentialCreate" }
+      responses:
+        "201":
+          description: Stored credential metadata.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Credential" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/credentials/{credential_id}:
+    parameters:
+      - { name: credential_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [secrets]
+      operationId: getCredential
+      summary: Get credential metadata
+      description: "Permission: secret:read. The value is write-only."
+      responses:
+        "200":
+          description: Credential metadata.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Credential" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [secrets]
+      operationId: updateCredential
+      summary: Update credential metadata or rotate its value
+      description: "Permission: secret:update. Omit value to keep the current value."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CredentialUpdate" }
+      responses:
+        "200":
+          description: Updated credential metadata.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Credential" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [secrets]
+      operationId: deleteCredential
+      summary: Delete a credential
+      description: "Permission: secret:delete."
+      responses:
+        "204": { description: Deleted. }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/connector-definitions:
+    get:
+      tags: [connectors]
+      operationId: listConnectorDefinitions
+      summary: List available connector definitions
+      description: "Permission: connector:read."
+      responses:
+        "200":
+          description: Built-in and organization connector catalog.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ConnectorDefinition" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/connector-definitions/{definition_id}/versions:
+    get:
+      tags: [connectors]
+      operationId: listConnectorVersions
+      summary: List connector definition versions
+      description: "Permission: connector:read."
+      parameters:
+        - { name: definition_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Version metadata and JSON schemas.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ConnectorVersion" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/connectors:
+    get:
+      tags: [connectors]
+      operationId: listConnectors
+      summary: List configured connector instances
+      description: "Permission: connector:read."
+      responses:
+        "200":
+          description: Connector instances.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ConnectorInstance" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [connectors]
+      operationId: createConnector
+      summary: Configure a connector instance
+      description: "Permission: connector:create. Credential values must be stored separately via /credentials."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConnectorInstanceCreate" }
+      responses:
+        "201":
+          description: Configured connector.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConnectorInstance" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/connectors/{connector_id}:
+    parameters:
+      - { name: connector_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [connectors]
+      operationId: getConnector
+      summary: Get a connector instance
+      description: "Permission: connector:read. Secret values are never returned."
+      responses:
+        "200":
+          description: Connector instance.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConnectorInstance" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [connectors]
+      operationId: updateConnector
+      summary: Update a connector instance
+      description: "Permission: connector:update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ConnectorInstanceUpdate" }
+      responses:
+        "200":
+          description: Updated connector.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConnectorInstance" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [connectors]
+      operationId: deleteConnector
+      summary: Delete a connector instance
+      description: "Permission: connector:delete."
+      responses:
+        "204": { description: Deleted. }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/connectors/{connector_id}/test:
+    post:
+      tags: [connectors]
+      operationId: testConnector
+      summary: Test connector reachability
+      description: "Permission: connector:test. The result is recorded in connector health history."
+      parameters:
+        - { name: connector_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Test result.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ConnectorTestResult" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/connectors/{connector_id}/health:
+    get:
+      tags: [connectors]
+      operationId: getConnectorHealth
+      summary: Get connector health history
+      description: "Permission: connector:read."
+      parameters:
+        - { name: connector_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Recent test results.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ConnectorTestResult" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/services:
+    get:
+      tags: [services]
+      operationId: listServices
+      summary: List registered services
+      description: "Permission: service:read."
+      parameters:
+        - { name: workspace_id, in: query, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Services in the current workspace.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Service" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    post:
+      tags: [services]
+      operationId: createService
+      summary: Register an API service
+      description: "Permission: service:create."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceCreate" }
+      responses:
+        "201":
+          description: Registered service.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Service" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/services/{service_id}:
+    parameters:
+      - { name: service_id, in: path, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [services]
+      operationId: getService
+      summary: Get a registered service
+      description: "Permission: service:read."
+      responses:
+        "200":
+          description: Service and environment bindings.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Service" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    patch:
+      tags: [services]
+      operationId: updateService
+      summary: Update a registered service
+      description: "Permission: service:update."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceUpdate" }
+      responses:
+        "200":
+          description: Updated service.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Service" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [services]
+      operationId: deleteService
+      summary: Delete a service and its imported API specs
+      description: "Permission: service:delete."
+      responses:
+        "204": { description: Deleted. }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/services/{service_id}/environments/{environment_id}:
+    put:
+      tags: [services]
+      operationId: putServiceEnvironment
+      summary: Set a service base URL for an environment
+      description: "Permission: service:update."
+      parameters:
+        - { name: service_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: environment_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceEnvironmentInput" }
+      responses:
+        "200":
+          description: Updated environment binding.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceEnvironment" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+    delete:
+      tags: [services]
+      operationId: deleteServiceEnvironment
+      summary: Remove a service environment binding
+      description: "Permission: service:update."
+      parameters:
+        - { name: service_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: environment_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "204": { description: Deleted. }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/services/{service_id}/import-openapi:
+    post:
+      tags: [services]
+      operationId: importOpenAPI
+      summary: Import an OpenAPI document and preview changes
+      description: "Permission: service:update. Supply exactly one of spec or url. URL fetches use guarded egress."
+      parameters:
+        - { name: service_id, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: dry_run, in: query, schema: { type: boolean, default: true } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OpenAPIImportRequest" }
+      responses:
+        "200":
+          description: Import diff (and applied version when dry_run is false).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OpenAPIImportResult" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/services/{service_id}/endpoints:
+    get:
+      tags: [services]
+      operationId: listServiceEndpoints
+      summary: List imported API endpoints
+      description: "Permission: service:read."
+      parameters:
+        - { name: service_id, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Imported operation catalog.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [data]
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/ServiceEndpoint" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
+  /v1/hugimethara/service-endpoints/{endpoint_id}/try:
+    post:
+      tags: [services]
+      operationId: tryServiceEndpoint
+      summary: Send a test request to an imported endpoint
+      description: "Permission: service:invoke. Uses configured service environment and guarded egress."
+      parameters:
+        - { name: endpoint_id, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ServiceTryRequest" }
+      responses:
+        "200":
+          description: Upstream response (bounded to 1 MiB).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ServiceTryResult" }
+        "401": { $ref: "#/components/responses/Problem" }
+        "403": { $ref: "#/components/responses/Problem" }
+        "404": { $ref: "#/components/responses/Problem" }
+        "422": { $ref: "#/components/responses/Problem" }
+        default: { $ref: "#/components/responses/Problem" }
   /v1/hugimethara/departments:
     get:
       tags: [workspace]
@@ -1571,6 +2044,210 @@ components:
         application/problem+json:
           schema: { $ref: "#/components/schemas/Problem" }
   schemas:
+    ConnectorDefinition:
+      type: object
+      required: [id, key, name, category, tier, icon]
+      properties:
+        id: { type: string, format: uuid }
+        key: { type: string }
+        name: { type: string }
+        category: { type: string }
+        tier: { type: string, enum: [builtin, declarative] }
+        icon: { type: string }
+    ConnectorVersion:
+      type: object
+      required: [id, definition_id, version, config_schema, auth_methods, operations]
+      properties:
+        id: { type: string, format: uuid }
+        definition_id: { type: string, format: uuid }
+        version: { type: string }
+        config_schema: { type: object, additionalProperties: true }
+        auth_methods: { type: array, items: { type: string } }
+        operations: { type: array, items: { type: object, additionalProperties: true } }
+        deprecated_at: { type: string, format: date-time, nullable: true }
+    ConnectorInstance:
+      type: object
+      required: [id, workspace_id, environment_id, ref_key, definition_id, definition_key, name, version, config, auth_method, credential_configured, rate_limit, timeout_ms, status, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        environment_id: { type: string, format: uuid }
+        ref_key: { type: string }
+        definition_id: { type: string, format: uuid }
+        definition_key: { type: string }
+        name: { type: string }
+        version: { type: string }
+        config: { type: object, additionalProperties: true }
+        auth_method: { type: string }
+        secret_id: { type: string, format: uuid, nullable: true }
+        credential_configured: { type: boolean }
+        rate_limit: { type: integer }
+        timeout_ms: { type: integer }
+        status: { type: string, enum: [enabled, disabled] }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ConnectorInstanceCreate:
+      type: object
+      required: [workspace_id, environment_id, ref_key, connector_version_id, config]
+      properties:
+        workspace_id: { type: string, format: uuid }
+        environment_id: { type: string, format: uuid }
+        ref_key: { type: string, maxLength: 64 }
+        connector_version_id: { type: string, format: uuid }
+        config: { type: object, additionalProperties: true }
+        auth_method: { type: string, maxLength: 64 }
+        secret_id: { type: string, format: uuid, nullable: true }
+        rate_limit: { type: integer, minimum: 1, maximum: 10000 }
+        timeout_ms: { type: integer, minimum: 100, maximum: 120000 }
+    ConnectorInstanceUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        config: { type: object, additionalProperties: true }
+        auth_method: { type: string, maxLength: 64 }
+        secret_id: { type: string, format: uuid, nullable: true }
+        rate_limit: { type: integer, minimum: 1, maximum: 10000 }
+        timeout_ms: { type: integer, minimum: 100, maximum: 120000 }
+        status: { type: string, enum: [enabled, disabled] }
+    ConnectorTestResult:
+      type: object
+      required: [checked_at, ok, latency_ms, message]
+      properties:
+        checked_at: { type: string, format: date-time }
+        ok: { type: boolean }
+        latency_ms: { type: integer }
+        error_code: { type: string }
+        message: { type: string }
+    Service:
+      type: object
+      required: [id, workspace_id, name, owner, description, protocol, environments, endpoint_count, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        workspace_id: { type: string, format: uuid }
+        name: { type: string }
+        owner: { type: string }
+        description: { type: string }
+        protocol: { type: string, enum: [rest, graphql, grpc] }
+        environments:
+          type: array
+          items: { $ref: "#/components/schemas/ServiceEnvironment" }
+        endpoint_count: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    ServiceCreate:
+      type: object
+      required: [workspace_id, name]
+      properties:
+        workspace_id: { type: string, format: uuid }
+        name: { type: string, minLength: 1, maxLength: 100 }
+        owner: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 1000 }
+        protocol: { type: string, enum: [rest, graphql, grpc] }
+    ServiceUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        owner: { type: string, maxLength: 100 }
+        description: { type: string, maxLength: 1000 }
+        protocol: { type: string, enum: [rest, graphql, grpc] }
+    ServiceEnvironment:
+      type: object
+      required: [environment_id, base_url, connector_instance_id]
+      properties:
+        environment_id: { type: string, format: uuid }
+        base_url: { type: string, format: uri }
+        connector_instance_id: { type: string, format: uuid, nullable: true }
+    ServiceEnvironmentInput:
+      type: object
+      required: [base_url]
+      properties:
+        base_url: { type: string, format: uri, maxLength: 2000 }
+        connector_instance_id: { type: string, format: uuid, nullable: true }
+    OpenAPIImportRequest:
+      type: object
+      properties:
+        spec: { type: string, maxLength: 2097152, description: OpenAPI JSON or YAML document. }
+        url: { type: string, format: uri, maxLength: 2000 }
+        version_label: { type: string, maxLength: 100 }
+    OpenAPIChange:
+      type: object
+      required: [operation_id, method, path, kind]
+      properties:
+        operation_id: { type: string }
+        method: { type: string }
+        path: { type: string }
+        kind: { type: string, enum: [added, removed, changed] }
+        breaking: { type: boolean }
+    OpenAPIImportResult:
+      type: object
+      required: [dry_run, changes, endpoint_count]
+      properties:
+        dry_run: { type: boolean }
+        spec_id: { type: string, format: uuid, nullable: true }
+        changes:
+          type: array
+          items: { $ref: "#/components/schemas/OpenAPIChange" }
+        endpoint_count: { type: integer }
+    ServiceEndpoint:
+      type: object
+      required: [id, service_id, operation_id, method, path, summary, parameters, response_schemas, security, deprecated]
+      properties:
+        id: { type: string, format: uuid }
+        service_id: { type: string, format: uuid }
+        operation_id: { type: string }
+        method: { type: string }
+        path: { type: string }
+        summary: { type: string }
+        parameters: { type: array, items: { type: object, additionalProperties: true } }
+        request_schema: { type: object, additionalProperties: true, nullable: true }
+        response_schemas: { type: object, additionalProperties: true }
+        security: { type: array, items: { type: object, additionalProperties: true } }
+        deprecated: { type: boolean }
+    ServiceTryRequest:
+      type: object
+      required: [environment_id]
+      properties:
+        environment_id: { type: string, format: uuid }
+        path_values: { type: object, additionalProperties: { type: string } }
+        query: { type: object, additionalProperties: { type: string } }
+        headers: { type: object, additionalProperties: { type: string } }
+        body: { nullable: true }
+    ServiceTryResult:
+      type: object
+      required: [status, headers, body, duration_ms]
+      properties:
+        status: { type: integer }
+        headers: { type: object, additionalProperties: { type: string } }
+        body: {}
+        duration_ms: { type: integer }
+    Credential:
+      type: object
+      required: [id, name, kind, configured, hint, version, created_at, updated_at]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        kind: { type: string }
+        environment_id: { type: string, format: uuid, nullable: true }
+        configured: { type: boolean, const: true }
+        hint: { type: string, description: "At most the last four characters of the stored value." }
+        version: { type: integer, format: int64 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    CredentialCreate:
+      type: object
+      required: [name, kind, value]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        kind: { type: string, minLength: 1, maxLength: 64 }
+        value: { type: string, minLength: 1, maxLength: 65536 }
+        environment_id: { type: string, format: uuid, nullable: true }
+    CredentialUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        value: { type: string, minLength: 1, maxLength: 65536 }
     Problem:
       type: object
       required: [type, title, status, code]

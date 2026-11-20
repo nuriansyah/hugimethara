@@ -141,7 +141,7 @@ export function LoginForm() {
 
   return (
     <div className="flex flex-col gap-4">
-      <form noValidate onSubmit={form.handleSubmit((v) => submit(v))} className="flex flex-col gap-4">
+      <form method="post" noValidate onSubmit={form.handleSubmit((v) => submit(v))} className="flex flex-col gap-4">
         <FormField id="email" label="Email" error={errors.email?.message}>
           <Input type="email" autoComplete="username" autoFocus {...fieldAria("email", errors.email?.message)} {...form.register("email")} />
         </FormField>
