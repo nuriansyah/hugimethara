@@ -81,8 +81,8 @@ Conventions ([ADR-0002](../adr/0002-postgresql-tenancy.md)):
 | mapping_versions | org_id, id, mapping_id, version int, definition jsonb, checksum, published_by — UNIQUE(mapping_id, version) |
 | mapping_tests | org_id, id, mapping_id, name, input jsonb, expected jsonb |
 | api_compositions | org_id, id, workspace_id, name, slug, draft jsonb, exposed bool |
-| api_composition_versions | org_id, id, composition_id, version, definition jsonb, checksum |
-| api_composition_executions | org_id, id, version_id, environment_id, started_at, duration_ms, status, step_summary jsonb, error, request_id (30-day retention) |
+| api_composition_versions | org_id, id, composition_id, version, definition jsonb, checksum, published_by |
+| api_composition_executions | org_id, id, workspace_id, composition_id, version_id, environment_id, started_at, duration_ms, status, step_summary jsonb, output, error, request_id |
 
 ### Workflow
 | Table | Key columns |
@@ -162,7 +162,7 @@ erDiagram
 | ◐ 00009_secrets_vault (data_keys, secrets; tenant RLS; secret resource + org_admin grant) | S6 vault |
 | 00010_connector_registry | S6 connectors |
 | 0009_service_registry | S7 |
-| 0010_mappings · 0011_compositions | S8–S9 |
+| 0011_mappings · 0012_compositions | S8–S9 |
 | 0012_workflows · 0013_workflow_timers_approvals | S10–S11 |
 | 0014_webhooks | S12 |
 

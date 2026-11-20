@@ -265,6 +265,11 @@ func jsonPath(src any, path string) (any, error) {
 	return cur, nil
 }
 
+// ResolveJSONPath evaluates the bounded JSONPath subset supported by mappings.
+func ResolveJSONPath(src any, path string) (any, error) {
+	return jsonPath(src, path)
+}
+
 func applyTransforms(value any, rule map[string]any) (any, error) {
 	raw, _ := rule["transforms"].([]any)
 	for _, item := range raw {

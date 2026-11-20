@@ -257,7 +257,7 @@ _Last updated: 2026-11-19_
 | S6 Secrets & connectors | ◐ vault and connector management implemented; runtime incomplete | full integration suite and targeted egress tests pass; no invocation/runtime or protocol adapters |
 | S7 Service registry & API explorer | ✅ | OpenAPI import/diff and guarded explorer integration tests pass |
 | S8 Mapping engine & studio | ✅ | Mapping drafts, test cases, publish gates, immutable versions, JSONPath/transform/CEL evaluator, and Mapping Studio |
-| S9 API composition | ☐ | |
+| S9 API composition | ◐ | Tenant-scoped drafts/versions/executions, bounded DAG executor, OpenAPI routes, and editor are implemented; validate against the order-overview mock-service E2E |
 | S10 Workflow engine core | ☐ | |
 | S11 Workflow engine complete | ☐ | |
 | S12 Webhook engine | ☐ | |

@@ -9,6 +9,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/governance/audit"
 	"github.com/nuriansyah/hugimethara/internal/modules/governance/entitlement"
 	"github.com/nuriansyah/hugimethara/internal/modules/identity"
+	"github.com/nuriansyah/hugimethara/internal/modules/integration/composition"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping"
 	secretvault "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets"
@@ -108,6 +109,7 @@ func RunAPI() error {
 	}
 	serviceSvc := servicereg.NewService(pool, az, serviceEgress)
 	mappingSvc := mapping.NewService(pool, az)
+	compositionSvc := composition.NewService(pool, az, serviceSvc)
 	orgSvc := organization.NewService(pool, az, acl)
 	idSvc := identity.NewService(pool, orgSvc, az, acl, limiter, log, identity.Config{
 		PublicURL: cfg.PublicURL, Sealer: sealer,
@@ -124,6 +126,7 @@ func RunAPI() error {
 		Connectors:   connector.NewHTTP(connectorSvc),
 		Services:     servicereg.NewHTTP(serviceSvc),
 		Mappings:     mapping.NewHTTP(mappingSvc),
+		Compositions: composition.NewHTTP(compositionSvc),
 	})
 	if err != nil {
 		log.Error("router setup failed", "err", err)

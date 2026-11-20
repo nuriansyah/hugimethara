@@ -75,22 +75,26 @@ A composition version is a DAG:
 
 ```json
 {
-  "request": { "method": "GET", "path": "/business/orders/{id}/overview", "params_schema": {…} },
   "steps": [
-    { "id": "order",    "call": { "service": "order-service", "endpoint": "getOrder", "input": { "id": "$.request.path.id" } } },
-    { "id": "customer", "depends_on": ["order"], "call": { "service": "customer-service", "endpoint": "getCustomer",
-                         "input": { "id": "$.steps.order.body.customer_id" } } },
+    { "id": "order",    "call": { "service_id": "…", "endpoint_id": "…",
+                         "input": { "path_values": { "id": "$.request.path.id" } } } },
+    { "id": "customer", "depends_on": ["order"], "call": { "service_id": "…", "endpoint_id": "…",
+                         "input": { "path_values": { "id": "$.steps.order.body.customer_id" } } } },
     { "id": "payment",  "depends_on": ["order"], "when": "steps.order.body.status != 'draft'", "call": {…} },
     { "id": "shipment", "depends_on": ["order"], "on_error": "null", "call": {…} }
   ],
-  "response": { "mapping_ref": "order-overview@3" },
+  "response": { "mapping_id": "…", "mapping_version": 3 },
   "limits": { "timeout_ms": 5000, "max_concurrency": 4 }
 }
 ```
 
-- Steps with satisfied dependencies run **in parallel** (`errgroup` + semaphore); `when` is CEL.
-- `on_error`: `fail` (default) | `null` | `default:<json>` | `fallback_step`.
+- The execute request supplies `environment_id` and a request object (for example `path`, `query`, and `body`).
+- Steps whose dependencies are satisfied run in bounded parallel goroutines; `when` is CEL.
+- `on_error`: `fail` (default) | `null` | `default` (with a `default` value) | `fallback_step` (with a direct `fallback_step` dependency).
 - Per-step timeout/retry; circuit breaker per (org, service, environment).
+- Circuit-breaker counters are local to each API process; cross-replica sharing requires a distributed breaker store.
+- Endpoint and mapping references are UUIDs pinned into immutable composition versions. Call inputs support the mapping
+  engine's bounded JSONPath subset; the response mapping references a published mapping version.
 - Caller credentials are **not** forwarded by default; each service uses its configured connector instance auth.
   Optional explicit propagation of a caller header allowlist.
 - Hard limits (platform-level, org can only lower): 25 steps, 8 concurrent, 30s total, 5 MB aggregate response.

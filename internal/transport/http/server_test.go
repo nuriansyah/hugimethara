@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 
@@ -85,7 +86,15 @@ func TestUnknownRouteIsProblem(t *testing.T) {
 
 func TestProtectedOperationsRequireSession(t *testing.T) {
 	srv := newTestRouter(t, nil)
-	for _, path := range []string{"/v1/hugimethara/me", "/v1/hugimethara/organizations/current", "/v1/hugimethara/audit-events"} {
+	workspaceID := uuid.New()
+	executionID := uuid.New()
+	for _, path := range []string{
+		"/v1/hugimethara/me",
+		"/v1/hugimethara/organizations/current",
+		"/v1/hugimethara/audit-events",
+		"/v1/hugimethara/api-compositions?workspace_id=" + workspaceID.String(),
+		"/v1/hugimethara/api-composition-executions/" + executionID.String(),
+	} {
 		resp, err := srv.Client().Get(srv.URL + path)
 		require.NoError(t, err)
 		_ = resp.Body.Close()
@@ -102,7 +111,7 @@ func TestPublicOperationsAreExplicit(t *testing.T) {
 		"GetInvitationPreview": true, "AcceptInvitation": true, // S4: invitation links (token-gated, rate-limited)
 		"ListOidcProviders": true, "StartOidcLogin": true, "CompleteOidcLogin": true, // S5: SSO before a session exists
 	}, public, "adding a public operation is a security decision: update this test deliberately")
-	require.Len(t, routes, 116)
+	require.Len(t, routes, 127)
 }
 
 func TestCrossSiteStateChangeRejected(t *testing.T) {

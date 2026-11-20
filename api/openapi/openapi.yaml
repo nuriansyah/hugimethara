@@ -18,6 +18,168 @@ components:
                 - policy_version
                 - reason
             type: object
+        ApiComposition:
+            properties:
+                created_at:
+                    type: string
+                draft:
+                    additionalProperties: true
+                    type: object
+                exposed:
+                    type: boolean
+                id:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - created_at
+                - draft
+                - exposed
+                - id
+                - name
+                - slug
+                - updated_at
+                - workspace_id
+            type: object
+        ApiCompositionCreate:
+            properties:
+                draft:
+                    additionalProperties: true
+                    type: object
+                name:
+                    type: string
+                slug:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - name
+                - slug
+                - workspace_id
+            type: object
+        ApiCompositionExecute:
+            properties:
+                environment_id:
+                    type: string
+                request:
+                    additionalProperties: true
+                    type: object
+            required:
+                - environment_id
+            type: object
+        ApiCompositionExecution:
+            properties:
+                composition_id:
+                    type: string
+                duration_ms:
+                    type: integer
+                environment_id:
+                    type: string
+                error:
+                    type: string
+                id:
+                    type: string
+                output: {}
+                request_id:
+                    type: string
+                started_at:
+                    type: string
+                status:
+                    type: string
+                step_summary:
+                    additionalProperties: true
+                    type: object
+                version_id:
+                    type: string
+            required:
+                - composition_id
+                - duration_ms
+                - environment_id
+                - id
+                - request_id
+                - started_at
+                - status
+                - step_summary
+                - version_id
+            type: object
+        ApiCompositionExecutions:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/ApiCompositionExecution'
+                    type: array
+            required:
+                - data
+            type: object
+        ApiCompositionUpdate:
+            properties:
+                draft:
+                    additionalProperties: true
+                    type: object
+                exposed:
+                    type: boolean
+                name:
+                    type: string
+                slug:
+                    type: string
+            type: object
+        ApiCompositionValidation:
+            properties:
+                valid:
+                    type: boolean
+            required:
+                - valid
+            type: object
+        ApiCompositionVersion:
+            properties:
+                checksum:
+                    type: string
+                composition_id:
+                    type: string
+                definition:
+                    additionalProperties: true
+                    type: object
+                id:
+                    type: string
+                published_at:
+                    type: string
+                published_by:
+                    type: string
+                version:
+                    type: integer
+            required:
+                - checksum
+                - composition_id
+                - definition
+                - id
+                - published_at
+                - published_by
+                - version
+            type: object
+        ApiCompositionVersions:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/ApiCompositionVersion'
+                    type: array
+            required:
+                - data
+            type: object
+        ApiCompositions:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/ApiComposition'
+                    type: array
+            required:
+                - data
+            type: object
         ApiKey:
             properties:
                 created_at:
@@ -2530,6 +2692,484 @@ paths:
             summary: Readiness probe (dependencies and migration version)
             tags:
                 - system
+    /v1/hugimethara/api-composition-executions:
+        get:
+            operationId: listApiCompositionExecutions
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+                - description: Composition ID
+                  in: query
+                  name: composition_id
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiCompositionExecutions'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List recent API composition executions
+            tags:
+                - api-composition-executions
+    /v1/hugimethara/api-composition-executions/{execution_id}:
+        get:
+            operationId: getApiCompositionExecution
+            parameters:
+                - description: Execution ID
+                  in: path
+                  name: execution_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiCompositionExecution'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get an API composition execution with step results
+            tags:
+                - api-composition-executions
+    /v1/hugimethara/api-compositions:
+        get:
+            operationId: listApiCompositions
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiCompositions'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List API compositions
+            tags:
+                - api-compositions
+        post:
+            operationId: createApiComposition
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ApiCompositionCreate'
+                description: Composition draft
+                required: true
+                x-originalParamName: body
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiComposition'
+                    description: Created
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unprocessable Entity
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Create an API composition draft
+            tags:
+                - api-compositions
+    /v1/hugimethara/api-compositions/{composition_id}:
+        delete:
+            operationId: deleteApiComposition
+            parameters:
+                - description: Composition ID
+                  in: path
+                  name: composition_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: Deleted
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Delete an API composition and its history
+            tags:
+                - api-compositions
+        get:
+            operationId: getApiComposition
+            parameters:
+                - description: Composition ID
+                  in: path
+                  name: composition_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiComposition'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get an API composition draft
+            tags:
+                - api-compositions
+        patch:
+            operationId: updateApiComposition
+            parameters:
+                - description: Composition ID
+                  in: path
+                  name: composition_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ApiCompositionUpdate'
+                description: Composition changes
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiComposition'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unprocessable Entity
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Update an API composition draft
+            tags:
+                - api-compositions
+    /v1/hugimethara/api-compositions/{composition_id}/execute:
+        post:
+            operationId: executeApiComposition
+            parameters:
+                - description: Composition ID
+                  in: path
+                  name: composition_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ApiCompositionExecute'
+                description: Execution input
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiCompositionExecution'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unprocessable Entity
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Execute the latest published API composition version
+            tags:
+                - api-compositions
+    /v1/hugimethara/api-compositions/{composition_id}/publish:
+        post:
+            operationId: publishApiComposition
+            parameters:
+                - description: Composition ID
+                  in: path
+                  name: composition_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiCompositionVersion'
+                    description: Created
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unprocessable Entity
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Publish an immutable API composition version
+            tags:
+                - api-compositions
+    /v1/hugimethara/api-compositions/{composition_id}/validate:
+        post:
+            operationId: validateApiComposition
+            parameters:
+                - description: Composition ID
+                  in: path
+                  name: composition_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiCompositionValidation'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unprocessable Entity
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Validate a composition draft and its references
+            tags:
+                - api-compositions
+    /v1/hugimethara/api-compositions/{composition_id}/versions:
+        get:
+            operationId: listApiCompositionVersions
+            parameters:
+                - description: Composition ID
+                  in: path
+                  name: composition_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApiCompositionVersions'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Unauthorized
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Forbidden
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Not Found
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List immutable API composition versions
+            tags:
+                - api-compositions
     /v1/hugimethara/audit-events:
         get:
             operationId: listAuditEvents

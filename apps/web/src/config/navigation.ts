@@ -13,6 +13,7 @@ import {
   PlugZap,
   Code2,
   Braces,
+  GitFork,
   ScrollText,
   ShieldCheck,
   UserRound,
@@ -49,6 +50,7 @@ export const navigation: NavSection[] = [
       { title: "Connectors", href: "/integrations/connectors", icon: PlugZap, permission: "connector:read" },
       { title: "Service registry", href: "/integrations/services", icon: Code2, permission: "service:read" },
       { title: "Mappings", href: "/integrations/mappings", icon: Braces, permission: "mapping:read" },
+      { title: "Compositions", href: "/integrations/compositions", icon: GitFork, permission: "api_composition:read" },
     ],
   },
   {

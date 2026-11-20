@@ -9,6 +9,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/governance/audit"
 	"github.com/nuriansyah/hugimethara/internal/modules/governance/entitlement"
 	"github.com/nuriansyah/hugimethara/internal/modules/identity"
+	"github.com/nuriansyah/hugimethara/internal/modules/integration/composition"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping"
 	secretvault "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets"
@@ -36,6 +37,7 @@ type Deps struct {
 	Connectors   *connector.HTTP
 	Services     *servicereg.HTTP
 	Mappings     *mapping.HTTP
+	Compositions *composition.HTTP
 }
 
 func NewServer(d Deps) any {
@@ -43,10 +45,11 @@ func NewServer(d Deps) any {
 		system: system{env: d.Env, health: d.Health},
 		HTTP:   d.Identity, orgHTTP: orgHTTP{d.Organization}, auditHTTP: auditHTTP{d.Audit},
 		entHTTP: entHTTP{d.Entitlement}, accessHTTP: accessHTTP{d.Access},
-		secretHTTP:    secretHTTP{d.Secrets},
-		connectorHTTP: connectorHTTP{d.Connectors},
-		serviceHTTP:   serviceHTTP{d.Services},
-		mappingHTTP:   mappingHTTP{d.Mappings},
+		secretHTTP:      secretHTTP{d.Secrets},
+		connectorHTTP:   connectorHTTP{d.Connectors},
+		serviceHTTP:     serviceHTTP{d.Services},
+		mappingHTTP:     mappingHTTP{d.Mappings},
+		compositionHTTP: compositionHTTP{d.Compositions},
 	}
 }
 
@@ -61,6 +64,7 @@ type server struct {
 	connectorHTTP
 	serviceHTTP
 	mappingHTTP
+	compositionHTTP
 }
 
 type orgHTTP struct{ *organization.HTTP }
@@ -71,6 +75,7 @@ type secretHTTP struct{ *secretvault.HTTP }
 type connectorHTTP struct{ *connector.HTTP }
 type serviceHTTP struct{ *servicereg.HTTP }
 type mappingHTTP struct{ *mapping.HTTP }
+type compositionHTTP struct{ *composition.HTTP }
 
 type system struct {
 	env    string

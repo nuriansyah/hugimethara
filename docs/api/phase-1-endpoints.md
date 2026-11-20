@@ -52,8 +52,7 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | CRUD | /mappings/{id}/tests | mapping:update | S8 |
 | **API composition** ||||
 | CRUD | /api-compositions; POST /{id}/validate · /{id}/publish; GET /{id}/versions | api_composition:* | S9 |
-| POST | /api-compositions/{id}/execute | api_composition:execute | S9 |
-| GET | /api-composition-executions?composition_id= | api_composition:read | S9 |
+| POST | /api-compositions/{id}/execute; GET /api-composition-executions?workspace_id=&composition_id=; GET /api-composition-executions/{execution_id} | api_composition:execute/read | S9 |
 | * | /gw/{org}/{workspace}/{path} (exposed compositions, separate listener) | api_composition:execute | S9 (P1) |
 | **Workflow** ||||
 | CRUD | /workflows; POST /{id}/validate · /{id}/publish; GET /{id}/versions | workflow:* | S10 |

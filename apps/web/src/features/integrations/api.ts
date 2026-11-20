@@ -15,6 +15,9 @@ export type ServiceTryResult = components["schemas"]["ServiceTryResult"];
 export type Mapping = components["schemas"]["Mapping"];
 export type MappingVersion = components["schemas"]["MappingVersion"];
 export type MappingTest = components["schemas"]["MappingTest"];
+export type ApiComposition = components["schemas"]["ApiComposition"];
+export type ApiCompositionVersion = components["schemas"]["ApiCompositionVersion"];
+export type ApiCompositionExecution = components["schemas"]["ApiCompositionExecution"];
 
 export function useMappings(workspaceId: string) {
   return useQuery({
@@ -103,6 +106,84 @@ export function useMappingMutations(workspaceId: string) {
         ensureOk(await api.DELETE("/v1/hugimethara/mappings/{mapping_id}/tests/{test_id}", {
           params: { path: { mapping_id: id, test_id: testId } },
         })),
+      onSuccess: (_result, { id }) => refresh(id),
+    }),
+  };
+}
+
+export function useApiCompositions(workspaceId: string) {
+  return useQuery({
+    queryKey: ["api-compositions", workspaceId],
+    enabled: Boolean(workspaceId),
+    queryFn: async () => unwrap(await api.GET("/v1/hugimethara/api-compositions", {
+      params: { query: { workspace_id: workspaceId } },
+    })).data,
+  });
+}
+
+export function useApiCompositionVersions(id: string) {
+  return useQuery({
+    queryKey: ["api-compositions", id, "versions"],
+    enabled: Boolean(id),
+    queryFn: async () => unwrap(await api.GET("/v1/hugimethara/api-compositions/{composition_id}/versions", {
+      params: { path: { composition_id: id } },
+    })).data,
+  });
+}
+
+export function useApiCompositionExecutions(workspaceId: string, compositionId?: string) {
+  return useQuery({
+    queryKey: ["api-composition-executions", workspaceId, compositionId],
+    enabled: Boolean(workspaceId),
+    queryFn: async () => unwrap(await api.GET("/v1/hugimethara/api-composition-executions", {
+      params: { query: { workspace_id: workspaceId, composition_id: compositionId } },
+    })).data,
+  });
+}
+
+export function useApiCompositionMutations(workspaceId: string) {
+  const qc = useQueryClient();
+  const refresh = (id?: string) => {
+    qc.invalidateQueries({ queryKey: ["api-compositions", workspaceId] });
+    if (id) {
+      qc.invalidateQueries({ queryKey: ["api-compositions", id, "versions"] });
+      qc.invalidateQueries({ queryKey: ["api-composition-executions", workspaceId, id] });
+    }
+    qc.invalidateQueries({ queryKey: ["api-composition-executions", workspaceId] });
+  };
+  const path = (id: string) => ({ params: { path: { composition_id: id } } });
+  return {
+    create: useMutation({
+      mutationFn: async (body: components["schemas"]["ApiCompositionCreate"]) =>
+        unwrap(await api.POST("/v1/hugimethara/api-compositions", { body })),
+      onSuccess: () => refresh(),
+    }),
+    update: useMutation({
+      mutationFn: async ({ id, body }: { id: string; body: components["schemas"]["ApiCompositionUpdate"] }) =>
+        unwrap(await api.PATCH("/v1/hugimethara/api-compositions/{composition_id}", { ...path(id), body })),
+      onSuccess: (_result, { id }) => refresh(id),
+    }),
+    remove: useMutation({
+      mutationFn: async (id: string) =>
+        ensureOk(await api.DELETE("/v1/hugimethara/api-compositions/{composition_id}", path(id))),
+      onSuccess: (_result, id) => refresh(id),
+    }),
+    validate: useMutation({
+      mutationFn: async (id: string) =>
+        unwrap(await api.POST("/v1/hugimethara/api-compositions/{composition_id}/validate", path(id))),
+    }),
+    publish: useMutation({
+      mutationFn: async (id: string) =>
+        unwrap(await api.POST("/v1/hugimethara/api-compositions/{composition_id}/publish", path(id))),
+      onSuccess: (_result, id) => refresh(id),
+    }),
+    execute: useMutation({
+      mutationFn: async ({ id, body }: {
+        id: string;
+        body: components["schemas"]["ApiCompositionExecute"];
+      }) => unwrap(await api.POST("/v1/hugimethara/api-compositions/{composition_id}/execute", {
+        ...path(id), body,
+      })),
       onSuccess: (_result, { id }) => refresh(id),
     }),
   };

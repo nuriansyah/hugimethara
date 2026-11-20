@@ -58,6 +58,649 @@
                 }
             }
         },
+        "/v1/hugimethara/api-composition-executions": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-composition-executions"
+                ],
+                "summary": "List recent API composition executions",
+                "operationId": "listApiCompositionExecutions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionExecutions"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/api-composition-executions/{execution_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-composition-executions"
+                ],
+                "summary": "Get an API composition execution with step results",
+                "operationId": "getApiCompositionExecution",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Execution ID",
+                        "name": "execution_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionExecution"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/api-compositions": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "List API compositions",
+                "operationId": "listApiCompositions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositions"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "Create an API composition draft",
+                "operationId": "createApiComposition",
+                "parameters": [
+                    {
+                        "description": "Composition draft",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiComposition"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/api-compositions/{composition_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "Get an API composition draft",
+                "operationId": "getApiComposition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiComposition"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "Delete an API composition and its history",
+                "operationId": "deleteApiComposition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "Update an API composition draft",
+                "operationId": "updateApiComposition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Composition changes",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiComposition"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/api-compositions/{composition_id}/execute": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "Execute the latest published API composition version",
+                "operationId": "executeApiComposition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Execution input",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionExecute"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionExecution"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/api-compositions/{composition_id}/publish": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "Publish an immutable API composition version",
+                "operationId": "publishApiComposition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionVersion"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/api-compositions/{composition_id}/validate": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "Validate a composition draft and its references",
+                "operationId": "validateApiComposition",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionValidation"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/api-compositions/{composition_id}/versions": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "api-compositions"
+                ],
+                "summary": "List immutable API composition versions",
+                "operationId": "listApiCompositionVersions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Composition ID",
+                        "name": "composition_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiCompositionVersions"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/audit-events": {
             "get": {
                 "security": [
@@ -6189,6 +6832,239 @@
                 },
                 "reason": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ApiComposition": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "draft",
+                "exposed",
+                "id",
+                "name",
+                "slug",
+                "updated_at",
+                "workspace_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "draft": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "exposed": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ApiCompositionCreate": {
+            "type": "object",
+            "required": [
+                "name",
+                "slug",
+                "workspace_id"
+            ],
+            "properties": {
+                "draft": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ApiCompositionExecute": {
+            "type": "object",
+            "required": [
+                "environment_id"
+            ],
+            "properties": {
+                "environment_id": {
+                    "type": "string"
+                },
+                "request": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "dto.ApiCompositionExecution": {
+            "type": "object",
+            "required": [
+                "composition_id",
+                "duration_ms",
+                "environment_id",
+                "id",
+                "request_id",
+                "started_at",
+                "status",
+                "step_summary",
+                "version_id"
+            ],
+            "properties": {
+                "composition_id": {
+                    "type": "string"
+                },
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "output": {},
+                "request_id": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "step_summary": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "version_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ApiCompositionExecutions": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ApiCompositionExecution"
+                    }
+                }
+            }
+        },
+        "dto.ApiCompositionUpdate": {
+            "type": "object",
+            "properties": {
+                "draft": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "exposed": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ApiCompositionValidation": {
+            "type": "object",
+            "required": [
+                "valid"
+            ],
+            "properties": {
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.ApiCompositionVersion": {
+            "type": "object",
+            "required": [
+                "checksum",
+                "composition_id",
+                "definition",
+                "id",
+                "published_at",
+                "published_by",
+                "version"
+            ],
+            "properties": {
+                "checksum": {
+                    "type": "string"
+                },
+                "composition_id": {
+                    "type": "string"
+                },
+                "definition": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "published_by": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ApiCompositionVersions": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ApiCompositionVersion"
+                    }
+                }
+            }
+        },
+        "dto.ApiCompositions": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ApiComposition"
+                    }
                 }
             }
         },
