@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	identitymodel "github.com/nuriansyah/hugimethara/internal/modules/identity/model"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 var cheap = identitymodel.Argon2Params{MemoryKiB: 1024, Iterations: 1, Parallelism: 1, SaltLen: 16, KeyLen: 32}
@@ -103,7 +103,7 @@ func TestValidEmail(t *testing.T) {
 }
 
 func TestProblemsAreHTTPProblems(t *testing.T) {
-	var p *apperrors.Problem
+	var p *problem.Problem
 	require.True(t, errors.As(error(identitymodel.ErrInvalidCredentials), &p))
 	require.Equal(t, 401, p.Status)
 }

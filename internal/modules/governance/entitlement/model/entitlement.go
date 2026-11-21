@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Feature keys. Keep in sync with the catalog seeded in migration 00005.
@@ -81,8 +81,8 @@ type NotEntitled struct{ Feature, FeatureName, Plan string }
 
 func (e *NotEntitled) Error() string { return "feature not in plan: " + e.Feature }
 
-func (e *NotEntitled) Problem() *apperrors.Problem {
-	p := apperrors.NewProblem(http.StatusPaymentRequired, "feature_not_in_plan", "Upgrade required",
+func (e *NotEntitled) Problem() *problem.Problem {
+	p := problem.NewProblem(http.StatusPaymentRequired, "feature_not_in_plan", "Upgrade required",
 		fmt.Sprintf("%s is not included in your current plan.", nameOr(e.FeatureName, e.Feature)))
 	p.Extensions = map[string]any{"feature": e.Feature, "plan": e.Plan}
 	return p
@@ -96,8 +96,8 @@ type LimitReached struct {
 
 func (e *LimitReached) Error() string { return "plan limit reached: " + e.Feature }
 
-func (e *LimitReached) Problem() *apperrors.Problem {
-	p := apperrors.NewProblem(http.StatusPaymentRequired, "plan_limit_reached", "Plan limit reached",
+func (e *LimitReached) Problem() *problem.Problem {
+	p := problem.NewProblem(http.StatusPaymentRequired, "plan_limit_reached", "Plan limit reached",
 		fmt.Sprintf("Your plan allows %d %s. Archive or remove one, or upgrade your plan.",
 			e.Limit, nameOr(lower(e.FeatureName), e.Feature)))
 	p.Extensions = map[string]any{"feature": e.Feature, "plan": e.Plan, "limit": e.Limit, "current": e.Current}

@@ -7,7 +7,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector/model"
 	connectordto "github.com/nuriansyah/hugimethara/internal/modules/integration/connector/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
@@ -98,7 +98,7 @@ func (h *HTTP) ListConnectors(ctx context.Context, _ dto.ListConnectorsRequestOb
 // @Router /v1/hugimethara/connectors [post]
 func (h *HTTP) CreateConnector(ctx context.Context, req dto.CreateConnectorRequestObject) (dto.CreateConnectorResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	body := req.Body
 	authMethod := ""
@@ -160,7 +160,7 @@ func (h *HTTP) GetConnector(ctx context.Context, req dto.GetConnectorRequestObje
 // @Router /v1/hugimethara/connectors/{connector_id} [patch]
 func (h *HTTP) UpdateConnector(ctx context.Context, req dto.UpdateConnectorRequestObject) (dto.UpdateConnectorResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	body := req.Body
 	var status *string

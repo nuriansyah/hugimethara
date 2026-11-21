@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Workspace is a team space inside an organization.
@@ -34,7 +34,7 @@ type Member struct {
 	AddedAt     time.Time // workspace memberships
 }
 
-var ErrWorkspaceNotFound = apperrors.NotFound("Workspace not found.")
+var ErrWorkspaceNotFound = problem.NotFound("Workspace not found.")
 
 func Nullable(id *uuid.UUID) any {
 	if id == nil {

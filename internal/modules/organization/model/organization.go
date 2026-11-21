@@ -3,11 +3,11 @@ package model
 import (
 	"net/http"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // ErrSlugTaken is returned when another organization already uses the slug.
-var ErrSlugTaken = apperrors.NewProblem(http.StatusConflict, "slug_taken", "Address unavailable",
+var ErrSlugTaken = problem.NewProblem(http.StatusConflict, "slug_taken", "Address unavailable",
 	"Another organization already uses this address. Choose a different one.")
 
 func Diff(a, b Organization) map[string]any {

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 const (
@@ -33,7 +33,7 @@ func ParsePage(r *http.Request) (Page, error) {
 	if s := r.URL.Query().Get("limit"); s != "" {
 		n, err := strconv.Atoi(s)
 		if err != nil || n < 1 || n > MaxPageLimit {
-			return Page{}, apperrors.Validation(apperrors.FieldError{Field: "limit", Code: "out_of_range",
+			return Page{}, problem.Validation(problem.FieldError{Field: "limit", Code: "out_of_range",
 				Message: "limit must be an integer between 1 and " + strconv.Itoa(MaxPageLimit) + "."})
 		}
 		p.Limit = n
@@ -54,7 +54,7 @@ func EncodeCursor(v any) (string, error) {
 func DecodeCursor(cursor string, v any) error {
 	b, err := base64.RawURLEncoding.DecodeString(cursor)
 	if err != nil || json.Unmarshal(b, v) != nil {
-		return apperrors.Validation(apperrors.FieldError{Field: "cursor", Code: "invalid", Message: "cursor is malformed."})
+		return problem.Validation(problem.FieldError{Field: "cursor", Code: "invalid", Message: "cursor is malformed."})
 	}
 	return nil
 }
@@ -79,7 +79,7 @@ func ParseSort(r *http.Request, allowed ...string) ([]SortField, error) {
 	for _, part := range strings.Split(raw, ",") {
 		f := SortField{Field: strings.TrimPrefix(part, "-"), Desc: strings.HasPrefix(part, "-")}
 		if !ok[f.Field] {
-			return nil, apperrors.Validation(apperrors.FieldError{Field: "sort", Code: "unsupported",
+			return nil, problem.Validation(problem.FieldError{Field: "sort", Code: "unsupported",
 				Message: "cannot sort by " + strconv.Quote(f.Field) + "."})
 		}
 		out = append(out, f)

@@ -11,7 +11,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Rule is a limit of Max events per Window.
@@ -66,8 +66,8 @@ type Limited struct{ RetryAfterDur time.Duration }
 func (e *Limited) Error() string { return "rate limited" }
 
 // Problem converts the error to its HTTP representation.
-func (e *Limited) Problem() *apperrors.Problem {
-	p := apperrors.NewProblem(http.StatusTooManyRequests, "rate_limited", "Too many requests",
+func (e *Limited) Problem() *problem.Problem {
+	p := problem.NewProblem(http.StatusTooManyRequests, "rate_limited", "Too many requests",
 		"Too many attempts. Try again in "+strconv.Itoa(int(e.RetryAfterDur.Seconds())+1)+" seconds.")
 	p.RetryAfter = e.RetryAfterDur
 	return p

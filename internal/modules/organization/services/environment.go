@@ -19,13 +19,13 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // normalizeAllowlist validates CIDRs/IPs and returns canonical, de-duplicated prefixes.
-func normalizeAllowlist(in []string) ([]string, *apperrors.FieldError) {
+func normalizeAllowlist(in []string) ([]string, *problem.FieldError) {
 	if len(in) > 100 {
-		return nil, &apperrors.FieldError{Field: "egress_allowlist", Code: "too_many", Message: "At most 100 entries."}
+		return nil, &problem.FieldError{Field: "egress_allowlist", Code: "too_many", Message: "At most 100 entries."}
 	}
 	out := []string{}
 	for _, raw := range in {
@@ -35,11 +35,11 @@ func normalizeAllowlist(in []string) ([]string, *apperrors.FieldError) {
 		}
 		pol, err := egress.ParsePolicy([]string{raw})
 		if err != nil {
-			return nil, &apperrors.FieldError{Field: "egress_allowlist", Code: "invalid_cidr",
+			return nil, &problem.FieldError{Field: "egress_allowlist", Code: "invalid_cidr",
 				Message: "\"" + raw + "\" is not an IP address or CIDR range (e.g. 10.20.0.0/16)."}
 		}
 		if pol.Allow[0].Bits() == 0 {
-			return nil, &apperrors.FieldError{Field: "egress_allowlist", Code: "too_broad",
+			return nil, &problem.FieldError{Field: "egress_allowlist", Code: "too_broad",
 				Message: "\"" + raw + "\" would allow every address. List specific internal ranges."}
 		}
 		c := pol.Allow[0].String()

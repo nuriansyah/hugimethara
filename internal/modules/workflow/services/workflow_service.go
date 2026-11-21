@@ -20,7 +20,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/repository"
 	"github.com/nuriansyah/hugimethara/internal/platform/clock"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/id"
 	logging "github.com/nuriansyah/hugimethara/internal/platform/logger"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
@@ -84,7 +84,7 @@ func (s *WorkflowService) audit(ctx context.Context, tx *sqlx.Tx, p principal.Pr
 }
 
 func validation(field, code, msg string) error {
-	return apperrors.Validation(apperrors.FieldError{Field: field, Code: code, Message: msg})
+	return problem.Validation(problem.FieldError{Field: field, Code: code, Message: msg})
 }
 
 // NodeTypes returns the node-type catalog.
@@ -413,7 +413,7 @@ func (s *WorkflowService) Execute(ctx context.Context, id uuid.UUID, in dto.Exec
 			return err
 		}
 		if w.Status == "paused" || w.Status == "archived" {
-			return apperrors.NewProblem(409, "workflow_"+w.Status, "Workflow is "+w.Status,
+			return problem.NewProblem(409, "workflow_"+w.Status, "Workflow is "+w.Status,
 				"Activate the workflow before executing it.")
 		}
 		dep, err := repository.GetDeployment(ctx, tx, id, in.EnvironmentID)

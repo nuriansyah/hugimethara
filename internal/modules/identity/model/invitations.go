@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Invitation limits.
@@ -78,10 +78,10 @@ type InvitationLookup struct {
 	UserExists  bool           `db:"user_exists"`
 }
 
-var ErrInvitationNotFound = apperrors.NotFound("This invitation link is not valid. Ask for a new invitation.")
+var ErrInvitationNotFound = problem.NotFound("This invitation link is not valid. Ask for a new invitation.")
 
-func invitationGone(code, detail string) *apperrors.Problem {
-	return apperrors.NewProblem(http.StatusGone, code, "Invitation no longer valid", detail)
+func invitationGone(code, detail string) *problem.Problem {
+	return problem.NewProblem(http.StatusGone, code, "Invitation no longer valid", detail)
 }
 
 func (l InvitationLookup) Usable(now time.Time) error {

@@ -9,12 +9,12 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 const Resource = "secret"
 
-var ErrNotFound = apperrors.NotFound("Credential not found.")
+var ErrNotFound = problem.NotFound("Credential not found.")
 
 type Credential struct {
 	ID            uuid.UUID  `db:"id"`
@@ -33,7 +33,7 @@ func KeyAAD(org, id uuid.UUID) []byte {
 
 func ValidateInput(value, field string, max int) error {
 	if strings.TrimSpace(value) == "" || !utf8.ValidString(value) || len(value) > max {
-		return apperrors.Validation(apperrors.FieldError{Field: field, Code: "invalid",
+		return problem.Validation(problem.FieldError{Field: field, Code: "invalid",
 			Message: "This field is required and must be valid UTF-8 within its size limit."})
 	}
 	return nil

@@ -10,7 +10,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/api_composition/model"
 	compositiondto "github.com/nuriansyah/hugimethara/internal/modules/api_composition/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/api_composition/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	logging "github.com/nuriansyah/hugimethara/internal/platform/logger"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
@@ -83,7 +83,7 @@ func (h *HTTP) ListApiCompositions(ctx context.Context, req dto.ListApiCompositi
 // @Router /v1/hugimethara/api-compositions [post]
 func (h *HTTP) CreateApiComposition(ctx context.Context, req dto.CreateApiCompositionRequestObject) (dto.CreateApiCompositionResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	row, err := h.svc.Create(ctx, compositiondto.CreateInput{WorkspaceID: req.Body.WorkspaceId,
 		Name: req.Body.Name, Slug: req.Body.Slug, Draft: req.Body.Draft})
@@ -130,7 +130,7 @@ func (h *HTTP) GetApiComposition(ctx context.Context, req dto.GetApiCompositionR
 // @Router /v1/hugimethara/api-compositions/{composition_id} [patch]
 func (h *HTTP) UpdateApiComposition(ctx context.Context, req dto.UpdateApiCompositionRequestObject) (dto.UpdateApiCompositionResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	var draft *map[string]any
 	if req.Body.Draft != nil {
@@ -246,7 +246,7 @@ func (h *HTTP) ListApiCompositionVersions(ctx context.Context, req dto.ListApiCo
 // @Router /v1/hugimethara/api-compositions/{composition_id}/execute [post]
 func (h *HTTP) ExecuteApiComposition(ctx context.Context, req dto.ExecuteApiCompositionRequestObject) (dto.ExecuteApiCompositionResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	result, err := h.svc.Execute(ctx, uuid.UUID(req.CompositionId), compositiondto.ExecuteInput{
 		EnvironmentID: req.Body.EnvironmentId, Request: req.Body.Request,

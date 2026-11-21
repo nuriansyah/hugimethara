@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Group is a set of members that roles can be assigned to.
@@ -30,23 +30,23 @@ type GroupMember struct {
 }
 
 var (
-	ErrGroupNotFound = apperrors.NotFound("Group not found.")
-	ErrGroupNameTake = apperrors.NewProblem(http.StatusConflict, "name_taken", "Conflict", "A group with this name already exists.")
-	ErrGroupIdP      = apperrors.NewProblem(http.StatusConflict, "group_managed_by_idp", "Conflict",
+	ErrGroupNotFound = problem.NotFound("Group not found.")
+	ErrGroupNameTake = problem.NewProblem(http.StatusConflict, "name_taken", "Conflict", "A group with this name already exists.")
+	ErrGroupIdP      = problem.NewProblem(http.StatusConflict, "group_managed_by_idp", "Conflict",
 		"This group's members come from your identity provider. Change them there.")
 )
 
 func ValidateNameDesc(name, desc *string, label string) error {
 	*name, *desc = strings.TrimSpace(*name), strings.TrimSpace(*desc)
-	var errs []apperrors.FieldError
+	var errs []problem.FieldError
 	if n := len([]rune(*name)); n < 1 || n > 100 {
-		errs = append(errs, apperrors.FieldError{Field: "name", Code: "invalid_length", Message: label + " name must be 1–100 characters."})
+		errs = append(errs, problem.FieldError{Field: "name", Code: "invalid_length", Message: label + " name must be 1–100 characters."})
 	}
 	if len([]rune(*desc)) > 500 {
-		errs = append(errs, apperrors.FieldError{Field: "description", Code: "invalid_length", Message: "Description must be at most 500 characters."})
+		errs = append(errs, problem.FieldError{Field: "description", Code: "invalid_length", Message: "Description must be at most 500 characters."})
 	}
 	if len(errs) > 0 {
-		return apperrors.Validation(errs...)
+		return problem.Validation(errs...)
 	}
 	return nil
 }

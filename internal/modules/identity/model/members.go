@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Resource types owned by the identity domain.
@@ -37,4 +37,4 @@ type GroupRef struct {
 	Name string    `json:"name"`
 }
 
-var ErrMemberNotFound = apperrors.NotFound("Member not found.")
+var ErrMemberNotFound = problem.NotFound("Member not found.")

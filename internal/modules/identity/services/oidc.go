@@ -32,7 +32,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/queries"
 	orgmodel "github.com/nuriansyah/hugimethara/internal/modules/organization/model"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -183,7 +183,7 @@ func (s *IdentityService) CreateIdentityProvider(ctx context.Context, in identit
 		secret = *in.ClientSecret
 	}
 	if len(secret) > 4096 {
-		return identitymodel.IdentityProvider{}, apperrors.Validation(apperrors.FieldError{Field: "client_secret", Code: "invalid_length", Message: "Client secret must be at most 4096 characters."})
+		return identitymodel.IdentityProvider{}, problem.Validation(problem.FieldError{Field: "client_secret", Code: "invalid_length", Message: "Client secret must be at most 4096 characters."})
 	}
 	sealed, err := s.sealSecret(secret)
 	if err != nil {
@@ -265,7 +265,7 @@ func (s *IdentityService) UpdateIdentityProvider(ctx context.Context, id uuid.UU
 	if setSecret {
 		secret := *in.ClientSecret
 		if len(secret) > 4096 {
-			return identitymodel.IdentityProvider{}, apperrors.Validation(apperrors.FieldError{Field: "client_secret", Code: "invalid_length", Message: "Client secret must be at most 4096 characters."})
+			return identitymodel.IdentityProvider{}, problem.Validation(problem.FieldError{Field: "client_secret", Code: "invalid_length", Message: "Client secret must be at most 4096 characters."})
 		}
 		if sealed, err = s.sealSecret(secret); err != nil {
 			return identitymodel.IdentityProvider{}, err
@@ -449,7 +449,7 @@ func (s *IdentityService) CreateGroupMapping(ctx context.Context, id uuid.UUID, 
 	}
 	external = strings.TrimSpace(external)
 	if l := utf8.RuneCountInString(external); l < 1 || l > 200 {
-		return identitymodel.GroupMapping{}, apperrors.Validation(apperrors.FieldError{Field: "external_group", Code: "invalid_length", Message: "External group must be 1–200 characters."})
+		return identitymodel.GroupMapping{}, problem.Validation(problem.FieldError{Field: "external_group", Code: "invalid_length", Message: "External group must be 1–200 characters."})
 	}
 	var out identitymodel.GroupMapping
 	err = s.tenantTx(ctx, p, func(tx *sqlx.Tx) error {
@@ -469,7 +469,7 @@ func (s *IdentityService) CreateGroupMapping(ctx context.Context, id uuid.UUID, 
 				target = found
 			case db.IsNoRows(err):
 				if utf8.RuneCountInString(external) > 100 {
-					return apperrors.Validation(apperrors.FieldError{Field: "external_group", Code: "group_name_too_long",
+					return problem.Validation(problem.FieldError{Field: "external_group", Code: "group_name_too_long",
 						Message: "IdP group names longer than 100 characters need an existing group."})
 				}
 				target = uuid.Must(uuid.NewV7())

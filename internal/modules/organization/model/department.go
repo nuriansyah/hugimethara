@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Department groups workspaces (e.g. Marketing, Finance).
@@ -19,4 +19,4 @@ type Department struct {
 	UpdatedAt      time.Time
 }
 
-var ErrDepartmentNotFound = apperrors.NotFound("Department not found.")
+var ErrDepartmentNotFound = problem.NotFound("Department not found.")

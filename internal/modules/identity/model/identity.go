@@ -12,16 +12,16 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Errors returned to clients.
 var (
-	ErrInvalidCredentials = apperrors.NewProblem(http.StatusUnauthorized, "invalid_credentials", "Sign-in failed",
+	ErrInvalidCredentials = problem.NewProblem(http.StatusUnauthorized, "invalid_credentials", "Sign-in failed",
 		"The email or password is incorrect, or the account is temporarily locked after repeated failures.")
-	ErrEmailTaken = apperrors.NewProblem(http.StatusConflict, "email_taken", "Email already registered",
+	ErrEmailTaken = problem.NewProblem(http.StatusConflict, "email_taken", "Email already registered",
 		"An account with this email already exists. Sign in instead.")
-	ErrNoActiveOrganization = apperrors.NewProblem(http.StatusForbidden, "no_active_organization", "No active organization",
+	ErrNoActiveOrganization = problem.NewProblem(http.StatusForbidden, "no_active_organization", "No active organization",
 		"Your account is not an active member of any organization.")
 	ErrNoSession = errors.New("identity: no valid session")
 )
@@ -58,8 +58,8 @@ type OrganizationChoiceRequired struct{ Choices []OrgSummary }
 func (e *OrganizationChoiceRequired) Error() string { return "organization choice required" }
 
 // Problem renders the error with the list of organizations to choose from.
-func (e *OrganizationChoiceRequired) Problem() *apperrors.Problem {
-	p := apperrors.NewProblem(http.StatusConflict, "organization_required", "Choose an organization",
+func (e *OrganizationChoiceRequired) Problem() *problem.Problem {
+	p := problem.NewProblem(http.StatusConflict, "organization_required", "Choose an organization",
 		"Your account belongs to several organizations. Choose one to sign in to.")
 	choices := make([]map[string]any, len(e.Choices))
 	for i, c := range e.Choices {
@@ -97,7 +97,7 @@ type SessionInfo struct {
 }
 
 // errNotAUser answers person-only endpoints called with an API key.
-var ErrNotAUser = apperrors.NewProblem(http.StatusForbidden, "not_a_user", "Not available",
+var ErrNotAUser = problem.NewProblem(http.StatusForbidden, "not_a_user", "Not available",
 	"This endpoint is about the signed-in person and is not available to service accounts.")
 
 func NormalizeEmail(e string) string { return strings.ToLower(strings.TrimSpace(e)) }

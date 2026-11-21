@@ -18,7 +18,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -100,7 +100,7 @@ func (s *IdentityService) UpdateServiceAccount(ctx context.Context, id uuid.UUID
 		return identitymodel.ServiceAccount{}, err
 	}
 	if in.Disabled && p.Type == principal.ServiceAccount && p.ID == id {
-		return identitymodel.ServiceAccount{}, apperrors.NewProblem(http.StatusConflict, "cannot_disable_self", "Conflict", "A service account cannot disable itself.")
+		return identitymodel.ServiceAccount{}, problem.NewProblem(http.StatusConflict, "cannot_disable_self", "Conflict", "A service account cannot disable itself.")
 	}
 	var sa identitymodel.ServiceAccount
 	err = s.tenantTx(ctx, p, func(tx *sqlx.Tx) error {
@@ -184,15 +184,15 @@ func (s *IdentityService) CreateAPIKey(ctx context.Context, accountID uuid.UUID,
 		return identitymodel.APIKey{}, "", err
 	}
 	name = strings.TrimSpace(name)
-	var errs []apperrors.FieldError
+	var errs []problem.FieldError
 	if n := len([]rune(name)); n < 1 || n > 100 {
-		errs = append(errs, apperrors.FieldError{Field: "name", Code: "invalid_length", Message: "Key name must be 1–100 characters."})
+		errs = append(errs, problem.FieldError{Field: "name", Code: "invalid_length", Message: "Key name must be 1–100 characters."})
 	}
 	if expiresAt != nil && !expiresAt.After(s.now()) {
-		errs = append(errs, apperrors.FieldError{Field: "expires_at", Code: "in_past", Message: "Expiry must be in the future."})
+		errs = append(errs, problem.FieldError{Field: "expires_at", Code: "in_past", Message: "Expiry must be in the future."})
 	}
 	if len(errs) > 0 {
-		return identitymodel.APIKey{}, "", apperrors.Validation(errs...)
+		return identitymodel.APIKey{}, "", problem.Validation(errs...)
 	}
 	secret, prefix := identitymodel.NewAPIKey()
 	id := uuid.Must(uuid.NewV7())
@@ -203,14 +203,14 @@ func (s *IdentityService) CreateAPIKey(ctx context.Context, accountID uuid.UUID,
 			return err
 		}
 		if sa.DisabledAt.Valid {
-			return apperrors.NewProblem(http.StatusConflict, "service_account_disabled", "Conflict", "Enable the service account before creating keys.")
+			return problem.NewProblem(http.StatusConflict, "service_account_disabled", "Conflict", "Enable the service account before creating keys.")
 		}
 		var active int64
 		if err := tx.GetContext(ctx, &active, queries.SQL.Get("CountActiveAPIKeys"), accountID); err != nil {
 			return err
 		}
 		if active >= identitymodel.MaxActiveKeys {
-			return apperrors.NewProblem(http.StatusConflict, "too_many_keys", "Conflict", "A service account can have at most 10 active keys. Revoke one first.")
+			return problem.NewProblem(http.StatusConflict, "too_many_keys", "Conflict", "A service account can have at most 10 active keys. Revoke one first.")
 		}
 		var exp any
 		if expiresAt != nil {
@@ -247,7 +247,7 @@ func (s *IdentityService) RevokeAPIKey(ctx context.Context, accountID, keyID uui
 			return err
 		}
 		if n == 0 {
-			return apperrors.NotFound("Key not found or already revoked.")
+			return problem.NotFound("Key not found or already revoked.")
 		}
 		return auditsvc.Record(ctx, tx, auditmodel.Event{OrgID: p.OrgID, Action: "service_account.key_revoked",
 			ResourceType: identitymodel.ServiceAccountResource, ResourceID: accountID.String(), Details: map[string]any{"key_id": keyID}})

@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // ResourceType is the authorization resource owned by this module.
@@ -158,34 +158,34 @@ func EmptyDefinition() Definition {
 
 // Problems returned by the workflow use cases.
 var (
-	ErrWorkflowNotFound  = apperrors.NotFound("Workflow not found.")
-	ErrExecutionNotFound = apperrors.NotFound("Workflow execution not found.")
-	ErrNotDeployed       = apperrors.NewProblem(http.StatusConflict, "workflow_not_deployed", "Workflow not deployed",
+	ErrWorkflowNotFound  = problem.NotFound("Workflow not found.")
+	ErrExecutionNotFound = problem.NotFound("Workflow execution not found.")
+	ErrNotDeployed       = problem.NewProblem(http.StatusConflict, "workflow_not_deployed", "Workflow not deployed",
 		"This workflow has no enabled deployment in the selected environment.")
-	ErrNothingToPublish = apperrors.NewProblem(http.StatusConflict, "no_changes", "Nothing to publish",
+	ErrNothingToPublish = problem.NewProblem(http.StatusConflict, "no_changes", "Nothing to publish",
 		"The draft is identical to the latest published version.")
-	ErrSlugTaken = apperrors.NewProblem(http.StatusConflict, "slug_taken", "Address unavailable",
+	ErrSlugTaken = problem.NewProblem(http.StatusConflict, "slug_taken", "Address unavailable",
 		"Another workflow in this workspace already uses this slug.")
-	ErrTaskNotFound      = apperrors.NotFound("Approval task not found.")
-	ErrExecutionFinished = apperrors.NewProblem(http.StatusConflict, "execution_finished", "Execution already finished",
+	ErrTaskNotFound      = problem.NotFound("Approval task not found.")
+	ErrExecutionFinished = problem.NewProblem(http.StatusConflict, "execution_finished", "Execution already finished",
 		"Only pending or running executions can be cancelled.")
-	ErrNotRetryable = apperrors.NewProblem(http.StatusConflict, "execution_not_retryable", "Execution cannot be re-run",
+	ErrNotRetryable = problem.NewProblem(http.StatusConflict, "execution_not_retryable", "Execution cannot be re-run",
 		"Only failed or timed-out executions can be re-run from their failed step.")
-	ErrTaskDecided = apperrors.NewProblem(http.StatusConflict, "task_not_pending", "Task already resolved",
+	ErrTaskDecided = problem.NewProblem(http.StatusConflict, "task_not_pending", "Task already resolved",
 		"This task was already decided, expired or cancelled.")
-	ErrNotAssignee = apperrors.NewProblem(http.StatusForbidden, "not_assignee", "Not an assignee",
+	ErrNotAssignee = problem.NewProblem(http.StatusForbidden, "not_assignee", "Not an assignee",
 		"Only the users and groups assigned to this task can act on it.")
-	ErrSelfApproval = apperrors.NewProblem(http.StatusForbidden, "self_approval_forbidden", "Self-approval is not allowed",
+	ErrSelfApproval = problem.NewProblem(http.StatusForbidden, "self_approval_forbidden", "Self-approval is not allowed",
 		"You started this execution, so another assignee must approve it.")
 )
 
 // InvalidDefinition wraps validation issues in an RFC 9457 problem.
-func InvalidDefinition(issues []Issue) *apperrors.Problem {
-	fields := make([]apperrors.FieldError, len(issues))
+func InvalidDefinition(issues []Issue) *problem.Problem {
+	fields := make([]problem.FieldError, len(issues))
 	for i, is := range issues {
-		fields[i] = apperrors.FieldError{Field: is.Path, Code: is.Code, Message: is.Message}
+		fields[i] = problem.FieldError{Field: is.Path, Code: is.Code, Message: is.Message}
 	}
-	p := apperrors.NewProblem(http.StatusUnprocessableEntity, "invalid_workflow", "Workflow definition is invalid",
+	p := problem.NewProblem(http.StatusUnprocessableEntity, "invalid_workflow", "Workflow definition is invalid",
 		"Fix the listed issues before publishing.")
 	p.Errors = fields
 	return p

@@ -5,7 +5,7 @@ import (
 
 	auditdto "github.com/nuriansyah/hugimethara/internal/modules/governance/audit/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/governance/audit/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/pagination"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
@@ -38,7 +38,7 @@ func (h *HTTP) ListAuditEvents(ctx context.Context, req dto.ListAuditEventsReque
 	page := pagination.Page{Limit: pagination.DefaultPageLimit}
 	if prm.Limit != nil {
 		if *prm.Limit < 1 || *prm.Limit > pagination.MaxPageLimit {
-			return nil, apperrors.Validation(apperrors.FieldError{Field: "limit", Code: "out_of_range", Message: "limit must be between 1 and 200."})
+			return nil, problem.Validation(problem.FieldError{Field: "limit", Code: "out_of_range", Message: "limit must be between 1 and 200."})
 		}
 		page.Limit = *prm.Limit
 	}
@@ -62,7 +62,7 @@ func (h *HTTP) ListAuditEvents(ctx context.Context, req dto.ListAuditEventsReque
 		f.Until = *prm.Until
 	}
 	if !f.Since.IsZero() && !f.Until.IsZero() && !f.Since.Before(f.Until) {
-		return nil, apperrors.Validation(apperrors.FieldError{Field: "until", Code: "before_since", Message: "until must be after since."})
+		return nil, problem.Validation(problem.FieldError{Field: "until", Code: "before_since", Message: "until must be after since."})
 	}
 
 	entries, next, err := h.svc.List(ctx, f, page)

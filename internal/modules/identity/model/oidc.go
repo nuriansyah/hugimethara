@@ -13,7 +13,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // IdentityProviderResource is the RBAC resource type for OIDC configuration.
@@ -37,14 +37,14 @@ const (
 )
 
 var (
-	ErrProviderNotFound = apperrors.NotFound("Identity provider not found.")
-	ErrProviderName     = apperrors.NewProblem(http.StatusConflict, "name_taken", "Conflict",
+	ErrProviderNotFound = problem.NotFound("Identity provider not found.")
+	ErrProviderName     = problem.NewProblem(http.StatusConflict, "name_taken", "Conflict",
 		"An identity provider with this name already exists.")
-	ErrMappingExists = apperrors.NewProblem(http.StatusConflict, "mapping_exists", "Conflict",
+	ErrMappingExists = problem.NewProblem(http.StatusConflict, "mapping_exists", "Conflict",
 		"This external group is already mapped for this provider.")
-	ErrMappingGroup = apperrors.NewProblem(http.StatusConflict, "group_already_mapped", "Conflict",
+	ErrMappingGroup = problem.NewProblem(http.StatusConflict, "group_already_mapped", "Conflict",
 		"This group is already mapped to an external group.")
-	ErrGroupNameTaken = apperrors.NewProblem(http.StatusConflict, "group_name_taken", "Conflict",
+	ErrGroupNameTaken = problem.NewProblem(http.StatusConflict, "group_name_taken", "Conflict",
 		"A group with this name already exists. Choose it explicitly instead.")
 )
 
@@ -133,27 +133,27 @@ func NormalizeProvider(n NormalizedProvider) (NormalizedProvider, error) {
 	n.AllowedDomains = normalizeDomains(n.AllowedDomains)
 	n.ClaimMapping = normalizeClaimMapping(n.ClaimMapping)
 
-	var errs []apperrors.FieldError
+	var errs []problem.FieldError
 	if l := utf8.RuneCountInString(n.Name); l < 1 || l > 100 {
-		errs = append(errs, apperrors.FieldError{Field: "name", Code: "invalid_length", Message: "Name must be 1–100 characters."})
+		errs = append(errs, problem.FieldError{Field: "name", Code: "invalid_length", Message: "Name must be 1–100 characters."})
 	}
 	switch n.Preset {
 	case PresetEntra, PresetGoogle, PresetKeycloak, PresetGeneric:
 	default:
-		errs = append(errs, apperrors.FieldError{Field: "preset", Code: "invalid", Message: "Preset must be entra, google, keycloak or generic."})
+		errs = append(errs, problem.FieldError{Field: "preset", Code: "invalid", Message: "Preset must be entra, google, keycloak or generic."})
 	}
 	if err := validIssuer(n.Issuer); err != nil {
-		errs = append(errs, apperrors.FieldError{Field: "issuer", Code: "invalid_url", Message: err.Error()})
+		errs = append(errs, problem.FieldError{Field: "issuer", Code: "invalid_url", Message: err.Error()})
 	}
 	if l := len(n.ClientID); l < 1 || l > 255 {
-		errs = append(errs, apperrors.FieldError{Field: "client_id", Code: "invalid_length", Message: "Client ID must be 1–255 characters."})
+		errs = append(errs, problem.FieldError{Field: "client_id", Code: "invalid_length", Message: "Client ID must be 1–255 characters."})
 	}
 	if len(n.Scopes) == 0 {
-		errs = append(errs, apperrors.FieldError{Field: "scopes", Code: "required", Message: "At least the openid scope is required."})
+		errs = append(errs, problem.FieldError{Field: "scopes", Code: "required", Message: "At least the openid scope is required."})
 	}
 	for _, d := range n.AllowedDomains {
 		if !validDomain(d) {
-			errs = append(errs, apperrors.FieldError{Field: "allowed_domains", Code: "invalid_domain", Message: "Allowed domains must be plain email domains, e.g. example.com."})
+			errs = append(errs, problem.FieldError{Field: "allowed_domains", Code: "invalid_domain", Message: "Allowed domains must be plain email domains, e.g. example.com."})
 			break
 		}
 	}
@@ -163,11 +163,11 @@ func NormalizeProvider(n NormalizedProvider) (NormalizedProvider, error) {
 		{"claim_mapping.groups", n.ClaimMapping.Groups},
 	} {
 		if l := len(f.value); l > 200 || strings.ContainsAny(f.value, " \t\r\n") {
-			errs = append(errs, apperrors.FieldError{Field: f.field, Code: "invalid", Message: "Claim names must be at most 200 characters without spaces."})
+			errs = append(errs, problem.FieldError{Field: f.field, Code: "invalid", Message: "Claim names must be at most 200 characters without spaces."})
 		}
 	}
 	if len(errs) > 0 {
-		return n, apperrors.Validation(errs...)
+		return n, problem.Validation(errs...)
 	}
 	return n, nil
 }
@@ -232,7 +232,7 @@ func validDomain(d string) bool {
 	return strings.Contains(d, ".")
 }
 
-var ErrMappingNotFound = apperrors.NotFound("Group mapping not found.")
+var ErrMappingNotFound = problem.NotFound("Group mapping not found.")
 
 // oidcState is sealed into a short-lived cookie. The browser never sees its
 // contents (beyond the opaque value), and the cookie binds the callback to
@@ -269,7 +269,7 @@ func SafeRedirect(raw string) (string, error) {
 	}
 	if len(raw) > 512 || !strings.HasPrefix(raw, "/") || strings.HasPrefix(raw, "//") ||
 		strings.ContainsAny(raw, "\\\r\n") {
-		return "", apperrors.Validation(apperrors.FieldError{Field: "redirect", Code: "invalid", Message: "Redirect must be a relative path on this site."})
+		return "", problem.Validation(problem.FieldError{Field: "redirect", Code: "invalid", Message: "Redirect must be a relative path on this site."})
 	}
 	return raw, nil
 }

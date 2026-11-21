@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -22,8 +22,8 @@ const (
 	MemberRoleKey         = "member"
 )
 
-func Escalation(missing []string) *apperrors.Problem {
-	p := apperrors.NewProblem(http.StatusForbidden, "privilege_escalation", "Not allowed",
+func Escalation(missing []string) *problem.Problem {
+	p := problem.NewProblem(http.StatusForbidden, "privilege_escalation", "Not allowed",
 		"You can only grant permissions you hold yourself at that scope. Missing: "+strings.Join(missing, ", ")+".")
 	p.Extensions = map[string]any{"missing_permissions": missing}
 	return p
@@ -31,7 +31,7 @@ func Escalation(missing []string) *apperrors.Problem {
 
 var RoleKeyRe = regexp.MustCompile(`^[a-z0-9_]{2,40}$`)
 
-var ErrRoleNotFound = apperrors.NotFound("Role not found.")
+var ErrRoleNotFound = problem.NotFound("Role not found.")
 
 func NullUUID(id uuid.UUID) any {
 	if id == uuid.Nil {
@@ -74,7 +74,7 @@ func ScopeDetails(sc ScopeRef) map[string]any {
 	return m
 }
 
-var ErrLastOwner = apperrors.NewProblem(http.StatusConflict, "last_owner", "Conflict",
+var ErrLastOwner = problem.NewProblem(http.StatusConflict, "last_owner", "Conflict",
 	"An organization needs at least one owner. Make someone else an owner first.")
 
 // RefOf converts a request principal into a binding principal.

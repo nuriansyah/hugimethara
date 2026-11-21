@@ -23,7 +23,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/queries"
 	orgmodel "github.com/nuriansyah/hugimethara/internal/modules/organization/model"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -64,26 +64,26 @@ func (s *IdentityService) CreateInvitation(ctx context.Context, in identitydto.I
 	if in.ExpiresInDays == 0 {
 		in.ExpiresInDays = identitymodel.DefaultInvitationDays
 	}
-	var errs []apperrors.FieldError
+	var errs []problem.FieldError
 	if !identitymodel.ValidEmail(in.Email) {
-		errs = append(errs, apperrors.FieldError{Field: "email", Code: "invalid_email", Message: "Enter a valid email address."})
+		errs = append(errs, problem.FieldError{Field: "email", Code: "invalid_email", Message: "Enter a valid email address."})
 	}
 	if in.ExpiresInDays < 1 || in.ExpiresInDays > identitymodel.MaxInvitationDays {
-		errs = append(errs, apperrors.FieldError{Field: "expires_in_days", Code: "out_of_range", Message: "Invitations last 1–30 days."})
+		errs = append(errs, problem.FieldError{Field: "expires_in_days", Code: "out_of_range", Message: "Invitations last 1–30 days."})
 	}
 	if len(in.Workspaces) > identitymodel.MaxInvitationGrants {
-		errs = append(errs, apperrors.FieldError{Field: "workspaces", Code: "too_many", Message: "Invite to at most 50 workspaces at once."})
+		errs = append(errs, problem.FieldError{Field: "workspaces", Code: "too_many", Message: "Invite to at most 50 workspaces at once."})
 	}
 	seen := map[uuid.UUID]bool{}
 	for _, g := range in.Workspaces {
 		if seen[g.WorkspaceID] {
-			errs = append(errs, apperrors.FieldError{Field: "workspaces", Code: "duplicate", Message: "Each workspace can appear only once."})
+			errs = append(errs, problem.FieldError{Field: "workspaces", Code: "duplicate", Message: "Each workspace can appear only once."})
 			break
 		}
 		seen[g.WorkspaceID] = true
 	}
 	if len(errs) > 0 {
-		return identitydto.CreatedInvitation{}, apperrors.Validation(errs...)
+		return identitydto.CreatedInvitation{}, problem.Validation(errs...)
 	}
 	if err := s.limiter.Allow(ctx, ruleInviteOrg, p.OrgID.String()); err != nil {
 		return identitydto.CreatedInvitation{}, err
@@ -110,7 +110,7 @@ func (s *IdentityService) CreateInvitation(ctx context.Context, in identitydto.I
 			return err
 		}
 		if member {
-			return apperrors.NewProblem(http.StatusConflict, "already_member", "Conflict", "This person is already a member of the organization.")
+			return problem.NewProblem(http.StatusConflict, "already_member", "Conflict", "This person is already a member of the organization.")
 		}
 		var orgRole any
 		if in.OrgRoleID != nil {
@@ -127,12 +127,12 @@ func (s *IdentityService) CreateInvitation(ctx context.Context, in identitydto.I
 			}
 			if err := tx.GetContext(ctx, &w, queries.SQL.Get("GetWorkspaceForInvite"), g.WorkspaceID); err != nil {
 				if db.IsNoRows(err) {
-					return apperrors.Validation(apperrors.FieldError{Field: "workspaces", Code: "not_found", Message: "Workspace not found."})
+					return problem.Validation(problem.FieldError{Field: "workspaces", Code: "not_found", Message: "Workspace not found."})
 				}
 				return err
 			}
 			if w.ArchivedAt.Valid {
-				return apperrors.Validation(apperrors.FieldError{Field: "workspaces", Code: "archived", Message: "“" + w.Name + "” is archived."})
+				return problem.Validation(problem.FieldError{Field: "workspaces", Code: "archived", Message: "“" + w.Name + "” is archived."})
 			}
 			if _, err := s.acl.CheckGrantRole(ctx, tx, p, g.RoleID, authzmodel.ScopeRef{Type: authzmodel.ScopeWorkspace, WorkspaceID: g.WorkspaceID}); err != nil {
 				return err
@@ -181,9 +181,9 @@ func (s *IdentityService) RevokeInvitation(ctx context.Context, id uuid.UUID) er
 				return err
 			}
 			if !exists {
-				return apperrors.NotFound("Invitation not found.")
+				return problem.NotFound("Invitation not found.")
 			}
-			return apperrors.NewProblem(http.StatusConflict, "invitation_closed", "Conflict", "This invitation was already accepted or revoked.")
+			return problem.NewProblem(http.StatusConflict, "invitation_closed", "Conflict", "This invitation was already accepted or revoked.")
 		}
 		return auditsvc.Record(ctx, tx, auditmodel.Event{OrgID: p.OrgID, Action: "user.invitation_revoked", ResourceType: identitymodel.UserResource,
 			ResourceID: id.String()})
@@ -246,7 +246,7 @@ func (s *IdentityService) AcceptInvitation(ctx context.Context, token string, in
 			return identitymodel.SessionGrant{}, err
 		}
 		if !strings.EqualFold(row.Email, l.Email) {
-			return identitymodel.SessionGrant{}, apperrors.NewProblem(http.StatusConflict, "signed_in_as_other", "Different account",
+			return identitymodel.SessionGrant{}, problem.NewProblem(http.StatusConflict, "signed_in_as_other", "Different account",
 				"You are signed in as "+row.Email+", but this invitation is for "+l.Email+". Sign out, or enter the password of the invited account.")
 		}
 		user = identitymodel.User{ID: row.ID, Email: row.Email, DisplayName: row.DisplayName, Status: row.Status}
@@ -278,7 +278,7 @@ func (s *IdentityService) AcceptInvitation(ctx context.Context, token string, in
 		if newHash != "" {
 			if _, err := tx.ExecContext(ctx, commands.SQL.Get("InsertUser"), user.ID, user.Email, user.DisplayName); err != nil {
 				if db.IsUniqueViolation(err) {
-					return apperrors.NewProblem(http.StatusConflict, "account_exists", "Account exists",
+					return problem.NewProblem(http.StatusConflict, "account_exists", "Account exists",
 						"An account with this email already exists. Enter its password instead.")
 				}
 				return err
@@ -292,7 +292,7 @@ func (s *IdentityService) AcceptInvitation(ctx context.Context, token string, in
 			return err
 		}
 		if status != identitymodel.MembershipActive {
-			return apperrors.NewProblem(http.StatusForbidden, "membership_suspended", "Membership suspended",
+			return problem.NewProblem(http.StatusForbidden, "membership_suspended", "Membership suspended",
 				"Your membership in this organization is suspended. Ask an administrator to reactivate it.")
 		}
 		if newHash != "" {
@@ -330,7 +330,7 @@ func (s *IdentityService) AcceptInvitation(ctx context.Context, token string, in
 // details of a new account (returning its password hash).
 func (s *IdentityService) inviteeIdentity(ctx context.Context, email string, in identitydto.AcceptInput) (identitymodel.User, string, error) {
 	if in.Password == "" {
-		return identitymodel.User{}, "", apperrors.Validation(apperrors.FieldError{Field: "password", Code: "required", Message: "Enter a password."})
+		return identitymodel.User{}, "", problem.Validation(problem.FieldError{Field: "password", Code: "required", Message: "Enter a password."})
 	}
 	var (
 		rec   identitymodel.LoginRecord
@@ -367,13 +367,13 @@ func (s *IdentityService) inviteeIdentity(ctx context.Context, email string, in 
 	}
 
 	name := strings.TrimSpace(in.DisplayName)
-	var errs []apperrors.FieldError
+	var errs []problem.FieldError
 	if n := len([]rune(name)); n < 1 || n > 100 {
-		errs = append(errs, apperrors.FieldError{Field: "display_name", Code: "invalid_length", Message: "Name must be 1–100 characters."})
+		errs = append(errs, problem.FieldError{Field: "display_name", Code: "invalid_length", Message: "Name must be 1–100 characters."})
 	}
 	errs = append(errs, identitymodel.ValidatePassword("password", in.Password, email)...)
 	if len(errs) > 0 {
-		return identitymodel.User{}, "", apperrors.Validation(errs...)
+		return identitymodel.User{}, "", problem.Validation(errs...)
 	}
 	hash, err := s.cfg.Hasher.Hash(in.Password)
 	if err != nil {

@@ -23,7 +23,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/repository/queries"
 	secretbox "github.com/nuriansyah/hugimethara/internal/platform/crypto"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -121,11 +121,11 @@ func (s *SecretsService) Create(ctx context.Context, in dto.CreateInput) (secret
 		if _, err := tx.ExecContext(ctx, commands.SQL.Get("InsertCredential"), p.OrgID, id,
 			secretsmodel.NullableUUID(in.EnvironmentID), in.Kind, in.Name, dekID, ciphertext, secretsmodel.Hint(in.Value)); err != nil {
 			if db.IsUniqueViolation(err) {
-				return apperrors.NewProblem(http.StatusConflict, "credential_name_taken", "Conflict",
+				return problem.NewProblem(http.StatusConflict, "credential_name_taken", "Conflict",
 					"A credential with this name already exists in this scope.")
 			}
 			if db.IsForeignKeyViolation(err, "secrets_org_id_environment_id_fkey") {
-				return apperrors.Validation(apperrors.FieldError{Field: "environment_id", Code: "not_found",
+				return problem.Validation(problem.FieldError{Field: "environment_id", Code: "not_found",
 					Message: "The environment does not exist in this organization."})
 			}
 			return err
@@ -145,7 +145,7 @@ func (s *SecretsService) Update(ctx context.Context, id uuid.UUID, in dto.Update
 		return secretsmodel.Credential{}, err
 	}
 	if in.Name == nil && in.Value == nil {
-		return secretsmodel.Credential{}, apperrors.Validation(apperrors.FieldError{Field: "body", Code: "empty",
+		return secretsmodel.Credential{}, problem.Validation(problem.FieldError{Field: "body", Code: "empty",
 			Message: "At least one field must be provided."})
 	}
 	if in.Name != nil {
@@ -183,7 +183,7 @@ func (s *SecretsService) Update(ctx context.Context, id uuid.UUID, in dto.Update
 		result, err := tx.ExecContext(ctx, commands.SQL.Get("UpdateCredential"), id, in.Name, dekID, ciphertext, secretHint)
 		if err != nil {
 			if db.IsUniqueViolation(err) {
-				return apperrors.NewProblem(http.StatusConflict, "credential_name_taken", "Conflict",
+				return problem.NewProblem(http.StatusConflict, "credential_name_taken", "Conflict",
 					"A credential with this name already exists in this scope.")
 			}
 			return err

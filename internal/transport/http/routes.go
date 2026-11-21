@@ -16,7 +16,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	authzmodel "github.com/nuriansyah/hugimethara/internal/modules/authorization/model"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/handlers"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/middleware"
@@ -209,10 +209,10 @@ func NewRouter(d Deps) (http.Handler, error) {
 		d.Identity.Middleware,
 	)
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
-		apperrors.WriteError(w, req, apperrors.NotFound("No route matches "+req.Method+" "+req.URL.Path+"."))
+		problem.WriteError(w, req, problem.NotFound("No route matches "+req.Method+" "+req.URL.Path+"."))
 	})
 	r.MethodNotAllowed(func(w http.ResponseWriter, req *http.Request) {
-		apperrors.WriteError(w, req, apperrors.NewProblem(http.StatusMethodNotAllowed, "method_not_allowed",
+		problem.WriteError(w, req, problem.NewProblem(http.StatusMethodNotAllowed, "method_not_allowed",
 			"Method not allowed", req.Method+" is not supported on this route."))
 	})
 
@@ -254,33 +254,33 @@ func newOperationHandler(server any, spec route, public bool) (http.Handler, err
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := reflect.New(methodType.In(1)).Elem()
 		if err := bindRequest(r, request); err != nil {
-			apperrors.WriteError(w, r, apperrors.BadRequest(err.Error()))
+			problem.WriteError(w, r, problem.BadRequest(err.Error()))
 			return
 		}
 		if !public {
 			if _, ok := principal.From(r.Context()); !ok {
-				apperrors.WriteError(w, r, authzmodel.Unauthenticated())
+				problem.WriteError(w, r, authzmodel.Unauthenticated())
 				return
 			}
 		}
 		result := method.Call([]reflect.Value{reflect.ValueOf(r.Context()), request})
 		if !result[1].IsNil() {
-			apperrors.WriteError(w, r, result[1].Interface().(error))
+			problem.WriteError(w, r, result[1].Interface().(error))
 			return
 		}
 		if isNil(result[0]) {
-			apperrors.WriteError(w, r, fmt.Errorf("api: handler %s returned an empty response", name))
+			problem.WriteError(w, r, fmt.Errorf("api: handler %s returned an empty response", name))
 			return
 		}
 		response := result[0]
 		visitor := response.MethodByName("Visit" + name + "Response")
 		if !visitor.IsValid() {
-			apperrors.WriteError(w, r, fmt.Errorf("api: handler %s response visitor is missing", name))
+			problem.WriteError(w, r, fmt.Errorf("api: handler %s response visitor is missing", name))
 			return
 		}
 		writeResult := visitor.Call([]reflect.Value{reflect.ValueOf(w)})
 		if !writeResult[0].IsNil() {
-			apperrors.WriteError(w, r, writeResult[0].Interface().(error))
+			problem.WriteError(w, r, writeResult[0].Interface().(error))
 		}
 	}), nil
 }

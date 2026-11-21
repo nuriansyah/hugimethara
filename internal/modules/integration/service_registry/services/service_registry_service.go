@@ -26,7 +26,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -62,7 +62,7 @@ func (s *ServiceRegistryService) tenantTx(ctx context.Context, p principal.Princ
 
 func (s *ServiceRegistryService) authorize(ctx context.Context, p principal.Principal, action string, workspaceID uuid.UUID, id string) error {
 	if workspaceID == uuid.Nil {
-		return apperrors.Validation(apperrors.FieldError{Field: "workspace_id", Code: "required",
+		return problem.Validation(problem.FieldError{Field: "workspace_id", Code: "required",
 			Message: "A workspace is required."})
 	}
 	_, err := authzsvc.Require(ctx, s.az, action, authzmodel.Resource{
@@ -137,11 +137,11 @@ func (s *ServiceRegistryService) Create(ctx context.Context, in serviceregdto.Cr
 		if _, err := tx.ExecContext(ctx, commands.SQL.Get("InsertService"), p.OrgID, id,
 			in.WorkspaceID, in.Name, in.Owner, in.Description, in.Protocol); err != nil {
 			if db.IsUniqueViolation(err) {
-				return apperrors.NewProblem(http.StatusConflict, "service_name_taken", "Conflict",
+				return problem.NewProblem(http.StatusConflict, "service_name_taken", "Conflict",
 					"A service with this name already exists in the workspace.")
 			}
 			if db.IsForeignKeyViolation(err, "services_org_id_workspace_id_fkey") {
-				return apperrors.Validation(apperrors.FieldError{Field: "workspace_id", Code: "not_found",
+				return problem.Validation(problem.FieldError{Field: "workspace_id", Code: "not_found",
 					Message: "The workspace does not exist in this organization."})
 			}
 			return err
@@ -164,7 +164,7 @@ func (s *ServiceRegistryService) Update(ctx context.Context, id uuid.UUID, in se
 		return serviceregmodel.RegisteredService{}, err
 	}
 	if in.Name == nil && in.Owner == nil && in.Description == nil && in.Protocol == nil {
-		return serviceregmodel.RegisteredService{}, apperrors.Validation(apperrors.FieldError{Field: "body", Code: "empty",
+		return serviceregmodel.RegisteredService{}, problem.Validation(problem.FieldError{Field: "body", Code: "empty",
 			Message: "At least one field must be provided."})
 	}
 	if err := serviceregdto.ValidateUpdate(&in); err != nil {
@@ -182,7 +182,7 @@ func (s *ServiceRegistryService) Update(ctx context.Context, id uuid.UUID, in se
 		if _, err := tx.ExecContext(ctx, commands.SQL.Get("UpdateService"), id,
 			in.Name, in.Owner, in.Description, in.Protocol); err != nil {
 			if db.IsUniqueViolation(err) {
-				return apperrors.NewProblem(http.StatusConflict, "service_name_taken", "Conflict",
+				return problem.NewProblem(http.StatusConflict, "service_name_taken", "Conflict",
 					"A service with this name already exists in the workspace.")
 			}
 			return err
@@ -254,11 +254,11 @@ func (s *ServiceRegistryService) PutEnvironment(ctx context.Context, serviceID, 
 		if _, err := tx.ExecContext(ctx, commands.SQL.Get("UpsertServiceEnvironment"), p.OrgID,
 			serviceID, environmentID, baseURL, serviceregmodel.NullableUUID(connectorID)); err != nil {
 			if db.IsForeignKeyViolation(err, "service_environments_org_id_environment_id_fkey") {
-				return apperrors.Validation(apperrors.FieldError{Field: "environment_id", Code: "not_found",
+				return problem.Validation(problem.FieldError{Field: "environment_id", Code: "not_found",
 					Message: "The environment does not exist in this organization."})
 			}
 			if db.IsForeignKeyViolation(err, "service_environments_org_id_connector_instance_id_fkey") {
-				return apperrors.Validation(apperrors.FieldError{Field: "connector_instance_id", Code: "not_found",
+				return problem.Validation(problem.FieldError{Field: "connector_instance_id", Code: "not_found",
 					Message: "The connector instance does not exist in this organization."})
 			}
 			return err
@@ -351,7 +351,7 @@ func (s *ServiceRegistryService) ImportOpenAPI(ctx context.Context, serviceID uu
 		return serviceregmodel.ImportResult{}, err
 	}
 	if (in.Spec == nil) == (in.URL == nil) {
-		return serviceregmodel.ImportResult{}, apperrors.Validation(apperrors.FieldError{Field: "spec", Code: "one_of",
+		return serviceregmodel.ImportResult{}, problem.Validation(problem.FieldError{Field: "spec", Code: "one_of",
 			Message: "Supply exactly one of spec or url."})
 	}
 	var raw []byte
@@ -366,7 +366,7 @@ func (s *ServiceRegistryService) ImportOpenAPI(ctx context.Context, serviceID uu
 		}
 	} else {
 		if len(*in.URL) > 2000 {
-			return serviceregmodel.ImportResult{}, apperrors.Validation(apperrors.FieldError{Field: "url", Code: "too_long",
+			return serviceregmodel.ImportResult{}, problem.Validation(problem.FieldError{Field: "url", Code: "too_long",
 				Message: "The OpenAPI URL must be no more than 2000 characters."})
 		}
 		fetchURL, err := serviceregmodel.ValidateSourceURL(*in.URL)
@@ -380,15 +380,15 @@ func (s *ServiceRegistryService) ImportOpenAPI(ctx context.Context, serviceID uu
 		}
 		resp, err := s.httpClient.Do(req)
 		if err != nil {
-			return serviceregmodel.ImportResult{}, apperrors.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
+			return serviceregmodel.ImportResult{}, problem.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
 				"OpenAPI import failed", "The OpenAPI document could not be fetched.")
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			if err := resp.Body.Close(); err != nil {
-				return serviceregmodel.ImportResult{}, apperrors.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
+				return serviceregmodel.ImportResult{}, problem.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
 					"OpenAPI import failed", "The OpenAPI URL returned an unsuccessful status.")
 			}
-			return serviceregmodel.ImportResult{}, apperrors.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
+			return serviceregmodel.ImportResult{}, problem.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
 				"OpenAPI import failed", "The OpenAPI URL returned an unsuccessful status.")
 		}
 		raw, err = io.ReadAll(egress.LimitBody(resp.Body, serviceregmodel.MaxSpecBytes))
@@ -397,7 +397,7 @@ func (s *ServiceRegistryService) ImportOpenAPI(ctx context.Context, serviceID uu
 			return serviceregmodel.ImportResult{}, serviceregmodel.InvalidSpec("The OpenAPI document could not be read within the size limit.")
 		}
 		if closeErr != nil {
-			return serviceregmodel.ImportResult{}, apperrors.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
+			return serviceregmodel.ImportResult{}, problem.NewProblem(http.StatusUnprocessableEntity, "openapi_fetch_failed",
 				"OpenAPI import failed", "The OpenAPI response could not be completed.")
 		}
 		format = serviceregmodel.FormatFromMediaType(resp.Header.Get("Content-Type"), raw)
@@ -411,7 +411,7 @@ func (s *ServiceRegistryService) ImportOpenAPI(ctx context.Context, serviceID uu
 		in.VersionLabel = doc.Info.Version
 	}
 	if len(in.VersionLabel) > 100 {
-		return serviceregmodel.ImportResult{}, apperrors.Validation(apperrors.FieldError{Field: "version_label", Code: "too_long",
+		return serviceregmodel.ImportResult{}, problem.Validation(problem.FieldError{Field: "version_label", Code: "too_long",
 			Message: "The version label must be no more than 100 characters."})
 	}
 
@@ -520,33 +520,33 @@ func (s *ServiceRegistryService) TryEndpoint(ctx context.Context, endpointID uui
 	if in.Body != nil {
 		data, err := json.Marshal(in.Body)
 		if err != nil {
-			return serviceregmodel.ServiceTryResult{}, apperrors.Validation(apperrors.FieldError{Field: "body", Code: "invalid",
+			return serviceregmodel.ServiceTryResult{}, problem.Validation(problem.FieldError{Field: "body", Code: "invalid",
 				Message: "The request body must be valid JSON."})
 		}
 		if len(data) > serviceregmodel.MaxExplorerBytes {
-			return serviceregmodel.ServiceTryResult{}, apperrors.Validation(apperrors.FieldError{Field: "body", Code: "too_large",
+			return serviceregmodel.ServiceTryResult{}, problem.Validation(problem.FieldError{Field: "body", Code: "too_large",
 				Message: "The request body exceeds the size limit."})
 		}
 		body = strings.NewReader(string(data))
 	}
 	if len(in.Headers) > 64 {
-		return serviceregmodel.ServiceTryResult{}, apperrors.Validation(apperrors.FieldError{Field: "headers", Code: "too_many",
+		return serviceregmodel.ServiceTryResult{}, problem.Validation(problem.FieldError{Field: "headers", Code: "too_many",
 			Message: "No more than 64 request headers are allowed."})
 	}
 	req, err := http.NewRequestWithContext(ctx, endpoint.Method, target, body)
 	if err != nil {
-		return serviceregmodel.ServiceTryResult{}, apperrors.Validation(apperrors.FieldError{Field: "path", Code: "invalid",
+		return serviceregmodel.ServiceTryResult{}, problem.Validation(problem.FieldError{Field: "path", Code: "invalid",
 			Message: "The endpoint request could not be constructed."})
 	}
 	headerBytes := 0
 	for name, value := range in.Headers {
 		if !serviceregmodel.ValidRequestHeader(name, value) {
-			return serviceregmodel.ServiceTryResult{}, apperrors.Validation(apperrors.FieldError{Field: "headers", Code: "invalid",
+			return serviceregmodel.ServiceTryResult{}, problem.Validation(problem.FieldError{Field: "headers", Code: "invalid",
 				Message: "One or more request headers are not allowed."})
 		}
 		headerBytes += len(name) + len(value)
 		if headerBytes > 16<<10 {
-			return serviceregmodel.ServiceTryResult{}, apperrors.Validation(apperrors.FieldError{Field: "headers", Code: "too_large",
+			return serviceregmodel.ServiceTryResult{}, problem.Validation(problem.FieldError{Field: "headers", Code: "too_large",
 				Message: "The request headers exceed the size limit."})
 		}
 		req.Header.Set(name, value)
@@ -557,17 +557,17 @@ func (s *ServiceRegistryService) TryEndpoint(ctx context.Context, endpointID uui
 	started := time.Now()
 	resp, err := client.Do(req)
 	if err != nil {
-		return serviceregmodel.ServiceTryResult{}, apperrors.NewProblem(http.StatusUnprocessableEntity, "service_request_failed",
+		return serviceregmodel.ServiceTryResult{}, problem.NewProblem(http.StatusUnprocessableEntity, "service_request_failed",
 			"Request failed", "The service endpoint request could not be completed.")
 	}
 	data, err := io.ReadAll(egress.LimitBody(resp.Body, serviceregmodel.MaxExplorerBytes))
 	closeErr := resp.Body.Close()
 	if err != nil {
-		return serviceregmodel.ServiceTryResult{}, apperrors.NewProblem(http.StatusUnprocessableEntity, "response_too_large",
+		return serviceregmodel.ServiceTryResult{}, problem.NewProblem(http.StatusUnprocessableEntity, "response_too_large",
 			"Response too large", "The service response exceeded the size limit.")
 	}
 	if closeErr != nil {
-		return serviceregmodel.ServiceTryResult{}, apperrors.NewProblem(http.StatusUnprocessableEntity, "service_request_failed",
+		return serviceregmodel.ServiceTryResult{}, problem.NewProblem(http.StatusUnprocessableEntity, "service_request_failed",
 			"Request failed", "The service response could not be completed.")
 	}
 	var responseBody any
@@ -610,24 +610,24 @@ func (s *ServiceRegistryService) validateCreate(in *serviceregdto.CreateInput) e
 	if in.Protocol == "" {
 		in.Protocol = "rest"
 	}
-	fields := []apperrors.FieldError{}
+	fields := []problem.FieldError{}
 	if in.WorkspaceID == uuid.Nil {
-		fields = append(fields, apperrors.FieldError{Field: "workspace_id", Code: "required", Message: "A workspace is required."})
+		fields = append(fields, problem.FieldError{Field: "workspace_id", Code: "required", Message: "A workspace is required."})
 	}
 	if len(in.Name) < 1 || len(in.Name) > 100 {
-		fields = append(fields, apperrors.FieldError{Field: "name", Code: "invalid", Message: "Name must be between 1 and 100 characters."})
+		fields = append(fields, problem.FieldError{Field: "name", Code: "invalid", Message: "Name must be between 1 and 100 characters."})
 	}
 	if len(in.Owner) > 100 {
-		fields = append(fields, apperrors.FieldError{Field: "owner", Code: "too_long", Message: "Owner must be no more than 100 characters."})
+		fields = append(fields, problem.FieldError{Field: "owner", Code: "too_long", Message: "Owner must be no more than 100 characters."})
 	}
 	if len(in.Description) > 1000 {
-		fields = append(fields, apperrors.FieldError{Field: "description", Code: "too_long", Message: "Description must be no more than 1000 characters."})
+		fields = append(fields, problem.FieldError{Field: "description", Code: "too_long", Message: "Description must be no more than 1000 characters."})
 	}
 	if in.Protocol != "rest" && in.Protocol != "graphql" && in.Protocol != "grpc" {
-		fields = append(fields, apperrors.FieldError{Field: "protocol", Code: "invalid", Message: "Protocol must be rest, graphql, or grpc."})
+		fields = append(fields, problem.FieldError{Field: "protocol", Code: "invalid", Message: "Protocol must be rest, graphql, or grpc."})
 	}
 	if len(fields) != 0 {
-		return apperrors.Validation(fields...)
+		return problem.Validation(fields...)
 	}
 	return nil
 }

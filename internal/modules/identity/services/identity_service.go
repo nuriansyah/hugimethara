@@ -27,7 +27,7 @@ import (
 	orgdto "github.com/nuriansyah/hugimethara/internal/modules/organization/model/dto"
 	orgsvc "github.com/nuriansyah/hugimethara/internal/modules/organization/services"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -101,7 +101,7 @@ func (s *IdentityService) Signup(ctx context.Context, in identitydto.SignupInput
 	in.OrganizationName = strings.TrimSpace(in.OrganizationName)
 	in.DisplayName = strings.TrimSpace(in.DisplayName)
 
-	var errs []apperrors.FieldError
+	var errs []problem.FieldError
 	if fe := orgmodel.ValidateName("organization_name", in.OrganizationName); fe != nil {
 		errs = append(errs, *fe)
 	}
@@ -109,14 +109,14 @@ func (s *IdentityService) Signup(ctx context.Context, in identitydto.SignupInput
 		errs = append(errs, *fe)
 	}
 	if n := len([]rune(in.DisplayName)); n < 1 || n > 100 {
-		errs = append(errs, apperrors.FieldError{Field: "display_name", Code: "invalid_length", Message: "Name must be 1–100 characters."})
+		errs = append(errs, problem.FieldError{Field: "display_name", Code: "invalid_length", Message: "Name must be 1–100 characters."})
 	}
 	if !identitymodel.ValidEmail(in.Email) {
-		errs = append(errs, apperrors.FieldError{Field: "email", Code: "invalid_email", Message: "Enter a valid email address."})
+		errs = append(errs, problem.FieldError{Field: "email", Code: "invalid_email", Message: "Enter a valid email address."})
 	}
 	errs = append(errs, identitymodel.ValidatePassword("password", in.Password, in.Email)...)
 	if len(errs) > 0 {
-		return identitymodel.SessionGrant{}, apperrors.Validation(errs...)
+		return identitymodel.SessionGrant{}, problem.Validation(errs...)
 	}
 
 	hash, err := s.cfg.Hasher.Hash(in.Password)
@@ -422,7 +422,7 @@ func (s *IdentityService) RevokeSession(ctx context.Context, id uuid.UUID) error
 			return err
 		}
 		if n == 0 {
-			return apperrors.NotFound("Session not found or already ended.")
+			return problem.NotFound("Session not found or already ended.")
 		}
 		return auditsvc.Record(ctx, tx, auditmodel.Event{
 			OrgID: p.OrgID, Action: "auth.session_revoked", ResourceType: "session", ResourceID: id.String(),

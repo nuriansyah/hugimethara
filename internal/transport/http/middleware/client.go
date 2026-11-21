@@ -6,7 +6,7 @@ import (
 	"net/netip"
 	"strings"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -79,7 +79,7 @@ func OriginGuard(trustedOrigins []string) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
-			apperrors.WriteError(w, r, apperrors.NewProblem(http.StatusForbidden, "origin_not_allowed", "Origin not allowed",
+			problem.WriteError(w, r, problem.NewProblem(http.StatusForbidden, "origin_not_allowed", "Origin not allowed",
 				"Cross-site requests are not accepted."))
 		})
 	}

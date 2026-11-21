@@ -6,7 +6,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/model"
 	orgdto "github.com/nuriansyah/hugimethara/internal/modules/organization/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
@@ -48,7 +48,7 @@ func (h *HTTP) GetCurrentOrganization(ctx context.Context, _ dto.GetCurrentOrgan
 // @Router /v1/hugimethara/organizations/current [patch]
 func (h *HTTP) UpdateCurrentOrganization(ctx context.Context, req dto.UpdateCurrentOrganizationRequestObject) (dto.UpdateCurrentOrganizationResponseObject, error) {
 	if req.Body == nil || (req.Body.Name == nil && req.Body.Settings == nil) {
-		return nil, apperrors.Validation(apperrors.FieldError{Field: "", Code: "empty_update", Message: "Provide at least one field to change."})
+		return nil, problem.Validation(problem.FieldError{Field: "", Code: "empty_update", Message: "Provide at least one field to change."})
 	}
 	var u orgdto.Update
 	u.Name = req.Body.Name

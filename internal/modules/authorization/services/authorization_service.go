@@ -18,7 +18,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/authorization/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/authorization/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/pagination"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
@@ -159,7 +159,7 @@ func (s *AuthorizationService) validatePermissions(ctx context.Context, perms []
 			}
 		}
 		if !valid {
-			return nil, apperrors.Validation(apperrors.FieldError{Field: "permissions", Code: "unknown_permission",
+			return nil, problem.Validation(problem.FieldError{Field: "permissions", Code: "unknown_permission",
 				Message: fmt.Sprintf("%q is not a known permission (format resource_type:action).", p)})
 		}
 		if !slices.Contains(out, p) {
@@ -207,10 +207,10 @@ func (s *AuthorizationService) CreateRole(ctx context.Context, in dto.RoleInput)
 	in.Key = strings.ToLower(strings.TrimSpace(in.Key))
 	errs := dto.ValidateRoleText(&in)
 	if !authzmodel.RoleKeyRe.MatchString(in.Key) {
-		errs = append(errs, apperrors.FieldError{Field: "key", Code: "invalid_key", Message: "Use 2–40 lowercase letters, digits or underscores."})
+		errs = append(errs, problem.FieldError{Field: "key", Code: "invalid_key", Message: "Use 2–40 lowercase letters, digits or underscores."})
 	}
 	if len(errs) > 0 {
-		return authzmodel.Role{}, apperrors.Validation(errs...)
+		return authzmodel.Role{}, problem.Validation(errs...)
 	}
 	perms, err := s.validatePermissions(ctx, in.Permissions)
 	if err != nil {
@@ -228,7 +228,7 @@ func (s *AuthorizationService) CreateRole(ctx context.Context, in dto.RoleInput)
 	err = s.tx(ctx, p.OrgID, func(tx *sqlx.Tx) error {
 		if _, err := tx.ExecContext(ctx, commands.SQL.Get("InsertRole"), id, p.OrgID, in.Key, in.Name, in.Description); err != nil {
 			if db.IsUniqueViolation(err) {
-				return apperrors.NewProblem(http.StatusConflict, "key_taken", "Conflict", "A role with this key already exists.")
+				return problem.NewProblem(http.StatusConflict, "key_taken", "Conflict", "A role with this key already exists.")
 			}
 			return err
 		}
@@ -251,7 +251,7 @@ func (s *AuthorizationService) UpdateRole(ctx context.Context, id uuid.UUID, in 
 		return authzmodel.Role{}, err
 	}
 	if errs := dto.ValidateRoleText(&in); len(errs) > 0 {
-		return authzmodel.Role{}, apperrors.Validation(errs...)
+		return authzmodel.Role{}, problem.Validation(errs...)
 	}
 	perms, err := s.validatePermissions(ctx, in.Permissions)
 	if err != nil {
@@ -272,7 +272,7 @@ func (s *AuthorizationService) UpdateRole(ctx context.Context, id uuid.UUID, in 
 		}
 		prev := before.ToModel()
 		if prev.Immutable && !slices.Equal(prev.Permissions, perms) {
-			return apperrors.NewProblem(http.StatusConflict, "role_immutable", "Conflict", "The permissions of this role cannot be changed.")
+			return problem.NewProblem(http.StatusConflict, "role_immutable", "Conflict", "The permissions of this role cannot be changed.")
 		}
 		var added []string
 		for _, perm := range perms {
@@ -326,10 +326,10 @@ func (s *AuthorizationService) DeleteRole(ctx context.Context, id uuid.UUID) err
 			return err
 		}
 		if before.IsSystem {
-			return apperrors.NewProblem(http.StatusConflict, "role_system", "Conflict", "Built-in roles cannot be deleted. Edit their permissions instead.")
+			return problem.NewProblem(http.StatusConflict, "role_system", "Conflict", "Built-in roles cannot be deleted. Edit their permissions instead.")
 		}
 		if before.BindingCount > 0 {
-			return apperrors.NewProblem(http.StatusConflict, "role_in_use", "Conflict",
+			return problem.NewProblem(http.StatusConflict, "role_in_use", "Conflict",
 				fmt.Sprintf("This role is assigned %d time(s). Remove the assignments first.", before.BindingCount))
 		}
 		if _, err := tx.ExecContext(ctx, commands.SQL.Get("DeleteRole"), id); err != nil {
@@ -362,7 +362,7 @@ func (s *AuthorizationService) validateScope(ctx context.Context, sc authzmodel.
 		return nil
 	case authzmodel.ScopeWorkspace:
 		if sc.WorkspaceID == uuid.Nil {
-			return apperrors.Validation(apperrors.FieldError{Field: "workspace_id", Code: "required", Message: "Choose a workspace."})
+			return problem.Validation(problem.FieldError{Field: "workspace_id", Code: "required", Message: "Choose a workspace."})
 		}
 		return nil
 	case authzmodel.ScopeResource:
@@ -371,11 +371,11 @@ func (s *AuthorizationService) validateScope(ctx context.Context, sc authzmodel.
 			return err
 		}
 		if _, ok := types[sc.ResourceType]; !ok || sc.ResourceID == "" || len(sc.ResourceID) > 200 {
-			return apperrors.Validation(apperrors.FieldError{Field: "resource", Code: "invalid", Message: "Choose a known resource type and a resource id."})
+			return problem.Validation(problem.FieldError{Field: "resource", Code: "invalid", Message: "Choose a known resource type and a resource id."})
 		}
 		return nil
 	}
-	return apperrors.Validation(apperrors.FieldError{Field: "scope_type", Code: "invalid", Message: "Scope must be org, workspace or resource."})
+	return problem.Validation(problem.FieldError{Field: "scope_type", Code: "invalid", Message: "Scope must be org, workspace or resource."})
 }
 
 // CreateBinding assigns a role (permission role:bind at the target scope, and
@@ -395,7 +395,7 @@ func (s *AuthorizationService) CreateBinding(ctx context.Context, in dto.Binding
 			return err
 		}
 		if id == uuid.Nil {
-			return apperrors.NewProblem(http.StatusConflict, "already_assigned", "Conflict", "This role is already assigned at that scope.")
+			return problem.NewProblem(http.StatusConflict, "already_assigned", "Conflict", "This role is already assigned at that scope.")
 		}
 		return tx.GetContext(ctx, &out, queries.SQL.Get("GetBinding"), id)
 	})
@@ -419,7 +419,7 @@ func (s *AuthorizationService) BindInTx(ctx context.Context, tx *sqlx.Tx, caller
 		err = tx.GetContext(ctx, &role, queries.SQL.Get("GetRoleByKey"), in.RoleKey)
 	}
 	if db.IsNoRows(err) {
-		return uuid.Nil, apperrors.Validation(apperrors.FieldError{Field: "role", Code: "not_found", Message: "Role not found."})
+		return uuid.Nil, problem.Validation(problem.FieldError{Field: "role", Code: "not_found", Message: "Role not found."})
 	}
 	if err != nil {
 		return uuid.Nil, err
@@ -433,10 +433,10 @@ func (s *AuthorizationService) BindInTx(ctx context.Context, tx *sqlx.Tx, caller
 		return uuid.Nil, authzmodel.Escalation(missing)
 	}
 	if in.ExpiresAt != nil && !in.ExpiresAt.After(time.Now()) {
-		return uuid.Nil, apperrors.Validation(apperrors.FieldError{Field: "expires_at", Code: "in_past", Message: "Expiry must be in the future."})
+		return uuid.Nil, problem.Validation(problem.FieldError{Field: "expires_at", Code: "in_past", Message: "Expiry must be in the future."})
 	}
 	if in.Principal.ID == uuid.Nil {
-		return uuid.Nil, apperrors.Validation(apperrors.FieldError{Field: "principal", Code: "required", Message: "Choose who gets the role."})
+		return uuid.Nil, problem.Validation(problem.FieldError{Field: "principal", Code: "required", Message: "Choose who gets the role."})
 	}
 	id, err := insertBinding(ctx, tx, caller.OrgID, in.Principal, role.ID, in.Scope, caller.ID, in.ExpiresAt)
 	if db.IsForeignKeyViolation(err) {
@@ -447,7 +447,7 @@ func (s *AuthorizationService) BindInTx(ctx context.Context, tx *sqlx.Tx, caller
 		case authzmodel.PrincipalServiceAccount:
 			field, msg = "service_account_id", "This service account does not exist (or the workspace does not exist)."
 		}
-		return uuid.Nil, apperrors.Validation(apperrors.FieldError{Field: field, Code: "not_found", Message: msg})
+		return uuid.Nil, problem.Validation(problem.FieldError{Field: field, Code: "not_found", Message: msg})
 	}
 	if err != nil || id == uuid.Nil {
 		return id, err
@@ -469,7 +469,7 @@ func (s *AuthorizationService) DeleteBinding(ctx context.Context, id uuid.UUID) 
 	var b repository.BindingRow
 	err := s.tx(ctx, p.OrgID, func(tx *sqlx.Tx) error { return tx.GetContext(ctx, &b, queries.SQL.Get("GetBinding"), id) })
 	if db.IsNoRows(err) {
-		return apperrors.NotFound("Assignment not found.")
+		return problem.NotFound("Assignment not found.")
 	}
 	if err != nil {
 		return err
@@ -626,7 +626,7 @@ func (s *AuthorizationService) Simulate(ctx context.Context, who authzmodel.Prin
 		return authzmodel.AuthorizationDecision{}, err
 	}
 	if rt, ok := types[res.Type]; !ok || !slices.Contains(rt.Actions, action) {
-		return authzmodel.AuthorizationDecision{}, apperrors.Validation(apperrors.FieldError{Field: "action", Code: "unknown_permission",
+		return authzmodel.AuthorizationDecision{}, problem.Validation(problem.FieldError{Field: "action", Code: "unknown_permission",
 			Message: fmt.Sprintf("%s:%s is not a known permission.", res.Type, action)})
 	}
 	res.OrgID = p.OrgID
@@ -693,7 +693,7 @@ func (s *AuthorizationService) CheckGrantRole(ctx context.Context, tx *sqlx.Tx, 
 	var row repository.RoleRow
 	if err := tx.GetContext(ctx, &row, queries.SQL.Get("GetRole"), roleID); err != nil {
 		if db.IsNoRows(err) {
-			return authzmodel.Role{}, apperrors.Validation(apperrors.FieldError{Field: "role_id", Code: "not_found", Message: "Role not found."})
+			return authzmodel.Role{}, problem.Validation(problem.FieldError{Field: "role_id", Code: "not_found", Message: "Role not found."})
 		}
 		return authzmodel.Role{}, err
 	}

@@ -7,11 +7,11 @@ import (
 
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/model"
 	orgdto "github.com/nuriansyah/hugimethara/internal/modules/organization/model/dto"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
-func bodyRequired() error { return apperrors.BadRequest("A JSON body is required.") }
+func bodyRequired() error { return problem.BadRequest("A JSON body is required.") }
 
 func str(p *string) string {
 	if p == nil {
@@ -421,7 +421,7 @@ func (h *HTTP) ListWorkspaceMembers(ctx context.Context, req dto.ListWorkspaceMe
 // @Router /v1/hugimethara/workspaces/{workspace}/members [post]
 func (h *HTTP) AddWorkspaceMember(ctx context.Context, req dto.AddWorkspaceMemberRequestObject) (dto.AddWorkspaceMemberResponseObject, error) {
 	if req.Body == nil || req.Body.UserId == uuid.Nil {
-		return nil, apperrors.Validation(apperrors.FieldError{Field: "user_id", Code: "required", Message: "Choose a user."})
+		return nil, problem.Validation(problem.FieldError{Field: "user_id", Code: "required", Message: "Choose a user."})
 	}
 	if err := h.svc.AddWorkspaceMember(ctx, req.Workspace, req.Body.UserId, str(req.Body.RoleKey)); err != nil {
 		return nil, err

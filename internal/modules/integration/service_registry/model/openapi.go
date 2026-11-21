@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 type OpenAPIChange struct {
@@ -40,34 +40,34 @@ func ObjectMap(v any) (map[string]any, error) {
 func ValidateEndpointPath(path string) error {
 	if len(path) < 1 || len(path) > 1000 || path[0] != '/' || strings.HasPrefix(path, "//") ||
 		strings.ContainsAny(path, "\\%?#") {
-		return apperrors.Validation(apperrors.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
+		return problem.Validation(problem.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
 	}
 	for _, r := range path {
 		if unicode.IsControl(r) {
-			return apperrors.Validation(apperrors.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
+			return problem.Validation(problem.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
 		}
 	}
 	for _, segment := range strings.Split(path, "/") {
 		if segment == "." || segment == ".." {
-			return apperrors.Validation(apperrors.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
+			return problem.Validation(problem.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
 		}
 	}
 	for i := 0; i < len(path); i++ {
 		if path[i] == '}' {
-			return apperrors.Validation(apperrors.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
+			return problem.Validation(problem.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
 		}
 		if path[i] != '{' {
 			continue
 		}
 		end := strings.IndexByte(path[i+1:], '}')
 		if end < 1 {
-			return apperrors.Validation(apperrors.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
+			return problem.Validation(problem.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
 		}
 		end += i + 1
 		name := path[i+1 : end]
 		for _, r := range name {
 			if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '.' && r != '-' {
-				return apperrors.Validation(apperrors.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
+				return problem.Validation(problem.FieldError{Field: "path", Code: "unsafe", Message: "Endpoint path is unsafe."})
 			}
 		}
 		i = end
@@ -79,17 +79,17 @@ func EndpointKey(method, path string) string { return strings.ToUpper(method) + 
 
 func BuildEndpointURL(baseURL, path string, pathValues, query map[string]string) (string, error) {
 	if err := ValidateEndpointPath(path); err != nil {
-		return "", apperrors.Validation(apperrors.FieldError{Field: "path", Code: "unsafe",
+		return "", problem.Validation(problem.FieldError{Field: "path", Code: "unsafe",
 			Message: "The endpoint path is unsafe."})
 	}
 	normalizedBaseURL, err := ValidateBaseURL(baseURL)
 	if err != nil {
-		return "", apperrors.Validation(apperrors.FieldError{Field: "base_url", Code: "invalid",
+		return "", problem.Validation(problem.FieldError{Field: "base_url", Code: "invalid",
 			Message: "The service environment has an invalid base URL."})
 	}
 	base, err := url.Parse(normalizedBaseURL)
 	if err != nil {
-		return "", apperrors.Validation(apperrors.FieldError{Field: "base_url", Code: "invalid",
+		return "", problem.Validation(problem.FieldError{Field: "base_url", Code: "invalid",
 			Message: "The service environment has an invalid base URL."})
 	}
 	used := map[string]struct{}{}
@@ -105,12 +105,12 @@ func BuildEndpointURL(baseURL, path string, pathValues, query map[string]string)
 		name := path[i+1 : end]
 		value, ok := pathValues[name]
 		if !ok || value == "" || len(value) > 1000 || value == "." || value == ".." || strings.ContainsAny(value, "/\\%") {
-			return "", apperrors.Validation(apperrors.FieldError{Field: "path_values", Code: "invalid",
+			return "", problem.Validation(problem.FieldError{Field: "path_values", Code: "invalid",
 				Message: "Every path parameter must have a safe non-empty value."})
 		}
 		for _, r := range value {
 			if unicode.IsControl(r) {
-				return "", apperrors.Validation(apperrors.FieldError{Field: "path_values", Code: "invalid",
+				return "", problem.Validation(problem.FieldError{Field: "path_values", Code: "invalid",
 					Message: "Every path parameter must have a safe non-empty value."})
 			}
 		}
@@ -120,7 +120,7 @@ func BuildEndpointURL(baseURL, path string, pathValues, query map[string]string)
 		i = end + 1
 	}
 	if len(used) != len(pathValues) {
-		return "", apperrors.Validation(apperrors.FieldError{Field: "path_values", Code: "unexpected",
+		return "", problem.Validation(problem.FieldError{Field: "path_values", Code: "unexpected",
 			Message: "Only path parameters declared by the endpoint are allowed."})
 	}
 	escapedEndpoint := escaped.String()
@@ -132,12 +132,12 @@ func BuildEndpointURL(baseURL, path string, pathValues, query map[string]string)
 	queryBytes := 0
 	for key, value := range query {
 		if key == "" || strings.ContainsAny(key+value, "\r\n") || len(key) > 200 || len(value) > 2000 {
-			return "", apperrors.Validation(apperrors.FieldError{Field: "query", Code: "invalid",
+			return "", problem.Validation(problem.FieldError{Field: "query", Code: "invalid",
 				Message: "One or more query parameters are invalid."})
 		}
 		queryBytes += len(key) + len(value)
 		if queryBytes > 16<<10 {
-			return "", apperrors.Validation(apperrors.FieldError{Field: "query", Code: "too_large",
+			return "", problem.Validation(problem.FieldError{Field: "query", Code: "too_large",
 				Message: "The query parameters exceed the size limit."})
 		}
 		values.Set(key, value)

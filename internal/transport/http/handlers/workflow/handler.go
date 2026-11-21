@@ -11,7 +11,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/model"
 	wfdto "github.com/nuriansyah/hugimethara/internal/modules/workflow/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
@@ -30,7 +30,7 @@ func toModelDefinition(in dto.WorkflowDefinition) (model.Definition, error) {
 		err = json.Unmarshal(raw, &out)
 	}
 	if err != nil {
-		return out, apperrors.Validation(apperrors.FieldError{Field: "draft", Code: "invalid", Message: "The definition is malformed."})
+		return out, problem.Validation(problem.FieldError{Field: "draft", Code: "invalid", Message: "The definition is malformed."})
 	}
 	return out, nil
 }
@@ -206,7 +206,7 @@ func (h *HTTP) ListWorkflows(ctx context.Context, req dto.ListWorkflowsRequestOb
 // @Router /v1/hugimethara/workflows [post]
 func (h *HTTP) CreateWorkflow(ctx context.Context, req dto.CreateWorkflowRequestObject) (dto.CreateWorkflowResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A request body is required.")
+		return nil, problem.BadRequest("A request body is required.")
 	}
 	in := wfdto.CreateInput{WorkspaceID: req.Body.WorkspaceId, Name: req.Body.Name, Slug: req.Body.Slug}
 	if req.Body.Description != nil {
@@ -263,7 +263,7 @@ func (h *HTTP) GetWorkflow(ctx context.Context, req dto.GetWorkflowRequestObject
 // @Router /v1/hugimethara/workflows/{workflow_id} [patch]
 func (h *HTTP) UpdateWorkflow(ctx context.Context, req dto.UpdateWorkflowRequestObject) (dto.UpdateWorkflowResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A request body is required.")
+		return nil, problem.BadRequest("A request body is required.")
 	}
 	in := wfdto.UpdateInput{Name: req.Body.Name, Description: req.Body.Description, Status: req.Body.Status}
 	if req.Body.Draft != nil {
@@ -411,7 +411,7 @@ func (h *HTTP) ListWorkflowDeployments(ctx context.Context, req dto.ListWorkflow
 // @Router /v1/hugimethara/workflows/{workflow_id}/deployments/{environment_id} [put]
 func (h *HTTP) DeployWorkflow(ctx context.Context, req dto.DeployWorkflowRequestObject) (dto.DeployWorkflowResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A request body is required.")
+		return nil, problem.BadRequest("A request body is required.")
 	}
 	d, err := h.svc.Deploy(ctx, req.WorkflowId, req.EnvironmentId,
 		wfdto.DeployInput{VersionID: req.Body.VersionId, Enabled: req.Body.Enabled})
@@ -439,13 +439,13 @@ func (h *HTTP) DeployWorkflow(ctx context.Context, req dto.DeployWorkflowRequest
 // @Router /v1/hugimethara/workflows/{workflow_id}/execute [post]
 func (h *HTTP) ExecuteWorkflow(ctx context.Context, req dto.ExecuteWorkflowRequestObject) (dto.ExecuteWorkflowResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A request body is required.")
+		return nil, problem.BadRequest("A request body is required.")
 	}
 	in := wfdto.ExecuteInput{EnvironmentID: req.Body.EnvironmentId}
 	if req.Body.Input != nil {
 		raw, err := json.Marshal(req.Body.Input)
 		if err != nil {
-			return nil, apperrors.BadRequest("input must be a JSON object.")
+			return nil, problem.BadRequest("input must be a JSON object.")
 		}
 		in.Input = raw
 	}

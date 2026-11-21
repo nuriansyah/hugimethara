@@ -8,7 +8,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/model"
 	serviceregdto "github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/model/dto"
 	serviceregsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
@@ -71,7 +71,7 @@ func apiEndpoint(endpoint model.Endpoint) dto.ServiceEndpoint {
 func (h *HTTP) ListServices(ctx context.Context, req dto.ListServicesRequestObject) (dto.ListServicesResponseObject, error) {
 	workspaceID := req.Params.WorkspaceId
 	if workspaceID == uuid.Nil {
-		return nil, apperrors.BadRequest("workspace_id is required.")
+		return nil, problem.BadRequest("workspace_id is required.")
 	}
 	services, err := h.svc.List(ctx, workspaceID)
 	if err != nil {
@@ -99,7 +99,7 @@ func (h *HTTP) ListServices(ctx context.Context, req dto.ListServicesRequestObje
 // @Router /v1/hugimethara/services [post]
 func (h *HTTP) CreateService(ctx context.Context, req dto.CreateServiceRequestObject) (dto.CreateServiceResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	in := serviceregdto.CreateInput{WorkspaceID: req.Body.WorkspaceId, Name: req.Body.Name}
 	if req.Body.Owner != nil {
@@ -154,7 +154,7 @@ func (h *HTTP) GetService(ctx context.Context, req dto.GetServiceRequestObject) 
 // @Router /v1/hugimethara/services/{service_id} [patch]
 func (h *HTTP) UpdateService(ctx context.Context, req dto.UpdateServiceRequestObject) (dto.UpdateServiceResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	in := serviceregdto.UpdateInput{Name: req.Body.Name, Owner: req.Body.Owner, Description: req.Body.Description}
 	if req.Body.Protocol != nil {
@@ -205,7 +205,7 @@ func (h *HTTP) DeleteService(ctx context.Context, req dto.DeleteServiceRequestOb
 // @Router /v1/hugimethara/services/{service_id}/environments/{environment_id} [put]
 func (h *HTTP) PutServiceEnvironment(ctx context.Context, req dto.PutServiceEnvironmentRequestObject) (dto.PutServiceEnvironmentResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	var connectorID *uuid.UUID
 	if req.Body.ConnectorInstanceId != nil {
@@ -257,7 +257,7 @@ func (h *HTTP) DeleteServiceEnvironment(ctx context.Context, req dto.DeleteServi
 // @Router /v1/hugimethara/services/{service_id}/import-openapi [post]
 func (h *HTTP) ImportOpenAPI(ctx context.Context, req dto.ImportOpenAPIRequestObject) (dto.ImportOpenAPIResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	dryRun := true
 	if req.Params.DryRun != nil {
@@ -321,7 +321,7 @@ func (h *HTTP) ListServiceEndpoints(ctx context.Context, req dto.ListServiceEndp
 // @Router /v1/hugimethara/service-endpoints/{endpoint_id}/try [post]
 func (h *HTTP) TryServiceEndpoint(ctx context.Context, req dto.TryServiceEndpointRequestObject) (dto.TryServiceEndpointResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	in := serviceregdto.ServiceTryInput{EnvironmentID: req.Body.EnvironmentId, Body: req.Body.Body}
 	if req.Body.Headers != nil {

@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 	identityhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/identity"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/middleware"
@@ -79,7 +79,7 @@ func TestUnknownRouteIsProblem(t *testing.T) {
 	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, 404, resp.StatusCode)
 	require.Equal(t, "application/problem+json", resp.Header.Get("Content-Type"))
-	var p apperrors.Problem
+	var p problem.Problem
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&p))
 	require.Equal(t, "not_found", p.Code)
 	require.NotEmpty(t, p.RequestID)

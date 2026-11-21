@@ -23,7 +23,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -144,7 +144,7 @@ func (s *ConnectorService) Create(ctx context.Context, in connectordto.CreateInp
 	}
 	in.RefKey = strings.TrimSpace(in.RefKey)
 	if !connectormodel.ValidRefKey(in.RefKey) {
-		return connectormodel.Instance{}, apperrors.Validation(apperrors.FieldError{Field: "ref_key", Code: "invalid", Message: "Use 2–64 lowercase letters, digits, underscores, or hyphens; begin with a letter."})
+		return connectormodel.Instance{}, problem.Validation(problem.FieldError{Field: "ref_key", Code: "invalid", Message: "Use 2–64 lowercase letters, digits, underscores, or hyphens; begin with a letter."})
 	}
 	if in.WorkspaceID == uuid.Nil || in.EnvironmentID == uuid.Nil || in.ConnectorVersionID == uuid.Nil {
 		return connectormodel.Instance{}, connectormodel.Validation("body", "required", "Workspace, environment, and connector version are required.")
@@ -430,7 +430,7 @@ func validateSecret(ctx context.Context, tx *sqlx.Tx, orgID, secretID, environme
 
 func translateWriteError(err error, refKey string) error {
 	if db.IsUniqueViolation(err) {
-		return apperrors.NewProblem(http.StatusConflict, "connector_ref_key_taken", "Conflict",
+		return problem.NewProblem(http.StatusConflict, "connector_ref_key_taken", "Conflict",
 			fmt.Sprintf("A connector with reference key %q already exists in this workspace and environment.", refKey))
 	}
 	if db.IsForeignKeyViolation(err) {

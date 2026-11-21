@@ -21,7 +21,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -80,7 +80,7 @@ func (s *OrganizationService) Current(ctx context.Context) (model.Organization, 
 	})
 	out := row.ToModel()
 	if db.IsNoRows(err) {
-		return model.Organization{}, apperrors.NotFound("Organization not found.")
+		return model.Organization{}, problem.NotFound("Organization not found.")
 	}
 	return out, err
 }
@@ -95,7 +95,7 @@ func (s *OrganizationService) UpdateCurrent(ctx context.Context, u dto.Update) (
 	if _, err := authzsvc.Require(ctx, s.az, "update", authzmodel.Resource{Type: model.ResourceType, ID: p.OrgID.String(), OrgID: p.OrgID}); err != nil {
 		return model.Organization{}, err
 	}
-	var fieldErrs []apperrors.FieldError
+	var fieldErrs []problem.FieldError
 	if u.Name != nil {
 		if fe := model.ValidateName("name", *u.Name); fe != nil {
 			fieldErrs = append(fieldErrs, *fe)
@@ -105,7 +105,7 @@ func (s *OrganizationService) UpdateCurrent(ctx context.Context, u dto.Update) (
 		fieldErrs = append(fieldErrs, u.Settings.Validate("settings.")...)
 	}
 	if len(fieldErrs) > 0 {
-		return model.Organization{}, apperrors.Validation(fieldErrs...)
+		return model.Organization{}, problem.Validation(fieldErrs...)
 	}
 
 	var out model.Organization

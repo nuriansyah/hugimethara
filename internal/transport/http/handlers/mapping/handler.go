@@ -8,7 +8,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/model"
 	mappingdto "github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
@@ -78,7 +78,7 @@ func (h *HTTP) ListMappings(ctx context.Context, req dto.ListMappingsRequestObje
 // @Router /v1/hugimethara/mappings [post]
 func (h *HTTP) CreateMapping(ctx context.Context, req dto.CreateMappingRequestObject) (dto.CreateMappingResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	in := mappingdto.CreateInput{WorkspaceID: req.Body.WorkspaceId, Name: req.Body.Name}
 	if req.Body.Draft != nil {
@@ -134,7 +134,7 @@ func (h *HTTP) GetMapping(ctx context.Context, req dto.GetMappingRequestObject) 
 // @Router /v1/hugimethara/mappings/{mapping_id} [patch]
 func (h *HTTP) UpdateMapping(ctx context.Context, req dto.UpdateMappingRequestObject) (dto.UpdateMappingResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	in := mappingdto.UpdateInput{Name: req.Body.Name}
 	if req.Body.Draft != nil {
@@ -237,7 +237,7 @@ func (h *HTTP) ListMappingVersions(ctx context.Context, req dto.ListMappingVersi
 // @Router /v1/hugimethara/mappings/{mapping_id}/test [post]
 func (h *HTTP) TestMapping(ctx context.Context, req dto.TestMappingRequestObject) (dto.TestMappingResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	result, err := h.svc.Test(ctx, uuid.UUID(req.MappingId), req.Body.Input)
 	if err != nil {
@@ -296,7 +296,7 @@ func (h *HTTP) ListMappingTests(ctx context.Context, req dto.ListMappingTestsReq
 // @Router /v1/hugimethara/mappings/{mapping_id}/tests [post]
 func (h *HTTP) CreateMappingTest(ctx context.Context, req dto.CreateMappingTestRequestObject) (dto.CreateMappingTestResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	row, err := h.svc.CreateTest(ctx, uuid.UUID(req.MappingId), mappingdto.TestCreateInput{Name: req.Body.Name, Input: req.Body.Input, Expected: req.Body.Expected})
 	if err != nil {
@@ -323,7 +323,7 @@ func (h *HTTP) CreateMappingTest(ctx context.Context, req dto.CreateMappingTestR
 // @Router /v1/hugimethara/mappings/{mapping_id}/tests/{test_id} [patch]
 func (h *HTTP) UpdateMappingTest(ctx context.Context, req dto.UpdateMappingTestRequestObject) (dto.UpdateMappingTestResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	in := mappingdto.TestUpdateInput{Name: req.Body.Name, Input: req.Body.Input, Expected: req.Body.Expected}
 	row, err := h.svc.UpdateTest(ctx, uuid.UUID(req.MappingId), uuid.UUID(req.TestId), in)

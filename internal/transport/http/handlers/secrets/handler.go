@@ -8,7 +8,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/model"
 	secretsdto "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
@@ -63,7 +63,7 @@ func (h *HTTP) ListCredentials(ctx context.Context, _ dto.ListCredentialsRequest
 // @Router /v1/hugimethara/credentials [post]
 func (h *HTTP) CreateCredential(ctx context.Context, req dto.CreateCredentialRequestObject) (dto.CreateCredentialResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	var environmentID *uuid.UUID
 	if req.Body.EnvironmentId != nil {
@@ -115,7 +115,7 @@ func (h *HTTP) GetCredential(ctx context.Context, req dto.GetCredentialRequestOb
 // @Router /v1/hugimethara/credentials/{credential_id} [patch]
 func (h *HTTP) UpdateCredential(ctx context.Context, req dto.UpdateCredentialRequestObject) (dto.UpdateCredentialResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	c, err := h.svc.Update(ctx, req.CredentialId, secretsdto.UpdateInput{Name: req.Body.Name, Value: req.Body.Value})
 	if err != nil {

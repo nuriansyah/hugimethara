@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Resource types owned by this domain.
@@ -18,22 +18,22 @@ const (
 var shortSlugRe = regexp.MustCompile(`^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$`)
 
 // validateShortSlug accepts 1–40 lowercase letters, digits and single hyphens.
-func ValidateShortSlug(field, slug string) *apperrors.FieldError {
+func ValidateShortSlug(field, slug string) *problem.FieldError {
 	if !shortSlugRe.MatchString(slug) || strings.Contains(slug, "--") {
-		return &apperrors.FieldError{Field: field, Code: "invalid_slug",
+		return &problem.FieldError{Field: field, Code: "invalid_slug",
 			Message: "Use 1–40 lowercase letters, digits or single hyphens, starting and ending with a letter or digit."}
 	}
 	return nil
 }
 
-func ValidateText(field string, v string, minLen, maxLen int, what string) *apperrors.FieldError {
+func ValidateText(field string, v string, minLen, maxLen int, what string) *problem.FieldError {
 	n := len([]rune(strings.TrimSpace(v)))
 	if n < minLen || n > maxLen {
 		msg := what + " must be at most " + itoa(maxLen) + " characters."
 		if minLen > 0 {
 			msg = what + " must be " + itoa(minLen) + "–" + itoa(maxLen) + " characters."
 		}
-		return &apperrors.FieldError{Field: field, Code: "invalid_length", Message: msg}
+		return &problem.FieldError{Field: field, Code: "invalid_length", Message: msg}
 	}
 	return nil
 }
@@ -50,8 +50,8 @@ func itoa(n int) string {
 	return string(b)
 }
 
-func Collect(errs ...*apperrors.FieldError) error {
-	var out []apperrors.FieldError
+func Collect(errs ...*problem.FieldError) error {
+	var out []problem.FieldError
 	for _, e := range errs {
 		if e != nil {
 			out = append(out, *e)
@@ -60,7 +60,7 @@ func Collect(errs ...*apperrors.FieldError) error {
 	if len(out) == 0 {
 		return nil
 	}
-	return apperrors.Validation(out...)
+	return problem.Validation(out...)
 }
 
 func RowsAffected(res interface{ RowsAffected() (int64, error) }, err error) (int64, error) {
@@ -70,6 +70,6 @@ func RowsAffected(res interface{ RowsAffected() (int64, error) }, err error) (in
 	return res.RowsAffected()
 }
 
-func Conflict(code, detail string) *apperrors.Problem {
-	return apperrors.NewProblem(409, code, "Conflict", detail)
+func Conflict(code, detail string) *problem.Problem {
+	return problem.NewProblem(409, code, "Conflict", detail)
 }

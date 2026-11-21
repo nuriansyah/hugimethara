@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 const (
@@ -15,9 +15,9 @@ const (
 	DefaultStepLimit  = 20 * time.Second
 )
 
-var ErrCompositionNotFound = apperrors.NotFound("API composition not found.")
+var ErrCompositionNotFound = problem.NotFound("API composition not found.")
 
-var ErrExecutionNotFound = apperrors.NotFound("API composition execution not found.")
+var ErrExecutionNotFound = problem.NotFound("API composition execution not found.")
 
 type EndpointResponseError struct {
 	Status int `json:"-"`
@@ -56,7 +56,7 @@ func StringMap(value any) map[string]string {
 }
 
 func Validation(field, code, message string) error {
-	return apperrors.Validation(apperrors.FieldError{Field: field, Code: code, Message: message})
+	return problem.Validation(problem.FieldError{Field: field, Code: code, Message: message})
 }
 
 func NullableJSON(raw []byte) any {

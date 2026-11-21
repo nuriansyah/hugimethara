@@ -6,10 +6,10 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
-var ErrNotFound = apperrors.NotFound("The requested connector resource does not exist.")
+var ErrNotFound = problem.NotFound("The requested connector resource does not exist.")
 
 func TranslateNotFound(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
@@ -19,7 +19,7 @@ func TranslateNotFound(err error) error {
 }
 
 func Validation(field, code, message string) error {
-	return apperrors.Validation(apperrors.FieldError{Field: field, Code: code, Message: message})
+	return problem.Validation(problem.FieldError{Field: field, Code: code, Message: message})
 }
 
 func NullableUUID(v *uuid.UUID) any {

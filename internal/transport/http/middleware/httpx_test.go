@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/require"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/pagination"
 )
 
@@ -48,7 +48,7 @@ func TestRequestIDGeneratedAndEchoed(t *testing.T) {
 func TestUnknownErrorIsOpaque500WithRequestID(t *testing.T) {
 	r, _ := newRouter(t)
 	r.Get("/boom", func(w http.ResponseWriter, req *http.Request) {
-		apperrors.WriteError(w, req, errors.New("pq: password authentication failed for user hugi"))
+		problem.WriteError(w, req, errors.New("pq: password authentication failed for user hugi"))
 	})
 	rec := httptest.NewRecorder()
 	r.ServeHTTP(rec, httptest.NewRequest("GET", "/boom", nil))
@@ -56,7 +56,7 @@ func TestUnknownErrorIsOpaque500WithRequestID(t *testing.T) {
 	require.Equal(t, 500, rec.Code)
 	require.Equal(t, "application/problem+json", rec.Header().Get("Content-Type"))
 	require.NotContains(t, rec.Body.String(), "password")
-	var p apperrors.Problem
+	var p problem.Problem
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &p))
 	require.Equal(t, "internal_error", p.Code)
 	require.Equal(t, rec.Header().Get(RequestIDHeader), p.RequestID)
@@ -74,10 +74,10 @@ func TestPanicRecoveredAndMetricsUseRoutePattern(t *testing.T) {
 
 func TestValidationProblem(t *testing.T) {
 	rec := httptest.NewRecorder()
-	apperrors.WriteError(rec, httptest.NewRequest("GET", "/", nil),
-		apperrors.Validation(apperrors.FieldError{Field: "name", Code: "required", Message: "Name is required."}))
+	problem.WriteError(rec, httptest.NewRequest("GET", "/", nil),
+		problem.Validation(problem.FieldError{Field: "name", Code: "required", Message: "Name is required."}))
 	require.Equal(t, 422, rec.Code)
-	var p apperrors.Problem
+	var p problem.Problem
 	require.NoError(t, json.Unmarshal(rec.Body.Bytes(), &p))
 	require.Equal(t, "https://docs.hugimethara.dev/errors/validation_failed", p.Type)
 	require.Equal(t, "name", p.Errors[0].Field)

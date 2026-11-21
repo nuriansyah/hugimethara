@@ -17,7 +17,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -90,13 +90,13 @@ func (s *MappingService) Create(ctx context.Context, in dto.CreateInput) (mappin
 		return mappingmodel.Mapping{}, err
 	}
 	if in.Name = mappingmodel.TrimName(in.Name); in.Name == "" {
-		return mappingmodel.Mapping{}, apperrors.Validation(apperrors.FieldError{Field: "name", Code: "required", Message: "A mapping name is required."})
+		return mappingmodel.Mapping{}, problem.Validation(problem.FieldError{Field: "name", Code: "required", Message: "A mapping name is required."})
 	}
 	if in.Draft == nil {
 		in.Draft = map[string]any{"rules": []any{}}
 	}
 	if err := ValidateDraft(in.Draft); err != nil {
-		return mappingmodel.Mapping{}, apperrors.Validation(apperrors.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
+		return mappingmodel.Mapping{}, problem.Validation(problem.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
 	}
 	id := uuid.New()
 	var out mappingmodel.Mapping
@@ -165,13 +165,13 @@ func (s *MappingService) Update(ctx context.Context, id uuid.UUID, in dto.Update
 		if in.Name != nil {
 			name := mappingmodel.TrimName(*in.Name)
 			if name == "" {
-				return apperrors.Validation(apperrors.FieldError{Field: "name", Code: "required", Message: "A mapping name is required."})
+				return problem.Validation(problem.FieldError{Field: "name", Code: "required", Message: "A mapping name is required."})
 			}
 			in.Name = &name
 		}
 		if in.Draft != nil {
 			if err := ValidateDraft(*in.Draft); err != nil {
-				return apperrors.Validation(apperrors.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
+				return problem.Validation(problem.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
 			}
 		}
 		var draft, input, output any
@@ -273,22 +273,22 @@ func (s *MappingService) Publish(ctx context.Context, id uuid.UUID) (mappingmode
 		}
 		draft := row.Model().Draft
 		if err := ValidateDraft(draft); err != nil {
-			return apperrors.Validation(apperrors.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
+			return problem.Validation(problem.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
 		}
 		tests, err := s.listTestsTx(ctx, tx, id)
 		if err != nil {
 			return err
 		}
 		if len(tests) == 0 {
-			return apperrors.Validation(apperrors.FieldError{Field: "tests", Code: "required", Message: "Add at least one passing test before publishing."})
+			return problem.Validation(problem.FieldError{Field: "tests", Code: "required", Message: "Add at least one passing test before publishing."})
 		}
 		for _, test := range tests {
 			actual, err := Apply(draft, test.Input)
 			if err != nil {
-				return apperrors.Validation(apperrors.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
+				return problem.Validation(problem.FieldError{Field: "draft", Code: "invalid", Message: err.Error()})
 			}
 			if !mappingmodel.JsonEqual(actual, test.Expected) {
-				return apperrors.Validation(apperrors.FieldError{Field: "tests", Code: "failed", Message: "Stored test \"" + test.Name + "\" does not pass."})
+				return problem.Validation(problem.FieldError{Field: "tests", Code: "failed", Message: "Stored test \"" + test.Name + "\" does not pass."})
 			}
 		}
 		definition, _ := json.Marshal(draft)
@@ -333,7 +333,7 @@ func (s *MappingService) Test(ctx context.Context, id uuid.UUID, input any) (map
 		draft := row.Model().Draft
 		actual, err := Apply(draft, input)
 		if err != nil {
-			return apperrors.Validation(apperrors.FieldError{Field: "input", Code: "invalid", Message: err.Error()})
+			return problem.Validation(problem.FieldError{Field: "input", Code: "invalid", Message: err.Error()})
 		}
 		result.Output = actual
 		tests, err := s.listTestsTx(ctx, tx, id)
@@ -399,7 +399,7 @@ func (s *MappingService) CreateTest(ctx context.Context, id uuid.UUID, in dto.Te
 		return mappingmodel.MappingTest{}, err
 	}
 	if mappingmodel.TrimName(in.Name) == "" {
-		return mappingmodel.MappingTest{}, apperrors.Validation(apperrors.FieldError{Field: "name", Code: "required", Message: "A test name is required."})
+		return mappingmodel.MappingTest{}, problem.Validation(problem.FieldError{Field: "name", Code: "required", Message: "A test name is required."})
 	}
 	in.Name = mappingmodel.TrimName(in.Name)
 	var out mappingmodel.MappingTest
@@ -456,7 +456,7 @@ func (s *MappingService) UpdateTest(ctx context.Context, mappingID, testID uuid.
 		if in.Name != nil {
 			name = mappingmodel.TrimName(*in.Name)
 			if mappingmodel.TrimName(*in.Name) == "" {
-				return apperrors.Validation(apperrors.FieldError{Field: "name", Code: "required", Message: "A test name is required."})
+				return problem.Validation(problem.FieldError{Field: "name", Code: "required", Message: "A test name is required."})
 			}
 		}
 		var input, expected any

@@ -3,14 +3,14 @@ package model
 import (
 	"encoding/json"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 const Resource = "mapping"
 
-var ErrMappingNotFound = apperrors.NotFound("Mapping not found.")
+var ErrMappingNotFound = problem.NotFound("Mapping not found.")
 
-var ErrTestNotFound = apperrors.NotFound("Mapping test not found.")
+var ErrTestNotFound = problem.NotFound("Mapping test not found.")
 
 func RawObject(raw json.RawMessage) map[string]any {
 	if len(raw) == 0 || string(raw) == "null" {

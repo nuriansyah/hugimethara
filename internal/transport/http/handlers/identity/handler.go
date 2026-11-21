@@ -12,7 +12,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/model"
 	identitydto "github.com/nuriansyah/hugimethara/internal/modules/identity/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/middleware"
@@ -81,16 +81,16 @@ func (h *HTTP) Middleware(next http.Handler) http.Handler {
 		if authz := r.Header.Get("Authorization"); authz != "" {
 			key, ok := strings.CutPrefix(authz, "Bearer ")
 			if !ok {
-				apperrors.WriteError(w, r, model.ErrAPIKeyRejected)
+				problem.WriteError(w, r, model.ErrAPIKeyRejected)
 				return
 			}
 			p, err := h.svc.AuthenticateAPIKey(r.Context(), strings.TrimSpace(key))
 			if errors.Is(err, model.ErrInvalidAPIKey) {
-				apperrors.WriteError(w, r, model.ErrAPIKeyRejected)
+				problem.WriteError(w, r, model.ErrAPIKeyRejected)
 				return
 			}
 			if err != nil {
-				apperrors.WriteError(w, r, err)
+				problem.WriteError(w, r, err)
 				return
 			}
 			next.ServeHTTP(w, r.WithContext(principal.With(r.Context(), p)))
@@ -111,11 +111,11 @@ func (h *HTTP) Middleware(next http.Handler) http.Handler {
 			return
 		}
 		if err != nil {
-			apperrors.WriteError(w, r, err)
+			problem.WriteError(w, r, err)
 			return
 		}
 		if !middleware.IsSafeMethod(r.Method) && !model.VerifyCSRF(r.Header.Get(CSRFHeader), csrfHash) {
-			apperrors.WriteError(w, r, apperrors.NewProblem(http.StatusForbidden, "csrf_failed", "Request blocked",
+			problem.WriteError(w, r, problem.NewProblem(http.StatusForbidden, "csrf_failed", "Request blocked",
 				"The CSRF token is missing or invalid. Reload the page and try again."))
 			return
 		}
@@ -174,7 +174,7 @@ func (r logoutResponse) VisitLogoutResponse(w http.ResponseWriter) error {
 // @Router /v1/hugimethara/organizations [post]
 func (h *HTTP) CreateOrganization(ctx context.Context, req dto.CreateOrganizationRequestObject) (dto.CreateOrganizationResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	g, err := h.svc.Signup(ctx, identitydto.SignupInput{
 		OrganizationName: req.Body.OrganizationName, OrganizationSlug: req.Body.OrganizationSlug,
@@ -199,7 +199,7 @@ func (h *HTTP) CreateOrganization(ctx context.Context, req dto.CreateOrganizatio
 // @Router /v1/hugimethara/auth/login [post]
 func (h *HTTP) Login(ctx context.Context, req dto.LoginRequestObject) (dto.LoginResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	in := identitydto.LoginInput{Email: req.Body.Email, Password: req.Body.Password}
 	if req.Body.OrganizationSlug != nil {

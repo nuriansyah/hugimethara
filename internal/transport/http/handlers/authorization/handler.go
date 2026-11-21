@@ -8,7 +8,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/authorization/model"
 	authzdto "github.com/nuriansyah/hugimethara/internal/modules/authorization/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/authorization/services"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/pagination"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
@@ -157,7 +157,7 @@ func str(p *string) string {
 // @Router /v1/hugimethara/roles [post]
 func (h *HTTP) CreateRole(ctx context.Context, req dto.CreateRoleRequestObject) (dto.CreateRoleResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	r, err := h.svc.CreateRole(ctx, authzdto.RoleInput{Key: req.Body.Key, Name: req.Body.Name, Description: str(req.Body.Description), Permissions: req.Body.Permissions})
 	if err != nil {
@@ -201,7 +201,7 @@ func (h *HTTP) GetRole(ctx context.Context, req dto.GetRoleRequestObject) (dto.G
 // @Router /v1/hugimethara/roles/{role_id} [put]
 func (h *HTTP) UpdateRole(ctx context.Context, req dto.UpdateRoleRequestObject) (dto.UpdateRoleResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	r, err := h.svc.UpdateRole(ctx, req.RoleId, authzdto.RoleInput{Name: req.Body.Name, Description: str(req.Body.Description), Permissions: req.Body.Permissions})
 	if err != nil {
@@ -289,7 +289,7 @@ func (h *HTTP) ListRoleBindings(ctx context.Context, req dto.ListRoleBindingsReq
 // @Router /v1/hugimethara/role-bindings [post]
 func (h *HTTP) CreateRoleBinding(ctx context.Context, req dto.CreateRoleBindingRequestObject) (dto.CreateRoleBindingResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	who, err := principalFrom(req.Body.UserId, req.Body.GroupId, req.Body.ServiceAccountId)
 	if err != nil {
@@ -336,7 +336,7 @@ func (h *HTTP) DeleteRoleBinding(ctx context.Context, req dto.DeleteRoleBindingR
 // @Router /v1/hugimethara/authorization/evaluate [post]
 func (h *HTTP) EvaluateAccess(ctx context.Context, req dto.EvaluateAccessRequestObject) (dto.EvaluateAccessResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A JSON body is required.")
+		return nil, problem.BadRequest("A JSON body is required.")
 	}
 	res := model.Resource{Type: req.Body.ResourceType, ID: str(req.Body.ResourceId)}
 	if req.Body.WorkspaceId != nil {
@@ -417,7 +417,7 @@ func principalFrom(user, group, sa *uuid.UUID) (model.PrincipalRef, error) {
 		out = append(out, model.PrincipalRef{Type: model.PrincipalServiceAccount, ID: *sa})
 	}
 	if len(out) != 1 {
-		return model.PrincipalRef{}, apperrors.Validation(apperrors.FieldError{Field: "principal", Code: "invalid",
+		return model.PrincipalRef{}, problem.Validation(problem.FieldError{Field: "principal", Code: "invalid",
 			Message: "Give exactly one of user_id, group_id or service_account_id."})
 	}
 	return out[0], nil

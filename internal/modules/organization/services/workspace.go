@@ -22,7 +22,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/organization/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -77,7 +77,7 @@ func (s *OrganizationService) loadWorkspace(ctx context.Context, tx *sqlx.Tx, p 
 		}
 	}
 	if _, err := authzsvc.Require(ctx, s.az, action, res); err != nil {
-		var pr *apperrors.Problem
+		var pr *problem.Problem
 		if errors.As(err, &pr) && pr.Status == 403 && action == "read" {
 			return w, model.ErrWorkspaceNotFound
 		}
@@ -103,7 +103,7 @@ func (s *OrganizationService) GetWorkspace(ctx context.Context, slug string) (mo
 
 func (s *OrganizationService) validateWorkspaceInput(in *dto.WorkspaceInput, create bool) error {
 	in.Name, in.Description = strings.TrimSpace(in.Name), strings.TrimSpace(in.Description)
-	var slugErr *apperrors.FieldError
+	var slugErr *problem.FieldError
 	if create {
 		in.Slug = strings.ToLower(strings.TrimSpace(in.Slug))
 		slugErr = model.ValidateShortSlug("slug", in.Slug)
@@ -149,7 +149,7 @@ func (s *OrganizationService) CreateWorkspace(ctx context.Context, in dto.Worksp
 			case db.IsUniqueViolation(err):
 				return model.Conflict("slug_taken", "A workspace with this address already exists.")
 			case db.IsForeignKeyViolation(err):
-				return apperrors.Validation(apperrors.FieldError{Field: "department_id", Code: "not_found", Message: "Department not found."})
+				return problem.Validation(problem.FieldError{Field: "department_id", Code: "not_found", Message: "Department not found."})
 			}
 			return err
 		}
@@ -203,7 +203,7 @@ func (s *OrganizationService) UpdateWorkspace(ctx context.Context, slug string, 
 		}
 		if _, err := tx.ExecContext(ctx, commands.SQL.Get("UpdateWorkspace"), before.ID, in.Name, in.Description, model.Nullable(in.DepartmentID)); err != nil {
 			if db.IsForeignKeyViolation(err) {
-				return apperrors.Validation(apperrors.FieldError{Field: "department_id", Code: "not_found", Message: "Department not found."})
+				return problem.Validation(problem.FieldError{Field: "department_id", Code: "not_found", Message: "Department not found."})
 			}
 			return err
 		}
@@ -343,7 +343,7 @@ func (s *OrganizationService) RemoveWorkspaceMember(ctx context.Context, slug st
 			return err
 		}
 		if n == 0 {
-			return apperrors.NotFound("This user is not a member of the workspace.")
+			return problem.NotFound("This user is not a member of the workspace.")
 		}
 		return auditsvc.Record(ctx, tx, auditmodel.Event{OrgID: p.OrgID, Action: "workspace.member_removed",
 			ResourceType: model.WorkspaceResource, ResourceID: w.ID.String(), WorkspaceID: &w.ID,

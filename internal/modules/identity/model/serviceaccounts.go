@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // ServiceAccount is a non-human identity that authenticates with API keys.
@@ -42,14 +42,14 @@ const MaxActiveKeys = 10
 const apiKeyPrefix = "hugi_"
 
 var (
-	ErrServiceAccountNotFound = apperrors.NotFound("Service account not found.")
-	ErrServiceAccountName     = apperrors.NewProblem(http.StatusConflict, "name_taken", "Conflict", "A service account with this name already exists.")
+	ErrServiceAccountNotFound = problem.NotFound("Service account not found.")
+	ErrServiceAccountName     = problem.NewProblem(http.StatusConflict, "name_taken", "Conflict", "A service account with this name already exists.")
 	ErrInvalidAPIKey          = errors.New("identity: invalid api key")
 )
 
 // ErrAPIKeyRejected is the 401 for a missing, malformed, unknown, revoked or
 // expired key, or a disabled account. The cases are not distinguished.
-var ErrAPIKeyRejected = apperrors.NewProblem(http.StatusUnauthorized, "invalid_api_key", "Authentication failed",
+var ErrAPIKeyRejected = problem.NewProblem(http.StatusUnauthorized, "invalid_api_key", "Authentication failed",
 	"The API key is invalid, expired or revoked, or its service account is disabled.")
 
 // newAPIKey returns "hugi_<12 lowercase alphanumerics>_<64 hex>" and its prefix.

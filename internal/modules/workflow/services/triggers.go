@@ -16,7 +16,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/repository"
 	"github.com/nuriansyah/hugimethara/internal/platform/clock"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/id"
 )
 
@@ -152,7 +152,7 @@ func (r *TriggerRunner) FireDueSchedules(ctx context.Context) (int, error) {
 // is acknowledged) rather than retried forever.
 func (r *TriggerRunner) outcome(ctx context.Context, typ string, workflowID uuid.UUID, created bool, started *int,
 	err error) error {
-	var p *apperrors.Problem
+	var p *problem.Problem
 	switch {
 	case errors.As(err, &p) && p.Code == model.ReasonConcurrencyLimit:
 		r.fired.WithLabelValues(typ, "limited").Inc()

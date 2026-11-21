@@ -13,7 +13,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/repository"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -330,11 +330,11 @@ func decision(t model.ApprovalTask, userID uuid.UUID, in dto.DecideInput) (model
 	case t.Kind == "input" && in.Decision == model.DecisionSubmit:
 		data, issues := model.ValidateFormData(t.Fields, in.Data)
 		if len(issues) > 0 {
-			fields := make([]apperrors.FieldError, len(issues))
+			fields := make([]problem.FieldError, len(issues))
 			for i, is := range issues {
-				fields[i] = apperrors.FieldError{Field: is.Path, Code: is.Code, Message: is.Message}
+				fields[i] = problem.FieldError{Field: is.Path, Code: is.Code, Message: is.Message}
 			}
-			return "", "", nil, apperrors.Validation(fields...)
+			return "", "", nil, problem.Validation(fields...)
 		}
 		out["decision"] = string(model.TaskSubmitted)
 		out["data"] = data

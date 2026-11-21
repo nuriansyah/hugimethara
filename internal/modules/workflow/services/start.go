@@ -12,7 +12,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/model"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/repository"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/id"
 )
 
@@ -32,8 +32,8 @@ type startRequest struct {
 
 // ConcurrencyLimited is returned when a workflow already has
 // limits.max_concurrent_executions unfinished executions in the environment.
-func ConcurrencyLimited(limit int) *apperrors.Problem {
-	return apperrors.NewProblem(http.StatusTooManyRequests, model.ReasonConcurrencyLimit,
+func ConcurrencyLimited(limit int) *problem.Problem {
+	return problem.NewProblem(http.StatusTooManyRequests, model.ReasonConcurrencyLimit,
 		"Too many running executions",
 		"This workflow already has its maximum of "+strconv.Itoa(limit)+
 			" unfinished executions in this environment (limits.max_concurrent_executions).")

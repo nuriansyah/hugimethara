@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Argon2Params are argon2id cost parameters.
@@ -30,15 +30,15 @@ const (
 )
 
 // ValidatePassword returns field errors for an unacceptable password.
-func ValidatePassword(field, password, email string) []apperrors.FieldError {
+func ValidatePassword(field, password, email string) []problem.FieldError {
 	n := utf8.RuneCountInString(password)
 	switch {
 	case n < MinPasswordLen:
-		return []apperrors.FieldError{{Field: field, Code: "too_short", Message: fmt.Sprintf("Use at least %d characters.", MinPasswordLen)}}
+		return []problem.FieldError{{Field: field, Code: "too_short", Message: fmt.Sprintf("Use at least %d characters.", MinPasswordLen)}}
 	case n > MaxPasswordLen:
-		return []apperrors.FieldError{{Field: field, Code: "too_long", Message: fmt.Sprintf("Use at most %d characters.", MaxPasswordLen)}}
+		return []problem.FieldError{{Field: field, Code: "too_long", Message: fmt.Sprintf("Use at most %d characters.", MaxPasswordLen)}}
 	case email != "" && strings.EqualFold(password, email):
-		return []apperrors.FieldError{{Field: field, Code: "matches_email", Message: "The password cannot be your email address."}}
+		return []problem.FieldError{{Field: field, Code: "matches_email", Message: "The password cannot be your email address."}}
 	}
 	return nil
 }

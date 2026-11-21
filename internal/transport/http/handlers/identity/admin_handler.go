@@ -8,11 +8,11 @@ import (
 
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/model"
 	identitydto "github.com/nuriansyah/hugimethara/internal/modules/identity/model/dto"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
-func bodyRequired() error { return apperrors.BadRequest("A JSON body is required.") }
+func bodyRequired() error { return problem.BadRequest("A JSON body is required.") }
 
 func str(p *string) string {
 	if p == nil {
@@ -426,7 +426,7 @@ func (h *HTTP) ListGroupMembers(ctx context.Context, req dto.ListGroupMembersReq
 // @Router /v1/hugimethara/groups/{group_id}/members [post]
 func (h *HTTP) AddGroupMember(ctx context.Context, req dto.AddGroupMemberRequestObject) (dto.AddGroupMemberResponseObject, error) {
 	if req.Body == nil || req.Body.UserId == uuid.Nil {
-		return nil, apperrors.Validation(apperrors.FieldError{Field: "user_id", Code: "required", Message: "Choose a member."})
+		return nil, problem.Validation(problem.FieldError{Field: "user_id", Code: "required", Message: "Choose a member."})
 	}
 	if err := h.svc.AddGroupMember(ctx, req.GroupId, req.Body.UserId); err != nil {
 		return nil, err

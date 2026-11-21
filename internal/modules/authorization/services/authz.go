@@ -6,7 +6,7 @@ import (
 
 	authzmodel "github.com/nuriansyah/hugimethara/internal/modules/authorization/model"
 	"github.com/nuriansyah/hugimethara/internal/modules/authorization/model/dto"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -31,9 +31,9 @@ func Require(ctx context.Context, az Authorizer, action string, res authzmodel.R
 		return p, nil
 	}
 	if d.Reason == authzmodel.ReasonTenantMismatch {
-		return p, apperrors.NotFound("The requested resource does not exist.")
+		return p, problem.NotFound("The requested resource does not exist.")
 	}
-	return p, apperrors.NewProblem(http.StatusForbidden, "forbidden", "Forbidden",
+	return p, problem.NewProblem(http.StatusForbidden, "forbidden", "Forbidden",
 		"You do not have permission to "+action+" this "+res.Type+".")
 }
 

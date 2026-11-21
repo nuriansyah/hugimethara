@@ -15,7 +15,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 func getGroup(ctx context.Context, tx *sqlx.Tx, id uuid.UUID) (identitymodel.Group, error) {
@@ -176,7 +176,7 @@ func (s *IdentityService) AddGroupMember(ctx context.Context, groupID, userID uu
 		}
 		res, err := tx.ExecContext(ctx, commands.SQL.Get("InsertGroupMember"), p.OrgID, groupID, userID, p.ID)
 		if db.IsForeignKeyViolation(err) {
-			return apperrors.Validation(apperrors.FieldError{Field: "user_id", Code: "not_a_member", Message: "This user is not a member of the organization."})
+			return problem.Validation(problem.FieldError{Field: "user_id", Code: "not_a_member", Message: "This user is not a member of the organization."})
 		}
 		if err != nil {
 			return err
@@ -215,7 +215,7 @@ func (s *IdentityService) RemoveGroupMember(ctx context.Context, groupID, userID
 			return err
 		}
 		if n == 0 {
-			return apperrors.NotFound("This user is not a member of the group.")
+			return problem.NotFound("This user is not a member of the group.")
 		}
 		if err := authzsvc.BumpVersion(ctx, tx, p.OrgID); err != nil {
 			return err

@@ -17,7 +17,7 @@ import (
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/commands"
 	"github.com/nuriansyah/hugimethara/internal/modules/identity/repository/queries"
 	db "github.com/nuriansyah/hugimethara/internal/platform/database"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 )
 
@@ -71,14 +71,14 @@ func (s *IdentityService) GetMember(ctx context.Context, id uuid.UUID) (identity
 // last owner.
 func (s *IdentityService) SetMemberStatus(ctx context.Context, id uuid.UUID, status string) (identitymodel.OrgMember, error) {
 	if status != identitymodel.MembershipActive && status != identitymodel.MembershipSuspended {
-		return identitymodel.OrgMember{}, apperrors.Validation(apperrors.FieldError{Field: "status", Code: "invalid", Message: "Status must be active or suspended."})
+		return identitymodel.OrgMember{}, problem.Validation(problem.FieldError{Field: "status", Code: "invalid", Message: "Status must be active or suspended."})
 	}
 	p, err := s.require(ctx, "update", identitymodel.UserResource, id.String())
 	if err != nil {
 		return identitymodel.OrgMember{}, err
 	}
 	if id == p.ID && status == identitymodel.MembershipSuspended {
-		return identitymodel.OrgMember{}, apperrors.NewProblem(http.StatusConflict, "cannot_suspend_self", "Conflict", "You cannot suspend yourself.")
+		return identitymodel.OrgMember{}, problem.NewProblem(http.StatusConflict, "cannot_suspend_self", "Conflict", "You cannot suspend yourself.")
 	}
 	var row repository.OrgMemberRow
 	err = s.tenantTx(ctx, p, func(tx *sqlx.Tx) error {
@@ -132,7 +132,7 @@ func (s *IdentityService) RemoveMember(ctx context.Context, id uuid.UUID) error 
 		return err
 	}
 	if id == p.ID {
-		return apperrors.NewProblem(http.StatusConflict, "cannot_remove_self", "Conflict", "You cannot remove yourself from the organization.")
+		return problem.NewProblem(http.StatusConflict, "cannot_remove_self", "Conflict", "You cannot remove yourself from the organization.")
 	}
 	err = s.tenantTx(ctx, p, func(tx *sqlx.Tx) error {
 		var row repository.OrgMemberRow

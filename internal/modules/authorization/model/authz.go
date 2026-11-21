@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Resource identifies what is being accessed.
@@ -35,8 +35,8 @@ const (
 func Permission(resourceType, action string) string { return resourceType + ":" + action }
 
 // Unauthenticated is the 401 problem for requests without a valid session.
-func Unauthenticated() *apperrors.Problem {
-	return apperrors.NewProblem(http.StatusUnauthorized, "unauthenticated", "Authentication required",
+func Unauthenticated() *problem.Problem {
+	return problem.NewProblem(http.StatusUnauthorized, "unauthenticated", "Authentication required",
 		"Sign in to continue.")
 }
 

@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	logging "github.com/nuriansyah/hugimethara/internal/platform/logger"
 )
 
@@ -51,7 +51,7 @@ func Recoverer(next http.Handler) http.Handler {
 					panic(v)
 				}
 				slog.ErrorContext(r.Context(), "panic", "panic", fmt.Sprint(v), "stack", string(debug.Stack()))
-				apperrors.WriteError(w, r, fmt.Errorf("panic: %v", v))
+				problem.WriteError(w, r, fmt.Errorf("panic: %v", v))
 			}
 		}()
 		next.ServeHTTP(w, r)

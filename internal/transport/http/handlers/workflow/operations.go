@@ -7,7 +7,7 @@ import (
 
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/model"
 	wfdto "github.com/nuriansyah/hugimethara/internal/modules/workflow/model/dto"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
 )
 
@@ -142,7 +142,7 @@ func (h *HTTP) ListApprovalTasks(ctx context.Context, req dto.ListApprovalTasksR
 		case "any":
 			f.Mine = false
 		default:
-			return nil, apperrors.Validation(apperrors.FieldError{Field: "assigned_to", Code: "invalid",
+			return nil, problem.Validation(problem.FieldError{Field: "assigned_to", Code: "invalid",
 				Message: "assigned_to must be me or any."})
 		}
 	}
@@ -209,7 +209,7 @@ func (h *HTTP) GetApprovalTask(ctx context.Context, req dto.GetApprovalTaskReque
 // @Router /v1/hugimethara/approval-tasks/{task_id}/decide [post]
 func (h *HTTP) DecideApprovalTask(ctx context.Context, req dto.DecideApprovalTaskRequestObject) (dto.DecideApprovalTaskResponseObject, error) {
 	if req.Body == nil {
-		return nil, apperrors.BadRequest("A request body is required.")
+		return nil, problem.BadRequest("A request body is required.")
 	}
 	in := wfdto.DecideInput{Decision: req.Body.Decision, Data: req.Body.Data}
 	if req.Body.Comment != nil {

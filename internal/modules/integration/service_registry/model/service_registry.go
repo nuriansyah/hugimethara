@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 	DefaultHTTPTimeout = 20 * time.Second
 )
 
-var ErrServiceNotFound = apperrors.NotFound("Service not found.")
+var ErrServiceNotFound = problem.NotFound("Service not found.")
 
 type RegisteredService struct {
 	ID            uuid.UUID
@@ -80,12 +80,12 @@ func ValidateBaseURL(raw string) (string, error) {
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" ||
 		u.User != nil || u.RawQuery != "" || u.Fragment != "" || u.RawPath != "" ||
 		strings.ContainsAny(u.Host+u.Path, "\r\n\\") {
-		return "", apperrors.Validation(apperrors.FieldError{Field: "base_url", Code: "invalid",
+		return "", problem.Validation(problem.FieldError{Field: "base_url", Code: "invalid",
 			Message: "Base URL must be an HTTP(S) URL without credentials, query, or fragment."})
 	}
 	for _, segment := range strings.Split(u.Path, "/") {
 		if segment == "." || segment == ".." {
-			return "", apperrors.Validation(apperrors.FieldError{Field: "base_url", Code: "invalid",
+			return "", problem.Validation(problem.FieldError{Field: "base_url", Code: "invalid",
 				Message: "Base URL path must not contain traversal segments."})
 		}
 	}
@@ -97,7 +97,7 @@ func ValidateSourceURL(raw string) (*url.URL, error) {
 	u, err := url.Parse(strings.TrimSpace(raw))
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" ||
 		u.User != nil || u.Fragment != "" || strings.ContainsAny(u.Host, "\r\n") {
-		return nil, apperrors.Validation(apperrors.FieldError{Field: "url", Code: "invalid",
+		return nil, problem.Validation(problem.FieldError{Field: "url", Code: "invalid",
 			Message: "The OpenAPI source must be an HTTP(S) URL without credentials or a fragment."})
 	}
 	return u, nil
@@ -114,7 +114,7 @@ func FormatFromMediaType(contentType string, data []byte) string {
 }
 
 func InvalidSpec(message string) error {
-	return apperrors.NewProblem(http.StatusUnprocessableEntity, "invalid_openapi", "Invalid OpenAPI document", message)
+	return problem.NewProblem(http.StatusUnprocessableEntity, "invalid_openapi", "Invalid OpenAPI document", message)
 }
 
 func TranslateOpenAPIError(err error) error {

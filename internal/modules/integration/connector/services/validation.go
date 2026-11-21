@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	connectormodel "github.com/nuriansyah/hugimethara/internal/modules/integration/connector/model"
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	logging "github.com/nuriansyah/hugimethara/internal/platform/logger"
 )
 
@@ -17,13 +17,13 @@ func validateConfig(schemaJSON, configJSON []byte) error {
 		return fmt.Errorf("connector: stored config schema is invalid: %w", err)
 	}
 	if err := json.Unmarshal(configJSON, &value); err != nil {
-		return apperrors.Validation(apperrors.FieldError{Field: "config", Code: "invalid_json", Message: "Configuration must be valid JSON."})
+		return problem.Validation(problem.FieldError{Field: "config", Code: "invalid_json", Message: "Configuration must be valid JSON."})
 	}
 	if err := connectormodel.ValidateSchemaValue(schema, value, "config"); err != nil {
-		return apperrors.Validation(apperrors.FieldError{Field: "config", Code: "schema_invalid", Message: err.Error()})
+		return problem.Validation(problem.FieldError{Field: "config", Code: "schema_invalid", Message: err.Error()})
 	}
 	if key := sensitiveConfigKey(value, "config"); key != "" {
-		return apperrors.Validation(apperrors.FieldError{Field: key, Code: "use_secret_reference", Message: "Credentials must be stored as a credential reference, not in connector configuration."})
+		return problem.Validation(problem.FieldError{Field: key, Code: "use_secret_reference", Message: "Credentials must be stored as a credential reference, not in connector configuration."})
 	}
 	return nil
 }

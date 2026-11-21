@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
+	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 )
 
 // Environment is a deployment stage (development, staging, production, …).
@@ -19,4 +19,4 @@ type Environment struct {
 	UpdatedAt       time.Time
 }
 
-var ErrEnvironmentNotFound = apperrors.NotFound("Environment not found.")
+var ErrEnvironmentNotFound = problem.NotFound("Environment not found.")
