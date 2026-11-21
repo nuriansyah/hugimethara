@@ -21,10 +21,24 @@ linters:
         platform-is-domain-free:
           files: ["**/internal/platform/**", "!$test"]
           deny:
-            - pkg: github.com/nuriansyah/hugimethara/internal/transport/http
-              desc: platform must not depend on the API layer
-            - pkg: github.com/nuriansyah/hugimethara/internal/modules/workflow/event
+            - pkg: github.com/nuriansyah/hugimethara/internal/modules
               desc: platform must not depend on domains
+            - pkg: github.com/nuriansyah/hugimethara/internal/transport
+              desc: platform must not depend on the API layer
+            - pkg: github.com/nuriansyah/hugimethara/internal/infrastructure
+              desc: platform primitives must not depend on infrastructure adapters
+        modules-are-transport-free:
+          files: ["**/internal/modules/**", "**/internal/infrastructure/**", "!$test"]
+          deny:
+            - pkg: github.com/nuriansyah/hugimethara/internal/transport
+              desc: domains and adapters must not depend on the HTTP layer (ADR-0014)
+        model-has-no-io:
+          files: ["**/internal/modules/**/model/**", "!$test"]
+          deny:
+            - pkg: github.com/jmoiron/sqlx
+              desc: the model layer performs no I/O (ADR-0014)
+            - pkg: github.com/nuriansyah/hugimethara/internal/platform/database
+              desc: the model layer performs no I/O (ADR-0014)
         no-legacy-libs:
           files: ["$all"]
           deny:

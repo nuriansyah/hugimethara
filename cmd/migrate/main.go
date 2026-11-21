@@ -4,6 +4,7 @@
 //	hugi-migrate down      roll back the most recent migration (refused in production)
 //	hugi-migrate status    list migrations and whether they are applied
 //	hugi-migrate version   print the current and expected versions
+//	hugi-migrate admin …   platform-operator actions (see admin.go)
 package main
 
 import (
@@ -13,8 +14,8 @@ import (
 	"os"
 
 	"github.com/nuriansyah/hugimethara/internal/platform/config"
-	"github.com/nuriansyah/hugimethara/internal/platform/logger"
-	"github.com/nuriansyah/hugimethara/internal/platform/migrate"
+	"github.com/nuriansyah/hugimethara/internal/platform/database/migrate"
+	logging "github.com/nuriansyah/hugimethara/internal/platform/logger"
 )
 
 func main() {
@@ -25,8 +26,11 @@ func main() {
 }
 
 func run(args []string) error {
+	if len(args) > 0 && args[0] == "admin" {
+		return runAdmin(context.Background(), args[1:])
+	}
 	if len(args) != 1 {
-		return errors.New("usage: hugi-migrate up|down|status|version")
+		return errors.New("usage: hugi-migrate up|down|status|version|admin")
 	}
 	cfg, err := config.Load("hugi-migrate", config.NeedMigrateDatabase)
 	if err != nil {

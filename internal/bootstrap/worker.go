@@ -1,23 +1,28 @@
-// RunWorker runs data-plane background work. In S0 it provisions the
-// JetStream streams and relays the transactional outbox; workflow execution,
-// timers and webhook delivery are added by later slices.
+// RunWorker runs data-plane background work: it provisions the JetStream
+// streams, relays the transactional outbox, executes workflow steps (S10) and
+// runs the workflow reaper. Timers and webhook delivery arrive in S11–S12.
 package bootstrap
 
 import (
+	"encoding/json"
+
 	"context"
 	"net/http"
 	"os"
 
-	"github.com/nuriansyah/hugimethara/internal/modules/workflow/event"
-	"github.com/nuriansyah/hugimethara/internal/platform/buildinfo"
-	"github.com/nuriansyah/hugimethara/internal/platform/bus"
+	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	"github.com/nuriansyah/hugimethara/internal/platform/id"
+
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/messaging/bus"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/telemetry"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/persistence/outbox"
 	"github.com/nuriansyah/hugimethara/internal/platform/config"
-	"github.com/nuriansyah/hugimethara/internal/platform/database"
-	"github.com/nuriansyah/hugimethara/internal/platform/health"
-	"github.com/nuriansyah/hugimethara/internal/platform/logger"
-	"github.com/nuriansyah/hugimethara/internal/platform/migrate"
-	"github.com/nuriansyah/hugimethara/internal/platform/shutdown"
-	"github.com/nuriansyah/hugimethara/internal/platform/telemetry"
+	"github.com/nuriansyah/hugimethara/internal/platform/config/buildinfo"
+	db "github.com/nuriansyah/hugimethara/internal/platform/database"
+	"github.com/nuriansyah/hugimethara/internal/platform/database/migrate"
+	logging "github.com/nuriansyah/hugimethara/internal/platform/logger"
+	lifecycle "github.com/nuriansyah/hugimethara/internal/platform/shutdown"
 )
 
 func RunWorker() error {
@@ -56,7 +61,28 @@ func RunWorker() error {
 	}
 
 	reg := telemetry.NewRegistry()
-	relay := event.NewRelay(sysPool, nb.JS, reg, log, event.RelayOptions{})
+	relay := outbox.NewRelay(sysPool, nb.JS, reg, log, outbox.RelayOptions{})
+
+	expressions, err := workflowsvc.NewExpressions()
+	if err != nil {
+		log.Error("workflow expression environment", "err", err)
+		return err
+	}
+	hostname, _ := os.Hostname()
+	engine := workflowsvc.NewEngine(sysPool, workflowsvc.NewRegistry(expressions), workflowsvc.EngineConfig{
+		WorkerID: hostname + "/" + id.New().String(), Log: log, Registerer: reg,
+	})
+	consumeSteps := func(ctx context.Context) error {
+		return nb.Consume(ctx, bus.WorkConsumer{Stream: "HUGI_WF", Durable: "hugi-wf-steps", Filter: "hugi.wf.step.>"},
+			log, func(ctx context.Context, data []byte) error {
+				var msg workflowsvc.StepMessage
+				if err := json.Unmarshal(data, &msg); err != nil {
+					log.ErrorContext(ctx, "dropping malformed step message", "err", err)
+					return nil // poison message: acknowledging is the only way to make progress
+				}
+				return engine.HandleStep(ctx, msg)
+			})
+	}
 
 	hc := health.New(0)
 	hc.Add("postgres", db.Check(sysPool))
@@ -69,6 +95,8 @@ func RunWorker() error {
 	log.Info("starting", "version", buildinfo.Version, "commit", buildinfo.Commit)
 	err = lifecycle.Run(ctx,
 		relay.Run,
+		consumeSteps,
+		engine.RunReaper,
 		lifecycle.HTTPServer("probes", cfg.HTTPAddr, probes, cfg.ShutdownTTL, log),
 		lifecycle.MetricsServer(cfg.MetricsAddr, reg, cfg.ShutdownTTL, log),
 	)

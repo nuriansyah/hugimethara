@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "trigger": {
+    "type": "trigger.manual"
+  },
+  "nodes": [
+    {
+      "id": "check",
+      "type": "logic.if",
+      "name": "Large order?",
+      "config": {
+        "condition": "input.amount > 100.0"
+      },
+      "position": {
+        "x": 260,
+        "y": 0
+      }
+    },
+    {
+      "id": "fan",
+      "type": "logic.parallel",
+      "name": "Notify and shape",
+      "position": {
+        "x": 520,
+        "y": -80
+      }
+    },
+    {
+      "id": "notify",
+      "type": "action.http",
+      "name": "Notify finance",
+      "config": {
+        "method": "POST",
+        "url": "https://hooks.example.com/finance",
+        "body_expression": "{\"amount\": input.amount, \"order\": trigger.order_id}"
+      },
+      "retry": {
+        "max_attempts": 3,
+        "backoff": "exponential",
+        "initial_ms": 1000
+      },
+      "timeout_ms": 10000,
+      "position": {
+        "x": 780,
+        "y": -160
+      }
+    },
+    {
+      "id": "shape",
+      "type": "action.transform",
+      "name": "Approval record",
+      "config": {
+        "rules": [
+          {
+            "target": "approved_amount",
+            "source": "$.amount"
+          }
+        ]
+      },
+      "position": {
+        "x": 780,
+        "y": 0
+      }
+    },
+    {
+      "id": "join",
+      "type": "logic.merge",
+      "name": "Join",
+      "position": {
+        "x": 1040,
+        "y": -80
+      }
+    },
+    {
+      "id": "small",
+      "type": "action.transform",
+      "name": "Auto-approve",
+      "config": {
+        "rules": [
+          {
+            "target": "auto_approved",
+            "source": "$.amount"
+          }
+        ]
+      },
+      "position": {
+        "x": 520,
+        "y": 120
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "trigger",
+      "to": "check"
+    },
+    {
+      "from": "check",
+      "to": "fan",
+      "port": "true"
+    },
+    {
+      "from": "check",
+      "to": "small",
+      "port": "false"
+    },
+    {
+      "from": "fan",
+      "to": "notify"
+    },
+    {
+      "from": "fan",
+      "to": "shape"
+    },
+    {
+      "from": "notify",
+      "to": "join"
+    },
+    {
+      "from": "shape",
+      "to": "join"
+    }
+  ],
+  "limits": {
+    "max_steps": 50,
+    "max_duration_seconds": 600
+  }
+}

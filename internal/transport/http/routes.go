@@ -14,10 +14,12 @@ import (
 	"unicode"
 
 	"github.com/go-chi/chi/v5"
-	authz "github.com/nuriansyah/hugimethara/internal/modules/authorization"
-	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
+
+	authzmodel "github.com/nuriansyah/hugimethara/internal/modules/authorization/model"
+	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/handlers"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/middleware"
 )
 
 // MaxRequestBody is the default body cap for API routes.
@@ -103,6 +105,20 @@ var routes = []route{
 	{"POST", "/v1/hugimethara/api-compositions/{composition_id}/execute", "executeApiComposition"},
 	{"GET", "/v1/hugimethara/api-composition-executions", "listApiCompositionExecutions"},
 	{"GET", "/v1/hugimethara/api-composition-executions/{execution_id}", "getApiCompositionExecution"},
+	{"GET", "/v1/hugimethara/node-types", "listNodeTypes"},
+	{"GET", "/v1/hugimethara/workflows", "listWorkflows"},
+	{"POST", "/v1/hugimethara/workflows", "createWorkflow"},
+	{"GET", "/v1/hugimethara/workflows/{workflow_id}", "getWorkflow"},
+	{"PATCH", "/v1/hugimethara/workflows/{workflow_id}", "updateWorkflow"},
+	{"DELETE", "/v1/hugimethara/workflows/{workflow_id}", "deleteWorkflow"},
+	{"POST", "/v1/hugimethara/workflows/{workflow_id}/validate", "validateWorkflow"},
+	{"POST", "/v1/hugimethara/workflows/{workflow_id}/publish", "publishWorkflow"},
+	{"GET", "/v1/hugimethara/workflows/{workflow_id}/versions", "listWorkflowVersions"},
+	{"GET", "/v1/hugimethara/workflows/{workflow_id}/deployments", "listWorkflowDeployments"},
+	{"PUT", "/v1/hugimethara/workflows/{workflow_id}/deployments/{environment_id}", "deployWorkflow"},
+	{"POST", "/v1/hugimethara/workflows/{workflow_id}/execute", "executeWorkflow"},
+	{"GET", "/v1/hugimethara/workflow-executions", "listWorkflowExecutions"},
+	{"GET", "/v1/hugimethara/workflow-executions/{execution_id}", "getWorkflowExecution"},
 	{"GET", "/v1/hugimethara/departments", "listDepartments"},
 	{"POST", "/v1/hugimethara/departments", "createDepartment"},
 	{"PATCH", "/v1/hugimethara/departments/{department_id}", "updateDepartment"},
@@ -176,21 +192,21 @@ func PublicOperations() (map[string]bool, error) {
 func NewRouter(d Deps) (http.Handler, error) {
 	r := chi.NewRouter()
 	r.Use(
-		httpx.RequestID,
-		httpx.Observe(httpx.NewHTTPMetrics(d.Registerer)),
-		httpx.Recoverer,
-		httpx.SecurityHeaders,
-		httpx.CORS(d.TrustedOrigins),
-		httpx.ClientInfoMiddleware(d.TrustedProxies),
-		httpx.OriginGuard(d.TrustedOrigins),
-		httpx.MaxBody(MaxRequestBody),
+		middleware.RequestID,
+		middleware.Observe(middleware.NewHTTPMetrics(d.Registerer)),
+		middleware.Recoverer,
+		middleware.SecurityHeaders,
+		middleware.CORS(d.TrustedOrigins),
+		middleware.ClientInfoMiddleware(d.TrustedProxies),
+		middleware.OriginGuard(d.TrustedOrigins),
+		middleware.MaxBody(MaxRequestBody),
 		d.Identity.Middleware,
 	)
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
-		httpx.WriteError(w, req, httpx.NotFound("No route matches "+req.Method+" "+req.URL.Path+"."))
+		apperrors.WriteError(w, req, apperrors.NotFound("No route matches "+req.Method+" "+req.URL.Path+"."))
 	})
 	r.MethodNotAllowed(func(w http.ResponseWriter, req *http.Request) {
-		httpx.WriteError(w, req, httpx.NewProblem(http.StatusMethodNotAllowed, "method_not_allowed",
+		apperrors.WriteError(w, req, apperrors.NewProblem(http.StatusMethodNotAllowed, "method_not_allowed",
 			"Method not allowed", req.Method+" is not supported on this route."))
 	})
 
@@ -232,33 +248,33 @@ func newOperationHandler(server any, spec route, public bool) (http.Handler, err
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		request := reflect.New(methodType.In(1)).Elem()
 		if err := bindRequest(r, request); err != nil {
-			httpx.WriteError(w, r, httpx.BadRequest(err.Error()))
+			apperrors.WriteError(w, r, apperrors.BadRequest(err.Error()))
 			return
 		}
 		if !public {
 			if _, ok := principal.From(r.Context()); !ok {
-				httpx.WriteError(w, r, authz.Unauthenticated())
+				apperrors.WriteError(w, r, authzmodel.Unauthenticated())
 				return
 			}
 		}
 		result := method.Call([]reflect.Value{reflect.ValueOf(r.Context()), request})
 		if !result[1].IsNil() {
-			httpx.WriteError(w, r, result[1].Interface().(error))
+			apperrors.WriteError(w, r, result[1].Interface().(error))
 			return
 		}
 		if isNil(result[0]) {
-			httpx.WriteError(w, r, fmt.Errorf("api: handler %s returned an empty response", name))
+			apperrors.WriteError(w, r, fmt.Errorf("api: handler %s returned an empty response", name))
 			return
 		}
 		response := result[0]
 		visitor := response.MethodByName("Visit" + name + "Response")
 		if !visitor.IsValid() {
-			httpx.WriteError(w, r, fmt.Errorf("api: handler %s response visitor is missing", name))
+			apperrors.WriteError(w, r, fmt.Errorf("api: handler %s response visitor is missing", name))
 			return
 		}
 		writeResult := visitor.Call([]reflect.Value{reflect.ValueOf(w)})
 		if !writeResult[0].IsNil() {
-			httpx.WriteError(w, r, writeResult[0].Interface().(error))
+			apperrors.WriteError(w, r, writeResult[0].Interface().(error))
 		}
 	}), nil
 }

@@ -1,0 +1,19 @@
+{
+  "name": "@hugimethara/shared-types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "API contract types generated from api/openapi/openapi.yaml (single source of truth).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate:api": "openapi-typescript ../../api/openapi/openapi.yaml -o src/schema.d.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@hugimethara/config": "workspace:*",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5"
+  }
+}

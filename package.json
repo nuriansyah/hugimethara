@@ -6,7 +6,7 @@
     "dev": "pnpm --filter hugimethara-web dev",
     "build": "pnpm --filter hugimethara-web build",
     "lint": "pnpm --filter hugimethara-web lint",
-    "typecheck": "pnpm --filter hugimethara-web typecheck",
-    "generate:api": "pnpm --filter hugimethara-web generate:api"
+    "typecheck": "pnpm -r --filter './packages/*' --filter hugimethara-web typecheck",
+    "generate:api": "pnpm --filter @hugimethara/shared-types generate:api"
   }
 }

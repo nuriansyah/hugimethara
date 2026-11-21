@@ -13,7 +13,7 @@ import (
 
 	"github.com/caarlos0/env/v11"
 
-	"github.com/nuriansyah/hugimethara/internal/platform/crypto"
+	secretbox "github.com/nuriansyah/hugimethara/internal/platform/crypto"
 )
 
 // Config is shared by all binaries. Fields a binary does not use are ignored.

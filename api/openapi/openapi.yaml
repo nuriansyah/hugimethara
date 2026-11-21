@@ -1793,6 +1793,79 @@ components:
             x-enum-varnames:
                 - MemberMembershipStatusActive
                 - MemberMembershipStatusSuspended
+        NodeType:
+            properties:
+                available:
+                    type: boolean
+                description:
+                    type: string
+                fields:
+                    items:
+                        $ref: '#/components/schemas/NodeTypeField'
+                    type: array
+                kind:
+                    enum:
+                        - trigger
+                        - action
+                        - logic
+                    type: string
+                label:
+                    type: string
+                ports:
+                    items:
+                        type: string
+                    type: array
+                type:
+                    type: string
+                unavailable_reason:
+                    type: string
+            required:
+                - available
+                - description
+                - fields
+                - kind
+                - label
+                - ports
+                - type
+            type: object
+        NodeTypeField:
+            properties:
+                description:
+                    type: string
+                key:
+                    type: string
+                kind:
+                    enum:
+                        - string
+                        - text
+                        - expression
+                        - json
+                        - select
+                        - number
+                    type: string
+                label:
+                    type: string
+                options:
+                    items:
+                        type: string
+                    type: array
+                required:
+                    type: boolean
+            required:
+                - key
+                - kind
+                - label
+                - required
+            type: object
+        NodeTypes:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/NodeType'
+                    type: array
+            required:
+                - data
+            type: object
         OidcProviderOption:
             properties:
                 id:
@@ -2586,6 +2659,409 @@ components:
             x-enum-varnames:
                 - UserUpdateStatusActive
                 - UserUpdateStatusSuspended
+        Workflow:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/WorkflowDefinition'
+                id:
+                    type: string
+                latest_version:
+                    type: integer
+                name:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    enum:
+                        - draft
+                        - active
+                        - paused
+                        - archived
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - created_at
+                - description
+                - draft
+                - id
+                - name
+                - slug
+                - status
+                - updated_at
+                - workspace_id
+            type: object
+        WorkflowCreate:
+            properties:
+                description:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/WorkflowDefinition'
+                name:
+                    type: string
+                slug:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - name
+                - slug
+                - workspace_id
+            type: object
+        WorkflowDefinition:
+            properties:
+                edges:
+                    items:
+                        $ref: '#/components/schemas/WorkflowEdge'
+                    type: array
+                limits:
+                    $ref: '#/components/schemas/WorkflowLimits'
+                nodes:
+                    items:
+                        $ref: '#/components/schemas/WorkflowNode'
+                    type: array
+                schema_version:
+                    type: integer
+                trigger:
+                    $ref: '#/components/schemas/WorkflowTrigger'
+            required:
+                - edges
+                - nodes
+                - schema_version
+                - trigger
+            type: object
+        WorkflowDeploy:
+            properties:
+                enabled:
+                    type: boolean
+                version_id:
+                    type: string
+            required:
+                - enabled
+                - version_id
+            type: object
+        WorkflowDeployment:
+            properties:
+                enabled:
+                    type: boolean
+                environment_id:
+                    type: string
+                updated_at:
+                    type: string
+                version:
+                    type: integer
+                version_id:
+                    type: string
+                workflow_id:
+                    type: string
+            required:
+                - enabled
+                - environment_id
+                - updated_at
+                - version
+                - version_id
+                - workflow_id
+            type: object
+        WorkflowDeployments:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WorkflowDeployment'
+                    type: array
+            required:
+                - data
+            type: object
+        WorkflowEdge:
+            properties:
+                from:
+                    type: string
+                port:
+                    type: string
+                to:
+                    type: string
+            required:
+                - from
+                - to
+            type: object
+        WorkflowError:
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                node_id:
+                    type: string
+                retryable:
+                    type: boolean
+            required:
+                - code
+                - message
+            type: object
+        WorkflowExecute:
+            properties:
+                environment_id:
+                    type: string
+                idempotency_key:
+                    type: string
+                input:
+                    additionalProperties: true
+                    type: object
+            required:
+                - environment_id
+            type: object
+        WorkflowExecution:
+            properties:
+                created_at:
+                    type: string
+                deadline_at:
+                    type: string
+                environment_id:
+                    type: string
+                error:
+                    $ref: '#/components/schemas/WorkflowError'
+                finished_at:
+                    type: string
+                id:
+                    type: string
+                input: {}
+                output: {}
+                started_at:
+                    type: string
+                status:
+                    enum:
+                        - pending
+                        - running
+                        - succeeded
+                        - failed
+                        - cancelled
+                        - timed_out
+                    type: string
+                step_count:
+                    type: integer
+                steps:
+                    items:
+                        $ref: '#/components/schemas/WorkflowStep'
+                    type: array
+                trigger_type:
+                    type: string
+                version:
+                    type: integer
+                version_id:
+                    type: string
+                workflow_id:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - created_at
+                - deadline_at
+                - environment_id
+                - id
+                - status
+                - step_count
+                - trigger_type
+                - version
+                - version_id
+                - workflow_id
+                - workspace_id
+            type: object
+        WorkflowExecutions:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WorkflowExecution'
+                    type: array
+            required:
+                - data
+            type: object
+        WorkflowIssue:
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
+                path:
+                    type: string
+            required:
+                - code
+                - message
+                - path
+            type: object
+        WorkflowLimits:
+            properties:
+                max_duration_seconds:
+                    type: integer
+                max_steps:
+                    type: integer
+            type: object
+        WorkflowNode:
+            properties:
+                config:
+                    additionalProperties: true
+                    type: object
+                id:
+                    type: string
+                name:
+                    type: string
+                position:
+                    $ref: '#/components/schemas/WorkflowPosition'
+                retry:
+                    $ref: '#/components/schemas/WorkflowRetry'
+                timeout_ms:
+                    type: integer
+                type:
+                    type: string
+            required:
+                - id
+                - type
+            type: object
+        WorkflowPosition:
+            properties:
+                x:
+                    type: number
+                "y":
+                    type: number
+            required:
+                - x
+                - "y"
+            type: object
+        WorkflowRetry:
+            properties:
+                backoff:
+                    type: string
+                initial_ms:
+                    type: integer
+                max_attempts:
+                    type: integer
+            required:
+                - max_attempts
+            type: object
+        WorkflowStep:
+            properties:
+                attempt:
+                    type: integer
+                error:
+                    $ref: '#/components/schemas/WorkflowError'
+                finished_at:
+                    type: string
+                id:
+                    type: string
+                input: {}
+                node_id:
+                    type: string
+                node_type:
+                    type: string
+                output: {}
+                port:
+                    type: string
+                queued_at:
+                    type: string
+                started_at:
+                    type: string
+                status:
+                    enum:
+                        - pending
+                        - queued
+                        - running
+                        - succeeded
+                        - failed
+                        - skipped
+                        - cancelled
+                        - retry_scheduled
+                    type: string
+            required:
+                - attempt
+                - id
+                - node_id
+                - node_type
+                - status
+            type: object
+        WorkflowTrigger:
+            properties:
+                config:
+                    additionalProperties: true
+                    type: object
+                type:
+                    type: string
+            required:
+                - type
+            type: object
+        WorkflowUpdate:
+            properties:
+                description:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/WorkflowDefinition'
+                name:
+                    type: string
+                status:
+                    enum:
+                        - active
+                        - paused
+                        - archived
+                    type: string
+            type: object
+        WorkflowValidation:
+            properties:
+                issues:
+                    items:
+                        $ref: '#/components/schemas/WorkflowIssue'
+                    type: array
+                valid:
+                    type: boolean
+            required:
+                - issues
+                - valid
+            type: object
+        WorkflowVersion:
+            properties:
+                checksum:
+                    type: string
+                definition:
+                    $ref: '#/components/schemas/WorkflowDefinition'
+                id:
+                    type: string
+                published_at:
+                    type: string
+                published_by:
+                    type: string
+                version:
+                    type: integer
+                workflow_id:
+                    type: string
+            required:
+                - checksum
+                - definition
+                - id
+                - published_at
+                - published_by
+                - version
+                - workflow_id
+            type: object
+        WorkflowVersions:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WorkflowVersion'
+                    type: array
+            required:
+                - data
+            type: object
+        Workflows:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/Workflow'
+                    type: array
+            required:
+                - data
+            type: object
         Workspace:
             properties:
                 archived_at:
@@ -5832,6 +6308,28 @@ paths:
             summary: Revoke one of the caller's sessions
             tags:
                 - auth
+    /v1/hugimethara/node-types:
+        get:
+            operationId: listNodeTypes
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/NodeTypes'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Workflow node-type catalog
+            tags:
+                - workflows
     /v1/hugimethara/organizations:
         post:
             operationId: createOrganization
@@ -7225,6 +7723,614 @@ paths:
             summary: Suspend or reactivate a member
             tags:
                 - identity
+    /v1/hugimethara/workflow-executions:
+        get:
+            operationId: listWorkflowExecutions
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+                - description: Workflow ID
+                  in: query
+                  name: workflow_id
+                  schema:
+                    type: string
+                - description: Execution status
+                  in: query
+                  name: status
+                  schema:
+                    type: string
+                - description: Page size (max 200)
+                  in: query
+                  name: limit
+                  schema:
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowExecutions'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Workflow execution history
+            tags:
+                - workflows
+    /v1/hugimethara/workflow-executions/{execution_id}:
+        get:
+            operationId: getWorkflowExecution
+            parameters:
+                - description: Execution ID
+                  in: path
+                  name: execution_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowExecution'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get an execution with every step's input, output and error
+            tags:
+                - workflows
+    /v1/hugimethara/workflows:
+        get:
+            operationId: listWorkflows
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Workflows'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List workflows
+            tags:
+                - workflows
+        post:
+            operationId: createWorkflow
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WorkflowCreate'
+                description: Workflow
+                required: true
+                x-originalParamName: body
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Workflow'
+                    description: Created
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Create a workflow draft
+            tags:
+                - workflows
+    /v1/hugimethara/workflows/{workflow_id}:
+        delete:
+            operationId: deleteWorkflow
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: Deleted.
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Delete a workflow and its history
+            tags:
+                - workflows
+        get:
+            operationId: getWorkflow
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Workflow'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get a workflow
+            tags:
+                - workflows
+        patch:
+            operationId: updateWorkflow
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WorkflowUpdate'
+                description: Changes
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Workflow'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Update a workflow (name, description, draft, status)
+            tags:
+                - workflows
+    /v1/hugimethara/workflows/{workflow_id}/deployments:
+        get:
+            operationId: listWorkflowDeployments
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowDeployments'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List deployments per environment
+            tags:
+                - workflows
+    /v1/hugimethara/workflows/{workflow_id}/deployments/{environment_id}:
+        put:
+            operationId: deployWorkflow
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+                - description: Environment ID
+                  in: path
+                  name: environment_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WorkflowDeploy'
+                description: Deployment
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowDeployment'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Deploy a version to an environment
+            tags:
+                - workflows
+    /v1/hugimethara/workflows/{workflow_id}/execute:
+        post:
+            operationId: executeWorkflow
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WorkflowExecute'
+                description: Execution request
+                required: true
+                x-originalParamName: body
+            responses:
+                "202":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowExecution'
+                    description: Accepted
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Start a manual execution (asynchronous)
+            tags:
+                - workflows
+    /v1/hugimethara/workflows/{workflow_id}/publish:
+        post:
+            operationId: publishWorkflow
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowVersion'
+                    description: Created
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Publish the draft as an immutable version
+            tags:
+                - workflows
+    /v1/hugimethara/workflows/{workflow_id}/validate:
+        post:
+            operationId: validateWorkflow
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowValidation'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Validate the draft (returns every issue)
+            tags:
+                - workflows
+    /v1/hugimethara/workflows/{workflow_id}/versions:
+        get:
+            operationId: listWorkflowVersions
+            parameters:
+                - description: Workflow ID
+                  in: path
+                  name: workflow_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowVersions'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List published versions
+            tags:
+                - workflows
     /v1/hugimethara/workspaces:
         get:
             operationId: listWorkspaces

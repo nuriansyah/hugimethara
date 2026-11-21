@@ -14,5 +14,5 @@
 // @name Authorization
 // @description Send a service-account API key as a Bearer token.
 //
-//go:generate sh -c "cd ../../../ && go run github.com/swaggo/swag/cmd/swag@v1.16.6 init --generalInfo internal/transport/http/swagger.go --dir . --output api/openapi --outputTypes json --parseInternal && go run ./cmd/swaggergen --input api/openapi/swagger.json --output api/openapi/openapi.yaml"
+//go:generate sh -c "cd ../../../ && go run github.com/swaggo/swag/cmd/swag@v1.16.6 init --generalInfo internal/transport/http/swagger.go --dir . --output api/openapi --outputTypes json --parseInternal --exclude internal/modules,web,packages,node_modules && go run ./scripts/swaggergen --input api/openapi/swagger.json --output api/openapi/openapi.yaml"
 package api

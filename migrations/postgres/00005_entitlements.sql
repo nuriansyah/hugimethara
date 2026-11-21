@@ -69,7 +69,7 @@ CREATE POLICY org_overrides_tenant ON org_entitlement_overrides TO hugi_app
   USING (org_id = hugi_current_org());
 
 -- The app may provision the default subscription at signup but never change
--- plans itself: plan changes are operator actions (hugi-admin) or, later, the
+-- plans itself: plan changes are operator actions (hugi-migrate admin) or, later, the
 -- billing integration running under its own role.
 GRANT SELECT, INSERT ON org_subscriptions TO hugi_app;
 GRANT SELECT ON org_entitlement_overrides TO hugi_app;

@@ -5,12 +5,12 @@ COMPOSE := docker compose -f deployments/compose/docker-compose.yml
 help: ## Show targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-18s %s\n", $$1, $$2}'
 
-generate: ## Regenerate Go (oapi-codegen) and TS (openapi-typescript) API code
+generate: ## Regenerate the OpenAPI contract (swag) and TS contract types (openapi-typescript)
 	go generate ./...
-	pnpm --filter hugimethara-web generate:api
+	pnpm generate:api
 
 check-generated: generate ## Fail if generated code is out of date
-	git diff --exit-code -- internal/transport/http/apigen apps/web/src/lib/api/schema.d.ts
+	git diff --exit-code -- api/openapi packages/shared-types/src/schema.d.ts
 
 lint: ## Lint backend and web
 	golangci-lint run ./...
@@ -26,9 +26,9 @@ test: ## Backend unit tests
 test-integration: ## Backend integration tests (see variables above)
 	go test -race -tags integration -count=1 ./...
 
-web-check: ## Web typecheck + build
-	pnpm --filter hugimethara-web typecheck
-	pnpm --filter hugimethara-web build
+web-check: ## Web + packages typecheck, then production build
+	pnpm typecheck
+	pnpm build
 
 up: ## Start the full local stack
 	$(COMPOSE) up --build -d

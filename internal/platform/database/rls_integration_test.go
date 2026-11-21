@@ -10,9 +10,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nuriansyah/hugimethara/internal/modules/workflow/event"
-	"github.com/nuriansyah/hugimethara/internal/platform/database"
-	"github.com/nuriansyah/hugimethara/internal/platform/migrate"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/persistence/outbox"
+	db "github.com/nuriansyah/hugimethara/internal/platform/database"
+	"github.com/nuriansyah/hugimethara/internal/platform/database/migrate"
 	"github.com/nuriansyah/hugimethara/internal/platform/testsupport"
 )
 
@@ -25,7 +25,7 @@ func TestTenantIsolationEnforcedByRLS(t *testing.T) {
 
 	publish := func(org, target uuid.UUID) error {
 		return db.InTenantTx(ctx, pg.App, org, func(tx *sqlx.Tx) error {
-			_, err := event.Publish(ctx, tx, event.Event{OrgID: target, Subject: "hugi.events.test.created", Payload: map[string]string{"k": "v"}})
+			_, err := outbox.Publish(ctx, tx, outbox.Event{OrgID: target, Subject: "hugi.events.test.created", Payload: map[string]string{"k": "v"}})
 			return err
 		})
 	}
@@ -54,7 +54,7 @@ func TestTenantIsolationEnforcedByRLS(t *testing.T) {
 	}))
 	require.Zero(t, n)
 	require.Error(t, db.InTx(ctx, pg.App, func(tx *sqlx.Tx) error {
-		_, err := event.Publish(ctx, tx, event.Event{OrgID: orgA, Subject: "hugi.events.test.created", Payload: 1})
+		_, err := outbox.Publish(ctx, tx, outbox.Event{OrgID: orgA, Subject: "hugi.events.test.created", Payload: 1})
 		return err
 	}))
 

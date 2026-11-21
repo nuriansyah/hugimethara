@@ -11,10 +11,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nuriansyah/hugimethara/internal/modules/identity"
+	identitysvc "github.com/nuriansyah/hugimethara/internal/modules/identity/services"
 )
 
-// setPlan changes an org's plan directly, as hugi-admin does.
+// setPlan changes an org's plan directly, as `hugi-migrate admin` does.
 func setPlan(t *testing.T, e *env, slug, plan string) {
 	t.Helper()
 	_, err := e.pg.Owner.ExecContext(context.Background(), `UPDATE org_subscriptions SET plan_key = $2
@@ -27,7 +27,7 @@ func setPlan(t *testing.T, e *env, slug, plan string) {
 func addMember(t *testing.T, e *env, orgSlug, email string) (*client, string) {
 	t.Helper()
 	ctx := context.Background()
-	hash, err := identity.NewHasher(testArgon).Hash("correct horse battery")
+	hash, err := identitysvc.NewHasher(testArgon).Hash("correct horse battery")
 	require.NoError(t, err)
 	id := uuid.Must(uuid.NewV7())
 	_, err = e.pg.Owner.ExecContext(ctx, `INSERT INTO users (id, email, display_name) VALUES ($1, $2, $3)`, id, email, email)

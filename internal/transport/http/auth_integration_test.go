@@ -15,84 +15,102 @@ import (
 	"strings"
 	"testing"
 
+	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nuriansyah/hugimethara/internal/modules/authorization"
-	"github.com/nuriansyah/hugimethara/internal/modules/governance/audit"
-	"github.com/nuriansyah/hugimethara/internal/modules/governance/entitlement"
-	"github.com/nuriansyah/hugimethara/internal/modules/identity"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping"
-	secretvault "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry"
-	"github.com/nuriansyah/hugimethara/internal/modules/organization"
-	"github.com/nuriansyah/hugimethara/internal/platform/crypto"
-	"github.com/nuriansyah/hugimethara/internal/platform/egress"
-	"github.com/nuriansyah/hugimethara/internal/platform/health"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/security/egress"
+	authzsvc "github.com/nuriansyah/hugimethara/internal/modules/authorization/services"
+	auditmodel "github.com/nuriansyah/hugimethara/internal/modules/governance/audit/model"
+	auditsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/audit/services"
+	entsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/entitlement/services"
+	identitymodel "github.com/nuriansyah/hugimethara/internal/modules/identity/model"
+	identitysvc "github.com/nuriansyah/hugimethara/internal/modules/identity/services"
+	connectorsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/connector/services"
+	mappingsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/services"
+	secretssvc "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/services"
+	serviceregsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/services"
+	orgsvc "github.com/nuriansyah/hugimethara/internal/modules/organization/services"
+	secretbox "github.com/nuriansyah/hugimethara/internal/platform/crypto"
 	"github.com/nuriansyah/hugimethara/internal/platform/testsupport"
-	"github.com/nuriansyah/hugimethara/internal/transport/http"
+	api "github.com/nuriansyah/hugimethara/internal/transport/http"
+	audithandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/audit"
+	authzhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/authorization"
+	connectorhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/connector"
+	enthandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/entitlement"
+	identityhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/identity"
+	mappinghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/mapping"
+	orghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/organization"
+	secretshandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/secrets"
+	servicereghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/service_registry"
 )
 
 const base = "/v1/hugimethara"
 
 // cheap hashing keeps the suite fast; production uses identity.DefaultArgon2.
-var testArgon = identity.Argon2Params{MemoryKiB: 1024, Iterations: 1, Parallelism: 1, SaltLen: 16, KeyLen: 32}
+var testArgon = identitymodel.Argon2Params{MemoryKiB: 1024, Iterations: 1, Parallelism: 1, SaltLen: 16, KeyLen: 32}
 
 type env struct {
+	az      *authzsvc.RBAC
 	t       *testing.T
 	pg      *testsupport.Postgres
 	srv     *httptest.Server
-	secrets *secretvault.Service
+	secrets *secretssvc.SecretsService
 }
 
 func setup(t *testing.T) *env {
 	t.Helper()
 	pg := testsupport.StartPostgres(t)
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
-	az := authz.NewRBAC(pg.App, nil, log)
-	acl := authz.NewService(pg.App, az, func(ctx context.Context, tx *sqlx.Tx, org uuid.UUID, action, rt, rid string, details map[string]any) error {
-		return audit.Record(ctx, tx, audit.Event{OrgID: org, Action: action, ResourceType: rt, ResourceID: rid, Details: details})
+	az := authzsvc.NewRBAC(pg.App, nil, log)
+	acl := authzsvc.NewService(pg.App, az, func(ctx context.Context, tx *sqlx.Tx, org uuid.UUID, action, rt, rid string, details map[string]any) error {
+		return auditsvc.Record(ctx, tx, auditmodel.Event{OrgID: org, Action: action, ResourceType: rt, ResourceID: rid, Details: details})
 	})
-	orgs := organization.NewService(pg.App, az, acl)
+	orgs := orgsvc.NewService(pg.App, az, acl)
 	sealer, err := secretbox.New(secretbox.DeriveKey("integration-test"))
 	require.NoError(t, err)
 	masterKey := secretbox.DeriveKey("integration-test")
-	secrets, err := secretvault.NewService(pg.App, az, masterKey, "test-v1")
+	secrets, err := secretssvc.NewService(pg.App, az, masterKey, "test-v1")
 	require.NoError(t, err)
-	connectors, err := connector.NewService(pg.App, az)
+	connectors, err := connectorsvc.NewService(pg.App, az)
 	require.NoError(t, err)
 	servicePolicy, err := egress.ParsePolicy(nil)
 	require.NoError(t, err)
-	services := servicereg.NewService(pg.App, az, servicePolicy)
-	mappings := mapping.NewService(pg.App, az)
-	ids := identity.NewService(pg.App, orgs, az, acl, nil, log, identity.Config{
-		Hasher: identity.NewHasher(testArgon), MaxFailedLogins: 3,
+	services := serviceregsvc.NewService(pg.App, az, servicePolicy)
+	mappings := mappingsvc.NewService(pg.App, az)
+	ids := identitysvc.NewService(pg.App, orgs, az, acl, nil, log, identitysvc.Config{
+		Hasher: identitysvc.NewHasher(testArgon), MaxFailedLogins: 3,
 		PublicURL: "http://localhost:3000", Sealer: sealer,
 	})
+	expressions, err := workflowsvc.NewExpressions()
+	require.NoError(t, err)
 	router, err := api.NewRouter(api.Deps{
 		Env: "test", Health: health.New(0), Registerer: prometheus.NewRegistry(),
-		Identity:     identity.NewHTTP(ids, identity.Cookies{Secure: false}),
-		Organization: organization.NewHTTP(orgs),
-		Audit:        audit.NewHTTP(audit.NewService(pg.App, az)),
-		Entitlement:  entitlement.NewHTTP(entitlement.NewService(pg.App, az, usage())),
-		Access:       authz.NewHTTP(acl),
-		Secrets:      secretvault.NewHTTP(secrets),
-		Connectors:   connector.NewHTTP(connectors),
-		Services:     servicereg.NewHTTP(services),
-		Mappings:     mapping.NewHTTP(mappings),
+		Identity:     identityhandler.NewHTTP(ids, identityhandler.Cookies{Secure: false}),
+		Organization: orghandler.NewHTTP(orgs),
+		Audit:        audithandler.NewHTTP(auditsvc.NewService(pg.App, az)),
+		Entitlement:  enthandler.NewHTTP(entsvc.NewService(pg.App, az, usage())),
+		Access:       authzhandler.NewHTTP(acl),
+		Secrets:      secretshandler.NewHTTP(secrets),
+		Connectors:   connectorhandler.NewHTTP(connectors),
+		Services:     servicereghandler.NewHTTP(services),
+		Mappings:     mappinghandler.NewHTTP(mappings),
+		Workflows:    workflowhandler.NewHTTP(workflowsvc.NewService(pg.App, az, expressions)),
 	})
 	require.NoError(t, err)
 	srv := httptest.NewServer(router)
 	t.Cleanup(srv.Close)
-	return &env{t: t, pg: pg, srv: srv, secrets: secrets}
+	return &env{t: t, pg: pg, srv: srv, secrets: secrets, az: az}
 }
 
-func usage() map[string]entitlement.UsageFunc {
-	out := map[string]entitlement.UsageFunc{}
-	for k, fn := range organization.UsageCounters() {
+func usage() map[string]entsvc.UsageFunc {
+	out := map[string]entsvc.UsageFunc{}
+	for k, fn := range orgsvc.UsageCounters() {
 		out[k] = fn
 	}
 	return out
@@ -130,7 +148,7 @@ func (c *client) do(method, path string, body any, withCSRF bool) resp {
 	c.e.t.Helper()
 	var h http.Header
 	if withCSRF {
-		h = http.Header{identity.CSRFHeader: {c.csrf()}}
+		h = http.Header{identityhandler.CSRFHeader: {c.csrf()}}
 	}
 	return c.doWithHeader(method, path, body, h)
 }

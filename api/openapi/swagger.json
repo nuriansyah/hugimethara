@@ -4370,6 +4370,40 @@
                 }
             }
         },
+        "/v1/hugimethara/node-types": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Workflow node-type catalog",
+                "operationId": "listNodeTypes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.NodeTypes"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/organizations": {
             "post": {
                 "consumes": [
@@ -6292,6 +6326,814 @@
                         }
                     },
                     "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflow-executions": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Workflow execution history",
+                "operationId": "listWorkflowExecutions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Execution status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (max 200)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowExecutions"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflow-executions/{execution_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Get an execution with every step's input, output and error",
+                "operationId": "getWorkflowExecution",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Execution ID",
+                        "name": "execution_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowExecution"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "List workflows",
+                "operationId": "listWorkflows",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Workflows"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Create a workflow draft",
+                "operationId": "createWorkflow",
+                "parameters": [
+                    {
+                        "description": "Workflow",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Workflow"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows/{workflow_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Get a workflow",
+                "operationId": "getWorkflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Workflow"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Delete a workflow and its history",
+                "operationId": "deleteWorkflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Deleted."
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Update a workflow (name, description, draft, status)",
+                "operationId": "updateWorkflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Changes",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Workflow"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows/{workflow_id}/deployments": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "List deployments per environment",
+                "operationId": "listWorkflowDeployments",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowDeployments"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows/{workflow_id}/deployments/{environment_id}": {
+            "put": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Deploy a version to an environment",
+                "operationId": "deployWorkflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Environment ID",
+                        "name": "environment_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Deployment",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowDeploy"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowDeployment"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows/{workflow_id}/execute": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Start a manual execution (asynchronous)",
+                "operationId": "executeWorkflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Execution request",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowExecute"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowExecution"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows/{workflow_id}/publish": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Publish the draft as an immutable version",
+                "operationId": "publishWorkflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowVersion"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows/{workflow_id}/validate": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Validate the draft (returns every issue)",
+                "operationId": "validateWorkflow",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowValidation"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflows/{workflow_id}/versions": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "List published versions",
+                "operationId": "listWorkflowVersions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workflow ID",
+                        "name": "workflow_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowVersions"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
                         "description": "Error (RFC 9457 problem details).",
                         "schema": {
                             "$ref": "#/definitions/dto.Problem"
@@ -9409,6 +10251,109 @@
                 "MemberMembershipStatusSuspended"
             ]
         },
+        "dto.NodeType": {
+            "type": "object",
+            "required": [
+                "available",
+                "description",
+                "fields",
+                "kind",
+                "label",
+                "ports",
+                "type"
+            ],
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.NodeTypeField"
+                    }
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "trigger",
+                        "action",
+                        "logic"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                },
+                "ports": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                },
+                "unavailable_reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.NodeTypeField": {
+            "type": "object",
+            "required": [
+                "key",
+                "kind",
+                "label",
+                "required"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "string",
+                        "text",
+                        "expression",
+                        "json",
+                        "select",
+                        "number"
+                    ]
+                },
+                "label": {
+                    "type": "string"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "required": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.NodeTypes": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.NodeType"
+                    }
+                }
+            }
+        },
         "dto.OidcProviderOption": {
             "type": "object",
             "required": [
@@ -10547,6 +11492,587 @@
                 "UserUpdateStatusActive",
                 "UserUpdateStatusSuspended"
             ]
+        },
+        "dto.Workflow": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "description",
+                "draft",
+                "id",
+                "name",
+                "slug",
+                "status",
+                "updated_at",
+                "workspace_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft": {
+                    "$ref": "#/definitions/dto.WorkflowDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latest_version": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "draft",
+                        "active",
+                        "paused",
+                        "archived"
+                    ]
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowCreate": {
+            "type": "object",
+            "required": [
+                "name",
+                "slug",
+                "workspace_id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "draft": {
+                    "$ref": "#/definitions/dto.WorkflowDefinition"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowDefinition": {
+            "type": "object",
+            "required": [
+                "edges",
+                "nodes",
+                "schema_version",
+                "trigger"
+            ],
+            "properties": {
+                "edges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowEdge"
+                    }
+                },
+                "limits": {
+                    "$ref": "#/definitions/dto.WorkflowLimits"
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowNode"
+                    }
+                },
+                "schema_version": {
+                    "type": "integer"
+                },
+                "trigger": {
+                    "$ref": "#/definitions/dto.WorkflowTrigger"
+                }
+            }
+        },
+        "dto.WorkflowDeploy": {
+            "type": "object",
+            "required": [
+                "enabled",
+                "version_id"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "version_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowDeployment": {
+            "type": "object",
+            "required": [
+                "enabled",
+                "environment_id",
+                "updated_at",
+                "version",
+                "version_id",
+                "workflow_id"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "version_id": {
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowDeployments": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowDeployment"
+                    }
+                }
+            }
+        },
+        "dto.WorkflowEdge": {
+            "type": "object",
+            "required": [
+                "from",
+                "to"
+            ],
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowError": {
+            "type": "object",
+            "required": [
+                "code",
+                "message"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "retryable": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.WorkflowExecute": {
+            "type": "object",
+            "required": [
+                "environment_id"
+            ],
+            "properties": {
+                "environment_id": {
+                    "type": "string"
+                },
+                "idempotency_key": {
+                    "type": "string"
+                },
+                "input": {
+                    "type": "object",
+                    "additionalProperties": true
+                }
+            }
+        },
+        "dto.WorkflowExecution": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "deadline_at",
+                "environment_id",
+                "id",
+                "status",
+                "step_count",
+                "trigger_type",
+                "version",
+                "version_id",
+                "workflow_id",
+                "workspace_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deadline_at": {
+                    "type": "string"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "error": {
+                    "$ref": "#/definitions/dto.WorkflowError"
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input": {},
+                "output": {},
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "running",
+                        "succeeded",
+                        "failed",
+                        "cancelled",
+                        "timed_out"
+                    ]
+                },
+                "step_count": {
+                    "type": "integer"
+                },
+                "steps": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowStep"
+                    }
+                },
+                "trigger_type": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "version_id": {
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowExecutions": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowExecution"
+                    }
+                }
+            }
+        },
+        "dto.WorkflowIssue": {
+            "type": "object",
+            "required": [
+                "code",
+                "message",
+                "path"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowLimits": {
+            "type": "object",
+            "properties": {
+                "max_duration_seconds": {
+                    "type": "integer"
+                },
+                "max_steps": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.WorkflowNode": {
+            "type": "object",
+            "required": [
+                "id",
+                "type"
+            ],
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "position": {
+                    "$ref": "#/definitions/dto.WorkflowPosition"
+                },
+                "retry": {
+                    "$ref": "#/definitions/dto.WorkflowRetry"
+                },
+                "timeout_ms": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowPosition": {
+            "type": "object",
+            "required": [
+                "x",
+                "y"
+            ],
+            "properties": {
+                "x": {
+                    "type": "number"
+                },
+                "y": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.WorkflowRetry": {
+            "type": "object",
+            "required": [
+                "max_attempts"
+            ],
+            "properties": {
+                "backoff": {
+                    "type": "string"
+                },
+                "initial_ms": {
+                    "type": "integer"
+                },
+                "max_attempts": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.WorkflowStep": {
+            "type": "object",
+            "required": [
+                "attempt",
+                "id",
+                "node_id",
+                "node_type",
+                "status"
+            ],
+            "properties": {
+                "attempt": {
+                    "type": "integer"
+                },
+                "error": {
+                    "$ref": "#/definitions/dto.WorkflowError"
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input": {},
+                "node_id": {
+                    "type": "string"
+                },
+                "node_type": {
+                    "type": "string"
+                },
+                "output": {},
+                "port": {
+                    "type": "string"
+                },
+                "queued_at": {
+                    "type": "string"
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "queued",
+                        "running",
+                        "succeeded",
+                        "failed",
+                        "skipped",
+                        "cancelled",
+                        "retry_scheduled"
+                    ]
+                }
+            }
+        },
+        "dto.WorkflowTrigger": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowUpdate": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "draft": {
+                    "$ref": "#/definitions/dto.WorkflowDefinition"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "active",
+                        "paused",
+                        "archived"
+                    ]
+                }
+            }
+        },
+        "dto.WorkflowValidation": {
+            "type": "object",
+            "required": [
+                "issues",
+                "valid"
+            ],
+            "properties": {
+                "issues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowIssue"
+                    }
+                },
+                "valid": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.WorkflowVersion": {
+            "type": "object",
+            "required": [
+                "checksum",
+                "definition",
+                "id",
+                "published_at",
+                "published_by",
+                "version",
+                "workflow_id"
+            ],
+            "properties": {
+                "checksum": {
+                    "type": "string"
+                },
+                "definition": {
+                    "$ref": "#/definitions/dto.WorkflowDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "published_by": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "workflow_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowVersions": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowVersion"
+                    }
+                }
+            }
+        },
+        "dto.Workflows": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Workflow"
+                    }
+                }
+            }
         },
         "dto.Workspace": {
             "type": "object",

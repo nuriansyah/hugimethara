@@ -5,30 +5,43 @@ import (
 	"context"
 	"os"
 
-	"github.com/nuriansyah/hugimethara/internal/modules/authorization"
-	"github.com/nuriansyah/hugimethara/internal/modules/governance/audit"
-	"github.com/nuriansyah/hugimethara/internal/modules/governance/entitlement"
-	"github.com/nuriansyah/hugimethara/internal/modules/identity"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/composition"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping"
-	secretvault "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry"
-	"github.com/nuriansyah/hugimethara/internal/modules/organization"
-	"github.com/nuriansyah/hugimethara/internal/platform/buildinfo"
-	"github.com/nuriansyah/hugimethara/internal/platform/bus"
-	"github.com/nuriansyah/hugimethara/internal/platform/cache"
+	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
+
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/messaging/bus"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/telemetry"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/persistence/cache"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/security/egress"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/security/ratelimit"
+	compositionsvc "github.com/nuriansyah/hugimethara/internal/modules/api_composition/services"
+	authzsvc "github.com/nuriansyah/hugimethara/internal/modules/authorization/services"
+	auditsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/audit/services"
+	entsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/entitlement/services"
+	identitysvc "github.com/nuriansyah/hugimethara/internal/modules/identity/services"
+	connectorsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/connector/services"
+	mappingsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/services"
+	secretssvc "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/services"
+	serviceregsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/services"
+	orgsvc "github.com/nuriansyah/hugimethara/internal/modules/organization/services"
 	"github.com/nuriansyah/hugimethara/internal/platform/config"
-	"github.com/nuriansyah/hugimethara/internal/platform/crypto"
-	"github.com/nuriansyah/hugimethara/internal/platform/database"
-	"github.com/nuriansyah/hugimethara/internal/platform/egress"
-	"github.com/nuriansyah/hugimethara/internal/platform/health"
-	"github.com/nuriansyah/hugimethara/internal/platform/logger"
-	"github.com/nuriansyah/hugimethara/internal/platform/migrate"
-	"github.com/nuriansyah/hugimethara/internal/platform/ratelimit"
-	"github.com/nuriansyah/hugimethara/internal/platform/shutdown"
-	"github.com/nuriansyah/hugimethara/internal/platform/telemetry"
-	"github.com/nuriansyah/hugimethara/internal/transport/http"
+	"github.com/nuriansyah/hugimethara/internal/platform/config/buildinfo"
+	secretbox "github.com/nuriansyah/hugimethara/internal/platform/crypto"
+	db "github.com/nuriansyah/hugimethara/internal/platform/database"
+	"github.com/nuriansyah/hugimethara/internal/platform/database/migrate"
+	logging "github.com/nuriansyah/hugimethara/internal/platform/logger"
+	lifecycle "github.com/nuriansyah/hugimethara/internal/platform/shutdown"
+	api "github.com/nuriansyah/hugimethara/internal/transport/http"
+	compositionhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/api_composition"
+	audithandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/audit"
+	authzhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/authorization"
+	connectorhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/connector"
+	enthandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/entitlement"
+	identityhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/identity"
+	mappinghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/mapping"
+	orghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/organization"
+	secretshandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/secrets"
+	servicereghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/service_registry"
 )
 
 func RunAPI() error {
@@ -76,8 +89,8 @@ func RunAPI() error {
 	hc.Add("nats", nb.Check)
 
 	reg := telemetry.NewRegistry()
-	az := authz.NewRBAC(pool, rdb, log)
-	acl := authz.NewService(pool, az, auditAdapter)
+	az := authzsvc.NewRBAC(pool, rdb, log)
+	acl := authzsvc.NewService(pool, az, auditAdapter)
 	limiter := ratelimit.New(rdb, log)
 	masterKey, defaulted, err := cfg.MasterKeyBytes()
 	if err != nil {
@@ -92,12 +105,12 @@ func RunAPI() error {
 		log.Error("master key unusable", "err", err)
 		return err
 	}
-	secretSvc, err := secretvault.NewService(pool, az, masterKey, cfg.MasterKeyID)
+	secretSvc, err := secretssvc.NewService(pool, az, masterKey, cfg.MasterKeyID)
 	if err != nil {
 		log.Error("secret vault setup failed", "err", err)
 		return err
 	}
-	connectorSvc, err := connector.NewService(pool, az)
+	connectorSvc, err := connectorsvc.NewService(pool, az)
 	if err != nil {
 		log.Error("connector service setup failed", "err", err)
 		return err
@@ -107,26 +120,33 @@ func RunAPI() error {
 		log.Error("service registry egress policy invalid", "err", err)
 		return err
 	}
-	serviceSvc := servicereg.NewService(pool, az, serviceEgress)
-	mappingSvc := mapping.NewService(pool, az)
-	compositionSvc := composition.NewService(pool, az, serviceSvc)
-	orgSvc := organization.NewService(pool, az, acl)
-	idSvc := identity.NewService(pool, orgSvc, az, acl, limiter, log, identity.Config{
+	serviceSvc := serviceregsvc.NewService(pool, az, serviceEgress)
+	mappingSvc := mappingsvc.NewService(pool, az)
+	compositionSvc := compositionsvc.NewService(pool, az, serviceSvc)
+	expressions, err := workflowsvc.NewExpressions()
+	if err != nil {
+		log.Error("workflow expression environment", "err", err)
+		return err
+	}
+	workflowSvc := workflowsvc.NewService(pool, az, expressions)
+	orgSvc := orgsvc.NewService(pool, az, acl)
+	idSvc := identitysvc.NewService(pool, orgSvc, az, acl, limiter, log, identitysvc.Config{
 		PublicURL: cfg.PublicURL, Sealer: sealer,
 	})
 	router, err := api.NewRouter(api.Deps{
 		Env: cfg.Env, TrustedOrigins: cfg.CORSAllowedOrigins, TrustedProxies: cfg.TrustedProxyPrefixes(),
 		Health: hc, Registerer: reg,
-		Identity:     identity.NewHTTP(idSvc, identity.Cookies{Secure: cfg.CookieSecure}),
-		Organization: organization.NewHTTP(orgSvc),
-		Audit:        audit.NewHTTP(audit.NewService(pool, az)),
-		Entitlement:  entitlement.NewHTTP(entitlement.NewService(pool, az, usageCounters())),
-		Access:       authz.NewHTTP(acl),
-		Secrets:      secretvault.NewHTTP(secretSvc),
-		Connectors:   connector.NewHTTP(connectorSvc),
-		Services:     servicereg.NewHTTP(serviceSvc),
-		Mappings:     mapping.NewHTTP(mappingSvc),
-		Compositions: composition.NewHTTP(compositionSvc),
+		Identity:     identityhandler.NewHTTP(idSvc, identityhandler.Cookies{Secure: cfg.CookieSecure}),
+		Organization: orghandler.NewHTTP(orgSvc),
+		Audit:        audithandler.NewHTTP(auditsvc.NewService(pool, az)),
+		Entitlement:  enthandler.NewHTTP(entsvc.NewService(pool, az, usageCounters())),
+		Access:       authzhandler.NewHTTP(acl),
+		Secrets:      secretshandler.NewHTTP(secretSvc),
+		Connectors:   connectorhandler.NewHTTP(connectorSvc),
+		Services:     servicereghandler.NewHTTP(serviceSvc),
+		Mappings:     mappinghandler.NewHTTP(mappingSvc),
+		Compositions: compositionhandler.NewHTTP(compositionSvc),
+		Workflows:    workflowhandler.NewHTTP(workflowSvc),
 	})
 	if err != nil {
 		log.Error("router setup failed", "err", err)

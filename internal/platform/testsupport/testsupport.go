@@ -23,8 +23,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/nuriansyah/hugimethara/internal/platform/database"
-	"github.com/nuriansyah/hugimethara/internal/platform/migrate"
+	db "github.com/nuriansyah/hugimethara/internal/platform/database"
+	"github.com/nuriansyah/hugimethara/internal/platform/database/migrate"
 )
 
 const testPassword = "test-only-password"

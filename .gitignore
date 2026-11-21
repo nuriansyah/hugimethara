@@ -2,7 +2,7 @@
 .env
 deployments/compose/.env
 bin/
-apps/web/.next/
-apps/web/node_modules/
-/node_modules/
+**/.next/
+**/node_modules/
+*.tsbuildinfo
 *.out

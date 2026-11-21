@@ -5,20 +5,23 @@ import (
 	"encoding/json"
 	"net/netip"
 
-	authz "github.com/nuriansyah/hugimethara/internal/modules/authorization"
-	"github.com/nuriansyah/hugimethara/internal/modules/governance/audit"
-	"github.com/nuriansyah/hugimethara/internal/modules/governance/entitlement"
-	"github.com/nuriansyah/hugimethara/internal/modules/identity"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/composition"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/connector"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/mapping"
-	secretvault "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets"
-	"github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry"
-	"github.com/nuriansyah/hugimethara/internal/modules/organization"
-	"github.com/nuriansyah/hugimethara/internal/platform/buildinfo"
-	"github.com/nuriansyah/hugimethara/internal/platform/health"
-	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
+	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
+
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
+	"github.com/nuriansyah/hugimethara/internal/platform/config/buildinfo"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
+	compositionhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/api_composition"
+	audithandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/audit"
+	authzhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/authorization"
+	connectorhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/connector"
+	enthandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/entitlement"
+	identityhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/identity"
+	mappinghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/mapping"
+	orghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/organization"
+	secretshandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/secrets"
+	servicereghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/service_registry"
 )
 
 type Deps struct {
@@ -28,16 +31,17 @@ type Deps struct {
 	Health         *health.Handler
 	Registerer     prometheus.Registerer
 
-	Identity     *identity.HTTP
-	Organization *organization.HTTP
-	Audit        *audit.HTTP
-	Entitlement  *entitlement.HTTP
-	Access       *authz.HTTP
-	Secrets      *secretvault.HTTP
-	Connectors   *connector.HTTP
-	Services     *servicereg.HTTP
-	Mappings     *mapping.HTTP
-	Compositions *composition.HTTP
+	Identity     *identityhandler.HTTP
+	Organization *orghandler.HTTP
+	Audit        *audithandler.HTTP
+	Entitlement  *enthandler.HTTP
+	Access       *authzhandler.HTTP
+	Secrets      *secretshandler.HTTP
+	Connectors   *connectorhandler.HTTP
+	Services     *servicereghandler.HTTP
+	Mappings     *mappinghandler.HTTP
+	Compositions *compositionhandler.HTTP
+	Workflows    *workflowhandler.HTTP
 }
 
 func NewServer(d Deps) any {
@@ -50,12 +54,13 @@ func NewServer(d Deps) any {
 		serviceHTTP:     serviceHTTP{d.Services},
 		mappingHTTP:     mappingHTTP{d.Mappings},
 		compositionHTTP: compositionHTTP{d.Compositions},
+		workflowHTTP:    workflowHTTP{d.Workflows},
 	}
 }
 
 type server struct {
 	system
-	*identity.HTTP
+	*identityhandler.HTTP
 	orgHTTP
 	auditHTTP
 	entHTTP
@@ -65,17 +70,19 @@ type server struct {
 	serviceHTTP
 	mappingHTTP
 	compositionHTTP
+	workflowHTTP
 }
 
-type orgHTTP struct{ *organization.HTTP }
-type auditHTTP struct{ *audit.HTTP }
-type entHTTP struct{ *entitlement.HTTP }
-type accessHTTP struct{ *authz.HTTP }
-type secretHTTP struct{ *secretvault.HTTP }
-type connectorHTTP struct{ *connector.HTTP }
-type serviceHTTP struct{ *servicereg.HTTP }
-type mappingHTTP struct{ *mapping.HTTP }
-type compositionHTTP struct{ *composition.HTTP }
+type orgHTTP struct{ *orghandler.HTTP }
+type auditHTTP struct{ *audithandler.HTTP }
+type entHTTP struct{ *enthandler.HTTP }
+type accessHTTP struct{ *authzhandler.HTTP }
+type secretHTTP struct{ *secretshandler.HTTP }
+type connectorHTTP struct{ *connectorhandler.HTTP }
+type serviceHTTP struct{ *servicereghandler.HTTP }
+type mappingHTTP struct{ *mappinghandler.HTTP }
+type compositionHTTP struct{ *compositionhandler.HTTP }
+type workflowHTTP struct{ *workflowhandler.HTTP }
 
 type system struct {
 	env    string

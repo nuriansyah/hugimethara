@@ -1,6 +1,6 @@
 **/*_test.go
 bin/
 .env*
-apps/web/node_modules/
-apps/web/.next/
-node_modules/
+**/node_modules/
+**/.next/
+**/*.tsbuildinfo

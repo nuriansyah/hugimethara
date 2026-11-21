@@ -11,6 +11,9 @@
    the org is unusable without it; `workflow.execution.failed` → notifications is an *event*).
 5. **Every service method takes a `Principal`-bearing `context.Context`** and every store query is tenant-scoped.
 
+Inside every module the layers of [ADR-0014](../adr/0014-module-layout.md) apply:
+`model` → `model/dto` → `repository` (+ `commands`/`queries`) → `services` → `transport/http/handlers/<module>`.
+
 ## Layering (Phase 1)
 
 ```

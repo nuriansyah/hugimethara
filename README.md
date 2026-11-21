@@ -26,7 +26,7 @@ make generate            # regenerate oapi-codegen server + TS client after Open
 |---|---|
 | [docs/architecture/system-overview.md](docs/architecture/system-overview.md) | Architecture, repo layout, components |
 | [docs/architecture/domain-boundaries.md](docs/architecture/domain-boundaries.md) | Domains and their dependency rules |
-| [docs/adr/](docs/adr/) | Why each major technology/architecture choice was made |
+| [docs/adr/](docs/adr/) | Why each major technology/architecture choice was made (layout: [ADR-0014](docs/adr/0014-module-layout.md)) |
 | [docs/database/phase-1-schema.md](docs/database/phase-1-schema.md) | Phase 1 data model + ERD |
 | [docs/api/](docs/api/) | API conventions and Phase 1 endpoint plan |
 | [docs/phases/phase-1.md](docs/phases/phase-1.md) | Phase 1 vertical slices + prioritized backlog |
@@ -35,16 +35,20 @@ make generate            # regenerate oapi-codegen server + TS client after Open
 ## Repository layout
 
 ```
-cmd/                    Go binaries (hugi-api, hugi-worker, hugi-migrate, hugi-admin)
-internal/modules/       Domain modules
-internal/platform/      Cross-cutting services
-internal/transport/http/ HTTP routes and generated OpenAPI server
-internal/bootstrap/     API and worker composition roots
-migrations/postgres/    Embedded PostgreSQL migrations
-apps/web/               Next.js (App Router, TypeScript) frontend
-deployments/            Docker Compose and deployment assets
-api/openapi/            HTTP contract source of truth
-docs/                   Product, architecture, ADRs, database, API, security, ops docs
+cmd/                         Go binaries: api, worker, migrate (incl. `hugi-migrate admin`)
+internal/modules/<module>/   Bounded contexts (ADR-0014):
+  model/ model/dto/            entities, invariants, use-case inputs (no I/O)
+  repository/{commands,queries}/  rows + write-side / read-side SQL (CQRS)
+  services/                    service.go = ports (interfaces), <module>_service.go = use cases
+internal/transport/http/     routes.go, middleware/, handlers/<module>/ (OpenAPI adapters), dto/
+internal/platform/           Domain-free primitives: config, database, logger, errors, clock, id, crypto, shutdown, …
+internal/infrastructure/     External adapters: persistence/ (outbox, cache), messaging/, security/, observability/
+internal/bootstrap/          api.go, worker.go, dependencies.go — composition roots
+migrations/postgres/         Embedded PostgreSQL migrations
+web/                         Next.js (App Router, TypeScript) app
+packages/                    pnpm workspace: ui, api-client, shared-types, config
+api/openapi/                 HTTP contract source of truth
+deployments/ docs/ scripts/ examples/
 ```
 
 ## License

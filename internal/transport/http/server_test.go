@@ -13,10 +13,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 
-	"github.com/nuriansyah/hugimethara/internal/modules/identity"
-	"github.com/nuriansyah/hugimethara/internal/platform/health"
-	"github.com/nuriansyah/hugimethara/internal/platform/httpx"
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
+	apperrors "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/transport/http/dto"
+	identityhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/identity"
+	"github.com/nuriansyah/hugimethara/internal/transport/http/middleware"
 )
 
 func newTestRouter(t *testing.T, checks map[string]health.Check) *httptest.Server {
@@ -27,7 +28,7 @@ func newTestRouter(t *testing.T, checks map[string]health.Check) *httptest.Serve
 	}
 	router, err := NewRouter(Deps{
 		Env: "test", Health: h, Registerer: prometheus.NewRegistry(),
-		Identity: identity.NewHTTP(nil, identity.Cookies{}), // no cookie sent => service never called
+		Identity: identityhandler.NewHTTP(nil, identityhandler.Cookies{}), // no cookie sent => service never called
 	})
 	require.NoError(t, err)
 	srv := httptest.NewServer(router)
@@ -41,7 +42,7 @@ func TestSystemInfo(t *testing.T) {
 	require.NoError(t, err)
 	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, 200, resp.StatusCode)
-	require.NotEmpty(t, resp.Header.Get(httpx.RequestIDHeader))
+	require.NotEmpty(t, resp.Header.Get(middleware.RequestIDHeader))
 	require.Equal(t, "nosniff", resp.Header.Get("X-Content-Type-Options"))
 
 	var info dto.SystemInfo
@@ -78,7 +79,7 @@ func TestUnknownRouteIsProblem(t *testing.T) {
 	defer func() { _ = resp.Body.Close() }()
 	require.Equal(t, 404, resp.StatusCode)
 	require.Equal(t, "application/problem+json", resp.Header.Get("Content-Type"))
-	var p httpx.Problem
+	var p apperrors.Problem
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&p))
 	require.Equal(t, "not_found", p.Code)
 	require.NotEmpty(t, p.RequestID)
@@ -111,7 +112,7 @@ func TestPublicOperationsAreExplicit(t *testing.T) {
 		"GetInvitationPreview": true, "AcceptInvitation": true, // S4: invitation links (token-gated, rate-limited)
 		"ListOidcProviders": true, "StartOidcLogin": true, "CompleteOidcLogin": true, // S5: SSO before a session exists
 	}, public, "adding a public operation is a security decision: update this test deliberately")
-	require.Len(t, routes, 127)
+	require.Len(t, routes, 141) // S10 added the 14 workflow operations
 }
 
 func TestCrossSiteStateChangeRejected(t *testing.T) {

@@ -1,0 +1,21 @@
+{
+  "name": "@hugimethara/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Typed HTTP client for the Hugimethara API (openapi-fetch + CSRF + RFC 9457 errors).",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hugimethara/shared-types": "workspace:*",
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@hugimethara/config": "workspace:*",
+    "typescript": "^5"
+  }
+}

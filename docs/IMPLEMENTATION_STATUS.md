@@ -1,17 +1,51 @@
 # Implementation Status
 
-_Last updated: 2026-11-19_
+_Last updated: 2026-11-21_
 
-## Current stage: Phase 1 — S6 connector runtime (implementation in progress)
+## Current stage: Phase 1 — S10 workflow engine core (backend complete; designer UI not yet browser-verified)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | S0–S7 implementation underway; S6 execution runtime and S8–S14 remain |
+| Phase 1 | In progress | S0–S10 implemented (S6 runtime, S9 E2E, S10 connector/composition nodes open); S11–S14 remain |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-21 — Modular layout refactor (ADR-0014) and S10 workflow engine core
+- **Refactor:** every module now uses `model/` (+ `model/dto/`), `repository/` (rows) with SQL split into
+  `repository/commands` (writes) and `repository/queries` (reads), and `services/` (`service.go` = ports,
+  `<module>_service.go` = implementation). HTTP adapters moved to `internal/transport/http/handlers/<module>`
+  and depend on `services.Service` interfaces. `integration/composition` → `modules/api_composition`;
+  outbox → `infrastructure/persistence/outbox`; cache/bus/egress/ratelimit/telemetry/health →
+  `internal/infrastructure/*`; `platform/httpx` split into `platform/errors` (RFC 9457), `platform/pagination`,
+  `transport/http/middleware`; new `platform/clock` and `platform/id` (UUIDv7). `cmd/` is `api`, `worker`,
+  `migrate` (`hugi-migrate admin …` replaces `hugi-admin`); `swaggergen` moved to `scripts/`. Web moved
+  `apps/web` → `web/` with pnpm packages `ui`, `api-client`, `shared-types`, `config`. Layer rules enforced
+  by depguard. Placeholders for `data_platform`, `analytics`, `dashboard` (Phase 2).
+- **Pre-existing bugs fixed while verifying:** creating a mapping and creating an SSO provider returned 500 on
+  `main` (NULL jsonb into `json.RawMessage`; `text[]` into `[]string`). Added `db.TextArray`; 5 integration
+  tests that failed on `main` now pass. Two web type errors from the regenerated schema were fixed.
+- **S10 implemented:** migration `00013_workflows` (workflows, versions, deployments, triggers, executions,
+  steps; tenant RLS for `hugi_app`, engine policies for `hugi_system`; `workflow` resource type).
+  Pure model: definition, node catalog, publish validator (all issues with stable codes), table-driven
+  step/execution state machines, dead-path-eliminating graph progression. Engine: outbox → JetStream
+  `hugi.wf.step.<org>` dispatch, lease-based claim fenced by worker id with heartbeat, completion + progression
+  under the execution row lock, bounded retries with backoff, reaper (expired leases, due retries, lost
+  dispatches, execution deadlines), metrics. Nodes: `trigger.manual`, `action.http` (egress-policy client,
+  idempotency key), `action.transform` (mapping rules), `logic.if`, `logic.parallel`, `logic.merge`
+  (all/any), `logic.filter`. 14 API operations; Workflow Designer (React Flow) at `/automation/workflows`
+  with inspector, validate/publish/deploy/run and execution history with step I/O.
+- **S10 acceptance (integration, real Postgres + RLS):** conditional + parallel workflow executes (merge joins,
+  untaken branch skipped, idempotent replay); a crashed worker's step is re-queued after lease expiry and a
+  second worker finishes while the stale worker is fenced out; failures carry reason codes, input and upstream
+  response; retries are bounded by policy.
+- **Not done / not verified:** `action.connector` and `action.composition` are catalogued but rejected at
+  publish (`node_type_unavailable`) — they need the S6 connector runtime and a system-principal composition
+  port. The designer UI passed typecheck, lint and production build but was not exercised in a browser in this
+  session. Timed-out executions do not emit `execution_finished` events yet. Step payloads > 64 KiB fail
+  (`payload_too_large`) rather than spilling to object storage.
 
 ### 2026-11-19 — S6 connector management and S7 service registry
 - **S6 implemented:** connector catalog/version and instance APIs, schema-validated configuration, credential
@@ -258,7 +292,7 @@ _Last updated: 2026-11-19_
 | S7 Service registry & API explorer | ✅ | OpenAPI import/diff and guarded explorer integration tests pass |
 | S8 Mapping engine & studio | ✅ | Mapping drafts, test cases, publish gates, immutable versions, JSONPath/transform/CEL evaluator, and Mapping Studio |
 | S9 API composition | ◐ | Tenant-scoped drafts/versions/executions, bounded DAG executor, OpenAPI routes, and editor are implemented; validate against the order-overview mock-service E2E |
-| S10 Workflow engine core | ☐ | |
+| S10 Workflow engine core | ◐ engine, API and designer implemented; connector/composition nodes pending | 3 acceptance integration tests (conditional+parallel, crash recovery, inspectable failures); designer not browser-verified |
 | S11 Workflow engine complete | ☐ | |
 | S12 Webhook engine | ☐ | |
 | S13 External workflow tools | ☐ | |
