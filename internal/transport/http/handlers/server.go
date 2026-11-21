@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/netip"
 
+	webhookhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/webhook"
 	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -42,6 +43,7 @@ type Deps struct {
 	Mappings     *mappinghandler.HTTP
 	Compositions *compositionhandler.HTTP
 	Workflows    *workflowhandler.HTTP
+	Webhooks     *webhookhandler.HTTP
 }
 
 func NewServer(d Deps) any {
@@ -55,6 +57,7 @@ func NewServer(d Deps) any {
 		mappingHTTP:     mappingHTTP{d.Mappings},
 		compositionHTTP: compositionHTTP{d.Compositions},
 		workflowHTTP:    workflowHTTP{d.Workflows},
+		webhookHTTP:     webhookHTTP{d.Webhooks},
 	}
 }
 
@@ -71,6 +74,7 @@ type server struct {
 	mappingHTTP
 	compositionHTTP
 	workflowHTTP
+	webhookHTTP
 }
 
 type orgHTTP struct{ *orghandler.HTTP }
@@ -83,6 +87,7 @@ type serviceHTTP struct{ *servicereghandler.HTTP }
 type mappingHTTP struct{ *mappinghandler.HTTP }
 type compositionHTTP struct{ *compositionhandler.HTTP }
 type workflowHTTP struct{ *workflowhandler.HTTP }
+type webhookHTTP struct{ *webhookhandler.HTTP }
 
 type system struct {
 	env    string

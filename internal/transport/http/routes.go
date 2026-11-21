@@ -125,6 +125,25 @@ var routes = []route{
 	{"GET", "/v1/hugimethara/approval-tasks", "listApprovalTasks"},
 	{"GET", "/v1/hugimethara/approval-tasks/{task_id}", "getApprovalTask"},
 	{"POST", "/v1/hugimethara/approval-tasks/{task_id}/decide", "decideApprovalTask"},
+	{"GET", "/v1/hugimethara/webhooks", "listWebhooks"},
+	{"POST", "/v1/hugimethara/webhooks", "createWebhook"},
+	{"GET", "/v1/hugimethara/webhooks/{webhook_id}", "getWebhook"},
+	{"PATCH", "/v1/hugimethara/webhooks/{webhook_id}", "updateWebhook"},
+	{"DELETE", "/v1/hugimethara/webhooks/{webhook_id}", "deleteWebhook"},
+	{"POST", "/v1/hugimethara/webhooks/{webhook_id}/rotate-secret", "rotateWebhookSecret"},
+	{"GET", "/v1/hugimethara/webhook-events", "listWebhookEvents"},
+	{"GET", "/v1/hugimethara/webhook-events/{event_id}", "getWebhookEvent"},
+	{"GET", "/v1/hugimethara/event-types", "listEventTypes"},
+	{"GET", "/v1/hugimethara/webhook-subscriptions", "listWebhookSubscriptions"},
+	{"POST", "/v1/hugimethara/webhook-subscriptions", "createWebhookSubscription"},
+	{"GET", "/v1/hugimethara/webhook-subscriptions/{subscription_id}", "getWebhookSubscription"},
+	{"PATCH", "/v1/hugimethara/webhook-subscriptions/{subscription_id}", "updateWebhookSubscription"},
+	{"DELETE", "/v1/hugimethara/webhook-subscriptions/{subscription_id}", "deleteWebhookSubscription"},
+	{"POST", "/v1/hugimethara/webhook-subscriptions/{subscription_id}/rotate-secret", "rotateWebhookSubscriptionSecret"},
+	{"POST", "/v1/hugimethara/webhook-subscriptions/{subscription_id}/ping", "pingWebhookSubscription"},
+	{"GET", "/v1/hugimethara/webhook-deliveries", "listWebhookDeliveries"},
+	{"GET", "/v1/hugimethara/webhook-deliveries/{delivery_id}", "getWebhookDelivery"},
+	{"POST", "/v1/hugimethara/webhook-deliveries/{delivery_id}/replay", "replayWebhookDelivery"},
 	{"GET", "/v1/hugimethara/departments", "listDepartments"},
 	{"POST", "/v1/hugimethara/departments", "createDepartment"},
 	{"PATCH", "/v1/hugimethara/departments/{department_id}", "updateDepartment"},
@@ -194,6 +213,11 @@ func PublicOperations() (map[string]bool, error) {
 	}, nil
 }
 
+// IngressPath is the webhook ingress route (S12). It is the one route outside
+// the operation table: senders authenticate with a signature, not a session,
+// so it bypasses the origin guard, CSRF and the identity middleware.
+const IngressPath = "/hooks/{public_id}"
+
 // NewRouter returns the root handler for the API listener.
 func NewRouter(d Deps) (http.Handler, error) {
 	r := chi.NewRouter()
@@ -202,11 +226,8 @@ func NewRouter(d Deps) (http.Handler, error) {
 		middleware.Observe(middleware.NewHTTPMetrics(d.Registerer)),
 		middleware.Recoverer,
 		middleware.SecurityHeaders,
-		middleware.CORS(d.TrustedOrigins),
+		middleware.CORS(d.TrustedOrigins), // answers preflights, so it must see unrouted OPTIONS requests
 		middleware.ClientInfoMiddleware(d.TrustedProxies),
-		middleware.OriginGuard(d.TrustedOrigins),
-		middleware.MaxBody(MaxRequestBody),
-		d.Identity.Middleware,
 	)
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		problem.WriteError(w, req, problem.NotFound("No route matches "+req.Method+" "+req.URL.Path+"."))
@@ -215,18 +236,33 @@ func NewRouter(d Deps) (http.Handler, error) {
 		problem.WriteError(w, req, problem.NewProblem(http.StatusMethodNotAllowed, "method_not_allowed",
 			"Method not allowed", req.Method+" is not supported on this route."))
 	})
+	if d.Webhooks != nil {
+		r.Post(IngressPath, d.Webhooks.Ingress)
+	}
 
 	public, err := PublicOperations()
 	if err != nil {
 		return nil, err
 	}
 	srv := handlers.NewServer(d)
-	for _, spec := range routes {
-		handler, err := newOperationHandler(srv, spec, public[exportedOperation(spec.operation)])
-		if err != nil {
-			return nil, err
+	var buildErr error
+	r.Group(func(r chi.Router) {
+		r.Use(
+			middleware.OriginGuard(d.TrustedOrigins),
+			middleware.MaxBody(MaxRequestBody),
+			d.Identity.Middleware,
+		)
+		for _, spec := range routes {
+			handler, err := newOperationHandler(srv, spec, public[exportedOperation(spec.operation)])
+			if err != nil {
+				buildErr = err
+				return
+			}
+			r.Method(spec.method, spec.path, handler)
 		}
-		r.Method(spec.method, spec.path, handler)
+	})
+	if buildErr != nil {
+		return nil, buildErr
 	}
 	return r, nil
 }

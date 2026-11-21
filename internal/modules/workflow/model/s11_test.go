@@ -143,8 +143,11 @@ func TestValidateLoopDelayAndTriggers(t *testing.T) {
 	require.Empty(t, Validate(d, nil))
 	d.Trigger.Config = map[string]any{"event": "user.deleted"}
 	require.Equal(t, []string{"invalid_event"}, codes(Validate(d, nil)))
+	// S12: the webhook trigger needs the id of an endpoint.
 	d.Trigger = Trigger{Type: TypeTriggerWebhook}
-	require.Equal(t, []string{"trigger_unavailable"}, codes(Validate(d, nil)))
+	require.Equal(t, []string{"invalid_endpoint"}, codes(Validate(d, nil)))
+	d.Trigger.Config = map[string]any{"endpoint_id": "0193f0a4-7c1e-7cc2-9a8e-3b1f7c2d4e5f"}
+	require.Empty(t, Validate(d, nil))
 
 	d = base(delay)
 	d.Limits.MaxConcurrentExecutions = -1

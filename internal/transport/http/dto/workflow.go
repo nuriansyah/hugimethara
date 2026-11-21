@@ -174,7 +174,7 @@ type WorkflowExecution struct {
 type NodeTypeField struct {
 	Key         string   `json:"key" binding:"required"`
 	Label       string   `json:"label" binding:"required"`
-	Kind        string   `json:"kind" binding:"required" enums:"string,text,expression,json,select,number,boolean"`
+	Kind        string   `json:"kind" binding:"required" enums:"string,text,expression,json,select,number,boolean,webhook_endpoint"`
 	Required    bool     `json:"required" binding:"required"`
 	Options     []string `json:"options,omitempty"`
 	Description *string  `json:"description,omitempty"`

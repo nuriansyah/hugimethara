@@ -384,3 +384,22 @@ func ParseEventTrigger(cfg map[string]any) (EventTrigger, error) {
 	}
 	return e, fmt.Errorf("event must be one of %s", strings.Join(PlatformEvents, ", "))
 }
+
+// WebhookTrigger is the parsed configuration of trigger.webhook.
+type WebhookTrigger struct {
+	EndpointID uuid.UUID
+	Condition  string
+}
+
+// ParseWebhookTrigger reads a trigger.webhook configuration.
+func ParseWebhookTrigger(cfg map[string]any) (WebhookTrigger, error) {
+	var w WebhookTrigger
+	raw, _ := cfg["endpoint_id"].(string)
+	id, err := uuid.Parse(raw)
+	if err != nil || id == uuid.Nil {
+		return w, errors.New("endpoint_id must be the id of a webhook endpoint")
+	}
+	w.EndpointID = id
+	w.Condition, _ = cfg["condition"].(string)
+	return w, nil
+}

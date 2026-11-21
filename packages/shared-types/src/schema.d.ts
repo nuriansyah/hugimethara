@@ -21,6 +21,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/hooks/{public_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive an inbound webhook
+         * @description Unauthenticated; the request must carry a valid signature for the endpoint's verifier. Unknown or disabled endpoints answer 404. Invalid signatures and timestamps outside the tolerance answer 401 (signature_missing, signature_malformed, signature_invalid, timestamp_out_of_tolerance) and nothing is stored. A repeated provider event id answers 200 duplicate and starts nothing. Bodies are limited to 1 MiB; requests are rate-limited per endpoint.
+         */
+        post: operations["receiveWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/readyz": {
         parameters: {
             query?: never;
@@ -599,6 +619,26 @@ export interface paths {
         head?: never;
         /** Update a environment */
         patch: operations["updateEnvironment"];
+        trace?: never;
+    };
+    "/v1/hugimethara/event-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Platform event catalog
+         * @description The events an outbound subscription can receive. Each carries a workspace_id; a subscription receives only its workspace's events.
+         */
+        get: operations["listEventTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/hugimethara/groups": {
@@ -1412,6 +1452,246 @@ export interface paths {
         patch: operations["updateUser"];
         trace?: never;
     };
+    "/v1/hugimethara/webhook-deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Delivery log */
+        get: operations["listWebhookDeliveries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-deliveries/{delivery_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a delivery with its payload and every attempt */
+        get: operations["getWebhookDelivery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-deliveries/{delivery_id}/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Replay a delivery
+         * @description Creates a new delivery of the same event (replay_of links it to the original). Only succeeded or dead-lettered deliveries can be replayed.
+         */
+        post: operations["replayWebhookDelivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List received webhook events
+         * @description Verified requests only (rejected ones are counted on the endpoint, never stored). Bodies are omitted; fetch one event for its payload.
+         */
+        get: operations["listWebhookEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a received webhook event with its headers and body */
+        get: operations["getWebhookEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List outbound webhook subscriptions */
+        get: operations["listWebhookSubscriptions"];
+        put?: never;
+        /**
+         * Create an outbound webhook subscription
+         * @description Deliveries are signed with Standard Webhooks headers using the whsec_ secret returned once in `secret`. Failed deliveries retry after 30s, 2m, 10m, 30m, 2h, 6h and 12h, then are dead-lettered.
+         */
+        post: operations["createWebhookSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-subscriptions/{subscription_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an outbound webhook subscription */
+        get: operations["getWebhookSubscription"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete an outbound webhook subscription
+         * @description Removes the subscription and its delivery log; pending deliveries are dropped.
+         */
+        delete: operations["deleteWebhookSubscription"];
+        options?: never;
+        head?: never;
+        /**
+         * Update an outbound webhook subscription
+         * @description Re-enabling a subscription that was disabled after failing for 5 days clears its failure streak.
+         */
+        patch: operations["updateWebhookSubscription"];
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-subscriptions/{subscription_id}/ping": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a test delivery
+         * @description Enqueues a webhook.ping delivery to the subscription.
+         */
+        post: operations["pingWebhookSubscription"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhook-subscriptions/{subscription_id}/rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate a subscription's signing secret
+         * @description Pending retries are signed with the new secret. The secret is returned once in `secret`.
+         */
+        post: operations["rotateWebhookSubscriptionSecret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List inbound webhook endpoints */
+        get: operations["listWebhooks"];
+        put?: never;
+        /**
+         * Create an inbound webhook endpoint
+         * @description Senders POST to /hooks/{public_id}. For standard_webhooks and hmac_sha256 the signing secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
+         */
+        post: operations["createWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/webhooks/{webhook_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an inbound webhook endpoint */
+        get: operations["getWebhook"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete an inbound webhook endpoint
+         * @description Removes the endpoint and the events it received. Workflows bound to it stop being triggered.
+         */
+        delete: operations["deleteWebhook"];
+        options?: never;
+        head?: never;
+        /** Update an inbound webhook endpoint */
+        patch: operations["updateWebhook"];
+        trace?: never;
+    };
+    "/v1/hugimethara/webhooks/{webhook_id}/rotate-secret": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate an endpoint's signing secret
+         * @description The old secret stops verifying immediately. A generated secret is returned once in `secret`.
+         */
+        post: operations["rotateWebhookSecret"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/workflow-executions": {
         parameters: {
             query?: never;
@@ -2110,6 +2390,16 @@ export interface components {
             user_id?: string;
             workspace_id?: string;
         };
+        EventType: {
+            description: string;
+            example: {
+                [key: string]: unknown;
+            };
+            type: string;
+        };
+        EventTypes: {
+            data: components["schemas"]["EventType"][];
+        };
         FeatureDefinition: {
             description: string;
             key: string;
@@ -2512,7 +2802,7 @@ export interface components {
             description?: string;
             key: string;
             /** @enum {string} */
-            kind: "string" | "text" | "expression" | "json" | "select" | "number" | "boolean";
+            kind: "string" | "text" | "expression" | "json" | "select" | "number" | "boolean" | "webhook_endpoint";
             label: string;
             options?: string[];
             required: boolean;
@@ -2826,6 +3116,158 @@ export interface components {
         };
         /** @enum {string} */
         UserUpdateStatus: "active" | "suspended";
+        WebhookDeliveries: {
+            data: components["schemas"]["WebhookDelivery"][];
+        };
+        WebhookDelivery: {
+            attempt_log?: components["schemas"]["WebhookDeliveryAttempt"][];
+            attempts: number;
+            created_at: string;
+            error: string;
+            event_id: string;
+            event_type: string;
+            finished_at?: string;
+            id: string;
+            last_attempt_at?: string;
+            latency_ms?: number;
+            max_attempts: number;
+            next_attempt_at?: string;
+            payload?: unknown;
+            replay_of?: string;
+            response_excerpt: string;
+            response_status?: number;
+            /** @enum {string} */
+            status: "pending" | "succeeded" | "dead_lettered";
+            subscription_id: string;
+            subscription_name: string;
+            workspace_id: string;
+        };
+        WebhookDeliveryAttempt: {
+            attempt: number;
+            attempted_at: string;
+            error: string;
+            latency_ms: number;
+            response_excerpt: string;
+            response_status?: number;
+        };
+        WebhookEndpoint: {
+            created_at: string;
+            description: string;
+            enabled: boolean;
+            environment_id: string;
+            id: string;
+            ingress_path: string;
+            last_received_at?: string;
+            last_rejected_at?: string;
+            last_rejected_reason: string;
+            name: string;
+            public_id: string;
+            rate_limit_per_minute: number;
+            received_count: number;
+            rejected_count: number;
+            /** @description Secret is returned once, on create or rotate, when the platform generated it. */
+            secret?: string;
+            secret_hint: string;
+            secret_rotated_at?: string;
+            tolerance_seconds: number;
+            updated_at: string;
+            /** @enum {string} */
+            verifier: "standard_webhooks" | "hmac_sha256" | "stripe" | "github" | "slack";
+            verifier_config: components["schemas"]["WebhookVerifierConfig"];
+            workspace_id: string;
+        };
+        WebhookEndpointCreate: {
+            description?: string;
+            environment_id: string;
+            name: string;
+            rate_limit_per_minute?: number;
+            secret?: string;
+            tolerance_seconds?: number;
+            /** @enum {string} */
+            verifier?: "standard_webhooks" | "hmac_sha256" | "stripe" | "github" | "slack";
+            verifier_config?: components["schemas"]["WebhookVerifierConfig"];
+            workspace_id: string;
+        };
+        WebhookEndpointUpdate: {
+            description?: string;
+            enabled?: boolean;
+            name?: string;
+            rate_limit_per_minute?: number;
+            tolerance_seconds?: number;
+            verifier_config?: components["schemas"]["WebhookVerifierConfig"];
+        };
+        WebhookEndpoints: {
+            data: components["schemas"]["WebhookEndpoint"][];
+        };
+        WebhookEvent: {
+            content_type: string;
+            endpoint_id: string;
+            event_type: string;
+            headers: {
+                [key: string]: string;
+            };
+            id: string;
+            payload?: unknown;
+            payload_size: number;
+            provider_event_id?: string;
+            raw_body?: string;
+            received_at: string;
+            source_ip: string;
+            workspace_id: string;
+        };
+        WebhookEvents: {
+            data: components["schemas"]["WebhookEvent"][];
+        };
+        WebhookReceipt: {
+            id?: string;
+            /** @enum {string} */
+            status: "accepted" | "duplicate";
+        };
+        WebhookSecretRotate: {
+            /** @description Secret is required for the provider presets (stripe, github, slack) and generated when omitted otherwise. */
+            secret?: string;
+        };
+        WebhookSubscription: {
+            created_at: string;
+            disabled_reason: string;
+            enabled: boolean;
+            environment_id: string;
+            event_types: string[];
+            failing_since?: string;
+            id: string;
+            last_success_at?: string;
+            name: string;
+            /** @description Secret (whsec_…) is returned once, on create or rotate. */
+            secret?: string;
+            secret_hint: string;
+            updated_at: string;
+            url: string;
+            workspace_id: string;
+        };
+        WebhookSubscriptionCreate: {
+            environment_id: string;
+            event_types: string[];
+            name: string;
+            url: string;
+            workspace_id: string;
+        };
+        WebhookSubscriptionUpdate: {
+            enabled?: boolean;
+            event_types?: string[];
+            name?: string;
+            url?: string;
+        };
+        WebhookSubscriptions: {
+            data: components["schemas"]["WebhookSubscription"][];
+        };
+        WebhookVerifierConfig: {
+            /** @enum {string} */
+            encoding?: "hex" | "base64";
+            id_header?: string;
+            prefix?: string;
+            signature_header?: string;
+            timestamp_header?: string;
+        };
         Workflow: {
             created_at: string;
             description: string;
@@ -3050,6 +3492,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthReport"];
+                };
+            };
+        };
+    };
+    receiveWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Endpoint public ID */
+                public_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Provider payload */
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Duplicate (or the Slack url_verification challenge) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookReceipt"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookReceipt"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
                 };
             };
         };
@@ -5281,6 +5796,35 @@ export interface operations {
             };
             /** @description Error (RFC 9457 problem details). */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listEventTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventTypes"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8779,6 +9323,940 @@ export interface operations {
             };
             /** @description Error (RFC 9457 problem details). */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listWebhookDeliveries: {
+        parameters: {
+            query?: {
+                /** @description Workspace ID (or subscription_id) */
+                workspace_id?: string;
+                /** @description Subscription ID */
+                subscription_id?: string;
+                /** @description pending, succeeded or dead_lettered */
+                status?: string;
+                /** @description Page size (max 200) */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookDeliveries"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getWebhookDelivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Delivery ID */
+                delivery_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookDelivery"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    replayWebhookDelivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Delivery ID */
+                delivery_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookDelivery"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listWebhookEvents: {
+        parameters: {
+            query?: {
+                /** @description Workspace ID (or endpoint_id) */
+                workspace_id?: string;
+                /** @description Endpoint ID */
+                endpoint_id?: string;
+                /** @description Page size (max 200) */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookEvents"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getWebhookEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Event ID */
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookEvent"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listWebhookSubscriptions: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookSubscriptions"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createWebhookSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Subscription */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookSubscriptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookSubscription"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getWebhookSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription ID */
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookSubscription"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteWebhookSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription ID */
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateWebhookSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription ID */
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Changes */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookSubscriptionUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookSubscription"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    pingWebhookSubscription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription ID */
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookDelivery"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    rotateWebhookSubscriptionSecret: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Subscription ID */
+                subscription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookSubscription"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listWebhooks: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookEndpoints"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    createWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Endpoint */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookEndpointCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookEndpoint"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Endpoint ID */
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookEndpoint"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Endpoint ID */
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    updateWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Endpoint ID */
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Changes */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WebhookEndpointUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookEndpoint"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    rotateWebhookSecret: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Endpoint ID */
+                webhook_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Provider-issued secret (stripe, github, slack) */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["WebhookSecretRotate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WebhookEndpoint"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

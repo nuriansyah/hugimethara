@@ -921,6 +921,29 @@ components:
                 - action
                 - resource_type
             type: object
+        EventType:
+            properties:
+                description:
+                    type: string
+                example:
+                    additionalProperties: true
+                    type: object
+                type:
+                    type: string
+            required:
+                - description
+                - example
+                - type
+            type: object
+        EventTypes:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/EventType'
+                    type: array
+            required:
+                - data
+            type: object
         FeatureDefinition:
             properties:
                 description:
@@ -1971,6 +1994,7 @@ components:
                         - select
                         - number
                         - boolean
+                        - webhook_endpoint
                     type: string
                 label:
                     type: string
@@ -2788,6 +2812,395 @@ components:
             x-enum-varnames:
                 - UserUpdateStatusActive
                 - UserUpdateStatusSuspended
+        WebhookDeliveries:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WebhookDelivery'
+                    type: array
+            required:
+                - data
+            type: object
+        WebhookDelivery:
+            properties:
+                attempt_log:
+                    items:
+                        $ref: '#/components/schemas/WebhookDeliveryAttempt'
+                    type: array
+                attempts:
+                    type: integer
+                created_at:
+                    type: string
+                error:
+                    type: string
+                event_id:
+                    type: string
+                event_type:
+                    type: string
+                finished_at:
+                    type: string
+                id:
+                    type: string
+                last_attempt_at:
+                    type: string
+                latency_ms:
+                    type: integer
+                max_attempts:
+                    type: integer
+                next_attempt_at:
+                    type: string
+                payload: {}
+                replay_of:
+                    type: string
+                response_excerpt:
+                    type: string
+                response_status:
+                    type: integer
+                status:
+                    enum:
+                        - pending
+                        - succeeded
+                        - dead_lettered
+                    type: string
+                subscription_id:
+                    type: string
+                subscription_name:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - attempts
+                - created_at
+                - error
+                - event_id
+                - event_type
+                - id
+                - max_attempts
+                - response_excerpt
+                - status
+                - subscription_id
+                - subscription_name
+                - workspace_id
+            type: object
+        WebhookDeliveryAttempt:
+            properties:
+                attempt:
+                    type: integer
+                attempted_at:
+                    type: string
+                error:
+                    type: string
+                latency_ms:
+                    type: integer
+                response_excerpt:
+                    type: string
+                response_status:
+                    type: integer
+            required:
+                - attempt
+                - attempted_at
+                - error
+                - latency_ms
+                - response_excerpt
+            type: object
+        WebhookEndpoint:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                environment_id:
+                    type: string
+                id:
+                    type: string
+                ingress_path:
+                    type: string
+                last_received_at:
+                    type: string
+                last_rejected_at:
+                    type: string
+                last_rejected_reason:
+                    type: string
+                name:
+                    type: string
+                public_id:
+                    type: string
+                rate_limit_per_minute:
+                    type: integer
+                received_count:
+                    type: integer
+                rejected_count:
+                    type: integer
+                secret:
+                    description: Secret is returned once, on create or rotate, when the platform generated it.
+                    type: string
+                secret_hint:
+                    type: string
+                secret_rotated_at:
+                    type: string
+                tolerance_seconds:
+                    type: integer
+                updated_at:
+                    type: string
+                verifier:
+                    enum:
+                        - standard_webhooks
+                        - hmac_sha256
+                        - stripe
+                        - github
+                        - slack
+                    type: string
+                verifier_config:
+                    $ref: '#/components/schemas/WebhookVerifierConfig'
+                workspace_id:
+                    type: string
+            required:
+                - created_at
+                - description
+                - enabled
+                - environment_id
+                - id
+                - ingress_path
+                - last_rejected_reason
+                - name
+                - public_id
+                - rate_limit_per_minute
+                - received_count
+                - rejected_count
+                - secret_hint
+                - tolerance_seconds
+                - updated_at
+                - verifier
+                - verifier_config
+                - workspace_id
+            type: object
+        WebhookEndpointCreate:
+            properties:
+                description:
+                    type: string
+                environment_id:
+                    type: string
+                name:
+                    type: string
+                rate_limit_per_minute:
+                    type: integer
+                secret:
+                    type: string
+                tolerance_seconds:
+                    type: integer
+                verifier:
+                    enum:
+                        - standard_webhooks
+                        - hmac_sha256
+                        - stripe
+                        - github
+                        - slack
+                    type: string
+                verifier_config:
+                    $ref: '#/components/schemas/WebhookVerifierConfig'
+                workspace_id:
+                    type: string
+            required:
+                - environment_id
+                - name
+                - workspace_id
+            type: object
+        WebhookEndpointUpdate:
+            properties:
+                description:
+                    type: string
+                enabled:
+                    type: boolean
+                name:
+                    type: string
+                rate_limit_per_minute:
+                    type: integer
+                tolerance_seconds:
+                    type: integer
+                verifier_config:
+                    $ref: '#/components/schemas/WebhookVerifierConfig'
+            type: object
+        WebhookEndpoints:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WebhookEndpoint'
+                    type: array
+            required:
+                - data
+            type: object
+        WebhookEvent:
+            properties:
+                content_type:
+                    type: string
+                endpoint_id:
+                    type: string
+                event_type:
+                    type: string
+                headers:
+                    additionalProperties:
+                        type: string
+                    type: object
+                id:
+                    type: string
+                payload: {}
+                payload_size:
+                    type: integer
+                provider_event_id:
+                    type: string
+                raw_body:
+                    type: string
+                received_at:
+                    type: string
+                source_ip:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - content_type
+                - endpoint_id
+                - event_type
+                - headers
+                - id
+                - payload_size
+                - received_at
+                - source_ip
+                - workspace_id
+            type: object
+        WebhookEvents:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WebhookEvent'
+                    type: array
+            required:
+                - data
+            type: object
+        WebhookReceipt:
+            properties:
+                id:
+                    type: string
+                status:
+                    enum:
+                        - accepted
+                        - duplicate
+                    type: string
+            required:
+                - status
+            type: object
+        WebhookSecretRotate:
+            properties:
+                secret:
+                    description: Secret is required for the provider presets (stripe, github, slack) and generated when omitted otherwise.
+                    type: string
+            type: object
+        WebhookSubscription:
+            properties:
+                created_at:
+                    type: string
+                disabled_reason:
+                    type: string
+                enabled:
+                    type: boolean
+                environment_id:
+                    type: string
+                event_types:
+                    items:
+                        type: string
+                    type: array
+                failing_since:
+                    type: string
+                id:
+                    type: string
+                last_success_at:
+                    type: string
+                name:
+                    type: string
+                secret:
+                    description: Secret (whsec_…) is returned once, on create or rotate.
+                    type: string
+                secret_hint:
+                    type: string
+                updated_at:
+                    type: string
+                url:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - created_at
+                - disabled_reason
+                - enabled
+                - environment_id
+                - event_types
+                - id
+                - name
+                - secret_hint
+                - updated_at
+                - url
+                - workspace_id
+            type: object
+        WebhookSubscriptionCreate:
+            properties:
+                environment_id:
+                    type: string
+                event_types:
+                    items:
+                        type: string
+                    type: array
+                name:
+                    type: string
+                url:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - environment_id
+                - event_types
+                - name
+                - url
+                - workspace_id
+            type: object
+        WebhookSubscriptionUpdate:
+            properties:
+                enabled:
+                    type: boolean
+                event_types:
+                    items:
+                        type: string
+                    type: array
+                name:
+                    type: string
+                url:
+                    type: string
+            type: object
+        WebhookSubscriptions:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WebhookSubscription'
+                    type: array
+            required:
+                - data
+            type: object
+        WebhookVerifierConfig:
+            properties:
+                encoding:
+                    enum:
+                        - hex
+                        - base64
+                    type: string
+                id_header:
+                    type: string
+                prefix:
+                    type: string
+                signature_header:
+                    type: string
+                timestamp_header:
+                    type: string
+            type: object
         Workflow:
             properties:
                 created_at:
@@ -3326,6 +3739,65 @@ paths:
             summary: Liveness probe
             tags:
                 - system
+    /hooks/{public_id}:
+        post:
+            description: Unauthenticated; the request must carry a valid signature for the endpoint's verifier. Unknown or disabled endpoints answer 404. Invalid signatures and timestamps outside the tolerance answer 401 (signature_missing, signature_malformed, signature_invalid, timestamp_out_of_tolerance) and nothing is stored. A repeated provider event id answers 200 duplicate and starts nothing. Bodies are limited to 1 MiB; requests are rate-limited per endpoint.
+            operationId: receiveWebhook
+            parameters:
+                - description: Endpoint public ID
+                  in: path
+                  name: public_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                description: Provider payload
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookReceipt'
+                    description: Duplicate (or the Slack url_verification challenge)
+                "202":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookReceipt'
+                    description: Accepted
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "413":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            summary: Receive an inbound webhook
+            tags:
+                - webhooks
     /readyz:
         get:
             operationId: getReadiness
@@ -5167,6 +5639,29 @@ paths:
             summary: Update a environment
             tags:
                 - workspace
+    /v1/hugimethara/event-types:
+        get:
+            description: The events an outbound subscription can receive. Each carries a workspace_id; a subscription receives only its workspace's events.
+            operationId: listEventTypes
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EventTypes'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Platform event catalog
+            tags:
+                - webhooks
     /v1/hugimethara/groups:
         get:
             operationId: listGroups
@@ -8058,6 +8553,794 @@ paths:
             summary: Suspend or reactivate a member
             tags:
                 - identity
+    /v1/hugimethara/webhook-deliveries:
+        get:
+            operationId: listWebhookDeliveries
+            parameters:
+                - description: Workspace ID (or subscription_id)
+                  in: query
+                  name: workspace_id
+                  schema:
+                    type: string
+                - description: Subscription ID
+                  in: query
+                  name: subscription_id
+                  schema:
+                    type: string
+                - description: pending, succeeded or dead_lettered
+                  in: query
+                  name: status
+                  schema:
+                    type: string
+                - description: Page size (max 200)
+                  in: query
+                  name: limit
+                  schema:
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookDeliveries'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Delivery log
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-deliveries/{delivery_id}:
+        get:
+            operationId: getWebhookDelivery
+            parameters:
+                - description: Delivery ID
+                  in: path
+                  name: delivery_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookDelivery'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get a delivery with its payload and every attempt
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-deliveries/{delivery_id}/replay:
+        post:
+            description: Creates a new delivery of the same event (replay_of links it to the original). Only succeeded or dead-lettered deliveries can be replayed.
+            operationId: replayWebhookDelivery
+            parameters:
+                - description: Delivery ID
+                  in: path
+                  name: delivery_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "202":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookDelivery'
+                    description: Accepted
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Replay a delivery
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-events:
+        get:
+            description: Verified requests only (rejected ones are counted on the endpoint, never stored). Bodies are omitted; fetch one event for its payload.
+            operationId: listWebhookEvents
+            parameters:
+                - description: Workspace ID (or endpoint_id)
+                  in: query
+                  name: workspace_id
+                  schema:
+                    type: string
+                - description: Endpoint ID
+                  in: query
+                  name: endpoint_id
+                  schema:
+                    type: string
+                - description: Page size (max 200)
+                  in: query
+                  name: limit
+                  schema:
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookEvents'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List received webhook events
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-events/{event_id}:
+        get:
+            operationId: getWebhookEvent
+            parameters:
+                - description: Event ID
+                  in: path
+                  name: event_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookEvent'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get a received webhook event with its headers and body
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-subscriptions:
+        get:
+            operationId: listWebhookSubscriptions
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookSubscriptions'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List outbound webhook subscriptions
+            tags:
+                - webhooks
+        post:
+            description: Deliveries are signed with Standard Webhooks headers using the whsec_ secret returned once in `secret`. Failed deliveries retry after 30s, 2m, 10m, 30m, 2h, 6h and 12h, then are dead-lettered.
+            operationId: createWebhookSubscription
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WebhookSubscriptionCreate'
+                description: Subscription
+                required: true
+                x-originalParamName: body
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookSubscription'
+                    description: Created
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Create an outbound webhook subscription
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-subscriptions/{subscription_id}:
+        delete:
+            description: Removes the subscription and its delivery log; pending deliveries are dropped.
+            operationId: deleteWebhookSubscription
+            parameters:
+                - description: Subscription ID
+                  in: path
+                  name: subscription_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Delete an outbound webhook subscription
+            tags:
+                - webhooks
+        get:
+            operationId: getWebhookSubscription
+            parameters:
+                - description: Subscription ID
+                  in: path
+                  name: subscription_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookSubscription'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get an outbound webhook subscription
+            tags:
+                - webhooks
+        patch:
+            description: Re-enabling a subscription that was disabled after failing for 5 days clears its failure streak.
+            operationId: updateWebhookSubscription
+            parameters:
+                - description: Subscription ID
+                  in: path
+                  name: subscription_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WebhookSubscriptionUpdate'
+                description: Changes
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookSubscription'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Update an outbound webhook subscription
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-subscriptions/{subscription_id}/ping:
+        post:
+            description: Enqueues a webhook.ping delivery to the subscription.
+            operationId: pingWebhookSubscription
+            parameters:
+                - description: Subscription ID
+                  in: path
+                  name: subscription_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "202":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookDelivery'
+                    description: Accepted
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Send a test delivery
+            tags:
+                - webhooks
+    /v1/hugimethara/webhook-subscriptions/{subscription_id}/rotate-secret:
+        post:
+            description: Pending retries are signed with the new secret. The secret is returned once in `secret`.
+            operationId: rotateWebhookSubscriptionSecret
+            parameters:
+                - description: Subscription ID
+                  in: path
+                  name: subscription_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookSubscription'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Rotate a subscription's signing secret
+            tags:
+                - webhooks
+    /v1/hugimethara/webhooks:
+        get:
+            operationId: listWebhooks
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookEndpoints'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List inbound webhook endpoints
+            tags:
+                - webhooks
+        post:
+            description: Senders POST to /hooks/{public_id}. For standard_webhooks and hmac_sha256 the signing secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
+            operationId: createWebhook
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WebhookEndpointCreate'
+                description: Endpoint
+                required: true
+                x-originalParamName: body
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookEndpoint'
+                    description: Created
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Create an inbound webhook endpoint
+            tags:
+                - webhooks
+    /v1/hugimethara/webhooks/{webhook_id}:
+        delete:
+            description: Removes the endpoint and the events it received. Workflows bound to it stop being triggered.
+            operationId: deleteWebhook
+            parameters:
+                - description: Endpoint ID
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Delete an inbound webhook endpoint
+            tags:
+                - webhooks
+        get:
+            operationId: getWebhook
+            parameters:
+                - description: Endpoint ID
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookEndpoint'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get an inbound webhook endpoint
+            tags:
+                - webhooks
+        patch:
+            operationId: updateWebhook
+            parameters:
+                - description: Endpoint ID
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WebhookEndpointUpdate'
+                description: Changes
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookEndpoint'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Update an inbound webhook endpoint
+            tags:
+                - webhooks
+    /v1/hugimethara/webhooks/{webhook_id}/rotate-secret:
+        post:
+            description: The old secret stops verifying immediately. A generated secret is returned once in `secret`.
+            operationId: rotateWebhookSecret
+            parameters:
+                - description: Endpoint ID
+                  in: path
+                  name: webhook_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WebhookSecretRotate'
+                description: Provider-issued secret (stripe, github, slack)
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WebhookEndpoint'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Rotate an endpoint's signing secret
+            tags:
+                - webhooks
     /v1/hugimethara/workflow-executions:
         get:
             operationId: listWorkflowExecutions

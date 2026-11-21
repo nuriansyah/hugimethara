@@ -105,3 +105,25 @@ func ListSchedules(ctx context.Context, tx *sqlx.Tx, workspaceID uuid.UUID) ([]m
 	}
 	return out, nil
 }
+
+// WebhookTriggers lists the deployed triggers bound to a webhook endpoint.
+func WebhookTriggers(ctx context.Context, tx *sqlx.Tx, orgID uuid.UUID, endpointID string, environmentID,
+	workspaceID uuid.UUID) ([]EventTrigger, error) {
+	var out []EventTrigger
+	err := tx.SelectContext(ctx, &out, queries.SQL.Get("WebhookTriggers"), orgID, endpointID, environmentID, workspaceID)
+	return out, err
+}
+
+// EndpointScope is where a webhook endpoint lives.
+type EndpointScope struct {
+	WorkspaceID   uuid.UUID `db:"workspace_id"`
+	EnvironmentID uuid.UUID `db:"environment_id"`
+}
+
+// WebhookEndpointScope returns a webhook endpoint's workspace and environment
+// (sql.ErrNoRows when it does not exist in the tenant).
+func WebhookEndpointScope(ctx context.Context, tx *sqlx.Tx, endpointID uuid.UUID) (EndpointScope, error) {
+	var s EndpointScope
+	err := tx.GetContext(ctx, &s, queries.SQL.Get("WebhookEndpointScope"), endpointID)
+	return s, err
+}

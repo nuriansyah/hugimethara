@@ -296,7 +296,8 @@ func (s *WorkflowService) Publish(ctx context.Context, id uuid.UUID) (model.Vers
 			return err
 		}
 		_, err = outbox.Publish(ctx, tx, outbox.Event{OrgID: p.OrgID, Subject: "hugi.events.workflow.published",
-			Payload: map[string]any{"workflow_id": id, "version": out.Version, "version_id": out.ID}})
+			Payload: map[string]any{"workflow_id": id, "workspace_id": w.WorkspaceID, "version": out.Version,
+				"version_id": out.ID}})
 		return err
 	})
 	return out, err
@@ -361,6 +362,11 @@ func (s *WorkflowService) Deploy(ctx context.Context, id, environmentID uuid.UUI
 			}
 			return err
 		}
+		if v.Definition.Trigger.Type == model.TypeTriggerWebhook && in.Enabled {
+			if err := checkWebhookEndpoint(ctx, tx, v.Definition.Trigger.Config, w.WorkspaceID, environmentID); err != nil {
+				return err
+			}
+		}
 		var nextFire *time.Time
 		if v.Definition.Trigger.Type == model.TypeTriggerSchedule && in.Enabled {
 			sched, err := model.ParseScheduleTrigger(v.Definition.Trigger.Config)
@@ -382,6 +388,28 @@ func (s *WorkflowService) Deploy(ctx context.Context, id, environmentID uuid.UUI
 			"environment_id": environmentID, "version": v.Version, "enabled": in.Enabled})
 	})
 	return out, err
+}
+
+// checkWebhookEndpoint ensures a webhook trigger's endpoint exists in the
+// workflow's workspace and in the environment it is deployed to.
+func checkWebhookEndpoint(ctx context.Context, tx *sqlx.Tx, cfg map[string]any, workspaceID, environmentID uuid.UUID) error {
+	wt, err := model.ParseWebhookTrigger(cfg)
+	if err != nil {
+		return validation("version_id", "invalid_endpoint", err.Error())
+	}
+	scope, err := repository.WebhookEndpointScope(ctx, tx, wt.EndpointID)
+	if db.IsNoRows(err) || (err == nil && scope.WorkspaceID != workspaceID) {
+		return validation("version_id", "webhook_endpoint_not_found",
+			"The trigger's webhook endpoint does not exist in this workspace.")
+	}
+	if err != nil {
+		return err
+	}
+	if scope.EnvironmentID != environmentID {
+		return validation("environment_id", "webhook_endpoint_environment_mismatch",
+			"The trigger's webhook endpoint belongs to another environment; deploy to that environment or pick an endpoint of this one.")
+	}
+	return nil
 }
 
 // Execute starts a manual execution of the version deployed to the

@@ -137,3 +137,17 @@ WHERE t.org_id = $1 AND t.type = 'trigger.event' AND t.config ->> 'event' = $2
 
 -- name: TimerExecution
 SELECT execution_id FROM workflow_timers WHERE id = $1;
+
+-- name: WebhookTriggers
+-- Triggers bound to an inbound webhook endpoint, in the endpoint's workspace
+-- and environment only.
+SELECT t.id, t.org_id, t.workflow_id, t.environment_id, t.config, d.version_id, w.workspace_id
+FROM workflow_triggers t
+JOIN workflow_deployments d
+  ON d.org_id = t.org_id AND d.workflow_id = t.workflow_id AND d.environment_id = t.environment_id
+JOIN workflows w ON w.id = t.workflow_id
+WHERE t.org_id = $1 AND t.type = 'trigger.webhook' AND t.config ->> 'endpoint_id' = $2
+  AND t.environment_id = $3 AND w.workspace_id = $4 AND d.enabled AND w.status = 'active';
+
+-- name: WebhookEndpointScope
+SELECT workspace_id, environment_id FROM webhook_endpoints WHERE id = $1;

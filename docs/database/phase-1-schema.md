@@ -99,10 +99,11 @@ Conventions ([ADR-0002](../adr/0002-postgresql-tenancy.md)):
 ### Webhook
 | Table | Key columns |
 |---|---|
-| webhook_endpoints | org_id, id, workspace_id, environment_id, public_id (unique, random), name, verifier jsonb (scheme + secret_id), rate_limit, filter (CEL), enabled |
-| webhook_events | org_id, id, endpoint_id, provider_event_id?, received_at, headers jsonb (redacted), payload jsonb / object_key, signature_valid — UNIQUE(endpoint_id, provider_event_id) |
-| webhook_subscriptions | org_id, id, workspace_id, url, event_types[], filter, secret_id, enabled, disabled_reason |
-| webhook_deliveries | org_id, id, subscription_id, event_id, replay_of?, attempt, status(`pending`/`succeeded`/`failed`/`dead_lettered`), next_attempt_at, response_status, response_excerpt, latency_ms |
+| webhook_endpoints | org_id, id, workspace_id, environment_id, public_id (unique, random hex), name, verifier (`standard_webhooks`/`hmac_sha256`/`stripe`/`github`/`slack`), verifier_config jsonb, secret_ciphertext (row-bound AAD), tolerance_seconds, rate_limit_per_minute, enabled, received/rejected counters |
+| webhook_events | org_id, id, workspace_id, endpoint_id, provider_event_id?, event_type, headers jsonb (redacted), payload jsonb / raw_body, payload_size, source_ip, received_at — UNIQUE(endpoint_id, provider_event_id); only verified requests are stored |
+| webhook_subscriptions | org_id, id, workspace_id, environment_id (egress policy), url, event_types[], secret_ciphertext, enabled, disabled_reason, failing_since, last_success_at |
+| webhook_deliveries | org_id, id, workspace_id, subscription_id, event_id, event_type, payload, replay_of?, status(`pending`/`succeeded`/`dead_lettered`), attempts, next_attempt_at (also the claim lease), response_status, response_excerpt, latency_ms — UNIQUE(subscription_id, event_id) WHERE replay_of IS NULL |
+| webhook_delivery_attempts | org_id, id, delivery_id, attempt, response_status, response_excerpt, latency_ms, error, attempted_at |
 
 ### S1 implementation notes
 - `users` and `user_credentials` are **global** (one person, many orgs). `hugi_app` sees a user only if they are a member
@@ -164,7 +165,7 @@ erDiagram
 | 0009_service_registry | S7 |
 | 0011_mappings · 0012_compositions | S8–S9 |
 | ✅ 00013_workflows · ✅ 00014_workflow_timers_approvals (waiting state, workflow_timers, approval_tasks, rerun/trigger-depth columns, engine read policies for the trigger runner) | S10–S11 |
-| 0014_webhooks | S12 |
+| ✅ 00015_webhooks (endpoints, events, subscriptions, deliveries, attempts; tenant RLS + engine policies; pre-tenant `hugi_webhook_endpoint_lookup`; `webhook` resource type) | S12 |
 
 Seed: global connector catalog + role templates (idempotent, run by `hugi-migrate seed`).
 Dev fixtures (`deployments/compose/fixtures`): demo org "Acme" with Marketing/Finance/Operations/Engineering/Data

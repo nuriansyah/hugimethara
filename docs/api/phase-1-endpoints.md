@@ -65,9 +65,9 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | GET | /workflow-schedules?workspace_id= | workflow:read | S11 ✅ |
 | GET | /node-types (catalog + config schemas) | workflow:read | S10 |
 | **Webhook** ||||
-| CRUD | /webhooks (inbound endpoints; secret shown once on create/rotate); POST /webhooks/{id}/rotate-secret | webhook:* | S12 |
-| POST | /hooks/{public_id} (ingress, root path, unauthenticated + signature) | signature | S12 |
-| GET | /webhook-events?endpoint_id= | webhook:read | S12 |
-| CRUD | /webhook-subscriptions (outbound) | webhook:* | S12 |
-| GET | /webhook-deliveries?subscription_id=&status=; POST /webhook-deliveries/{id}/replay | webhook:read / :replay | S12 |
-| GET | /event-types (platform event catalog) | webhook:read | S12 |
+| CRUD | /webhooks?workspace_id= (inbound endpoints; generated secret shown once on create/rotate); POST /webhooks/{id}/rotate-secret | webhook:* | S12 ✅ |
+| POST | /hooks/{public_id} (ingress, root path, outside session/CSRF/origin middleware; signature is the credential; 202 accepted · 200 duplicate · 401 signature codes · 404 · 413 · 429) | signature | S12 ✅ |
+| GET | /webhook-events?workspace_id=\|endpoint_id=; GET /webhook-events/{id} (headers + body) | webhook:read | S12 ✅ |
+| CRUD | /webhook-subscriptions?workspace_id= (outbound); POST /{id}/rotate-secret · /{id}/ping | webhook:* | S12 ✅ |
+| GET | /webhook-deliveries?workspace_id=\|subscription_id=&status=; GET /webhook-deliveries/{id} (+ attempt log); POST /webhook-deliveries/{id}/replay | webhook:read / :replay | S12 ✅ |
+| GET | /event-types (subscribable platform event catalog) | authenticated | S12 ✅ |

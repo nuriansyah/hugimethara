@@ -97,6 +97,9 @@ func TestProtectedOperationsRequireSession(t *testing.T) {
 		"/v1/hugimethara/api-composition-executions/" + executionID.String(),
 		"/v1/hugimethara/approval-tasks",
 		"/v1/hugimethara/workflow-schedules?workspace_id=" + workspaceID.String(),
+		"/v1/hugimethara/webhooks?workspace_id=" + workspaceID.String(),
+		"/v1/hugimethara/webhook-deliveries?workspace_id=" + workspaceID.String(),
+		"/v1/hugimethara/event-types",
 	} {
 		resp, err := srv.Client().Get(srv.URL + path)
 		require.NoError(t, err)
@@ -114,7 +117,9 @@ func TestPublicOperationsAreExplicit(t *testing.T) {
 		"GetInvitationPreview": true, "AcceptInvitation": true, // S4: invitation links (token-gated, rate-limited)
 		"ListOidcProviders": true, "StartOidcLogin": true, "CompleteOidcLogin": true, // S5: SSO before a session exists
 	}, public, "adding a public operation is a security decision: update this test deliberately")
-	require.Len(t, routes, 147) // S10 added 14 workflow operations, S11 six more
+	// S10 added 14 workflow operations, S11 six more, S12 nineteen webhook operations. The webhook
+	// ingress (/hooks/{public_id}) is deliberately outside this table: its credential is the signature.
+	require.Len(t, routes, 166)
 }
 
 func TestCrossSiteStateChangeRejected(t *testing.T) {
@@ -126,4 +131,22 @@ func TestCrossSiteStateChangeRejected(t *testing.T) {
 	require.NoError(t, err)
 	_ = resp.Body.Close()
 	require.Equal(t, 403, resp.StatusCode)
+}
+
+func TestCORSPreflightStillAnswered(t *testing.T) {
+	h := health.New(0)
+	router, err := NewRouter(Deps{Env: "test", Health: h, Registerer: prometheus.NewRegistry(),
+		TrustedOrigins: []string{"https://app.example"},
+		Identity:       identityhandler.NewHTTP(nil, identityhandler.Cookies{})})
+	require.NoError(t, err)
+	srv := httptest.NewServer(router)
+	defer srv.Close()
+	req, _ := http.NewRequest("OPTIONS", srv.URL+"/v1/hugimethara/workflows", nil)
+	req.Header.Set("Origin", "https://app.example")
+	req.Header.Set("Access-Control-Request-Method", "POST")
+	resp, err := srv.Client().Do(req)
+	require.NoError(t, err)
+	_ = resp.Body.Close()
+	require.Less(t, resp.StatusCode, 300)
+	require.Equal(t, "https://app.example", resp.Header.Get("Access-Control-Allow-Origin"))
 }

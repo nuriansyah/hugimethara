@@ -9,6 +9,9 @@ x-backend-env: &backend-env
   HUGI_LOG_FORMAT: json
   HUGI_NATS_URL: nats://nats:4222
   HUGI_REDIS_URL: redis://redis:6379/0
+  # The API seals webhook signing secrets and the worker opens them to sign
+  # deliveries, so both must share the key (empty = development key).
+  HUGI_MASTER_KEY: ${HUGI_MASTER_KEY:-}
 
 services:
   postgres:

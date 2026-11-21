@@ -17,9 +17,11 @@ import {
   Braces,
   GitFork,
   ScrollText,
+  Send,
   ShieldCheck,
   UserRound,
   UsersRound,
+  Webhook,
   Workflow,
   type LucideIcon,
 } from "lucide-react";
@@ -63,6 +65,8 @@ export const navigation: NavSection[] = [
       // Everyone may be an approver: the inbox is gated by the assignee rule, not a permission.
       { title: "Approvals", href: "/automation/approvals", icon: Inbox },
       { title: "Schedules", href: "/automation/schedules", icon: CalendarClock, permission: "workflow:read" },
+      { title: "Webhooks", href: "/automation/webhooks", icon: Webhook, permission: "webhook:read" },
+      { title: "Webhook deliveries", href: "/automation/webhook-deliveries", icon: Send, permission: "webhook:read" },
     ],
   },
   {

@@ -195,6 +195,9 @@ func (r *TriggerRunner) HandleEvent(ctx context.Context, ev Event) error {
 	if err := json.Unmarshal(ev.Data, &data); err != nil || data == nil {
 		return nil // not an object payload: no trigger can match it
 	}
+	if ev.Name == WebhookReceivedEvent {
+		return r.handleWebhook(ctx, ev, data)
+	}
 	depth := 0
 	if d, ok := data["trigger_depth"].(float64); ok {
 		depth = int(d)
@@ -250,6 +253,79 @@ func (r *TriggerRunner) HandleEvent(ctx context.Context, ev Event) error {
 				TriggerType: model.TypeTriggerEvent, TriggerRef: ev.ID, IdempotencyKey: "event:" + ev.ID,
 				Input: raw, TriggerDepth: depth + 1, Now: r.cfg.Clock.Now()})
 			if err := r.outcome(ctx, model.TypeTriggerEvent, t.WorkflowID, created, &started, err); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// WebhookReceivedEvent is emitted by the webhook ingress for every verified
+// inbound request.
+const WebhookReceivedEvent = "webhook.received"
+
+// handleWebhook starts the executions of every enabled trigger.webhook bound
+// to the endpoint that received the event, in the endpoint's workspace and
+// environment. It is idempotent per (workflow, webhook event id): a replayed
+// stream message or a re-delivered event starts nothing new.
+func (r *TriggerRunner) handleWebhook(ctx context.Context, ev Event, data map[string]any) error {
+	str := func(k string) string { s, _ := data[k].(string); return s }
+	eventID, endpointID := str("event_id"), str("endpoint_id")
+	environmentID, err1 := uuid.Parse(str("environment_id"))
+	workspaceID, err2 := uuid.Parse(str("workspace_id"))
+	if eventID == "" || endpointID == "" || err1 != nil || err2 != nil {
+		return nil
+	}
+	input := map[string]any{"event_id": eventID, "endpoint_id": endpointID,
+		"provider_event_id": data["provider_event_id"], "event_type": data["event_type"],
+		"content_type": data["content_type"], "received_at": data["received_at"]}
+	for _, k := range []string{"payload", "raw_body", "payload_truncated"} {
+		if v, ok := data[k]; ok {
+			input[k] = v
+		}
+	}
+	raw, err := json.Marshal(input)
+	if err != nil {
+		return err
+	}
+	started := 0
+	return db.InTenantTx(ctx, r.pool, ev.OrgID, func(tx *sqlx.Tx) error {
+		triggers, err := repository.WebhookTriggers(ctx, tx, ev.OrgID, endpointID, environmentID, workspaceID)
+		if err != nil {
+			return err
+		}
+		for _, t := range triggers {
+			cfg, err := model.ParseWebhookTrigger(repository.TriggerConfig(t.Config))
+			if err != nil {
+				continue
+			}
+			if strings.TrimSpace(cfg.Condition) != "" {
+				ok, err := r.expr.EvalBool(cfg.Condition, map[string]any{"input": input, "trigger": input})
+				if err != nil {
+					r.fired.WithLabelValues(model.TypeTriggerWebhook, "condition_error").Inc()
+					r.cfg.Log.WarnContext(ctx, "webhook trigger condition failed", "workflow_id", t.WorkflowID, "err", err)
+					continue
+				}
+				if !ok {
+					r.fired.WithLabelValues(model.TypeTriggerWebhook, "filtered").Inc()
+					continue
+				}
+			}
+			if len(raw) > model.MaxInlinePayload {
+				r.fired.WithLabelValues(model.TypeTriggerWebhook, "too_large").Inc()
+				r.cfg.Log.WarnContext(ctx, "webhook payload too large for a workflow input; not starting",
+					"workflow_id", t.WorkflowID, "event_id", eventID)
+				continue
+			}
+			v, err := repository.GetVersion(ctx, tx, t.VersionID)
+			if err != nil {
+				return err
+			}
+			_, created, err := startExecution(ctx, tx, r.cfg.IDs, startRequest{OrgID: t.OrgID,
+				WorkspaceID: t.WorkspaceID, WorkflowID: t.WorkflowID, EnvironmentID: t.EnvironmentID, Version: v,
+				TriggerType: model.TypeTriggerWebhook, TriggerRef: eventID, IdempotencyKey: "webhook:" + eventID,
+				Input: raw, Now: r.cfg.Clock.Now()})
+			if err := r.outcome(ctx, model.TypeTriggerWebhook, t.WorkflowID, created, &started, err); err != nil {
 				return err
 			}
 		}

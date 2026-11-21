@@ -156,6 +156,14 @@ Delivery: signed with Standard Webhooks headers; retry schedule `30s, 2m, 10m, 3
 then `dead_lettered`. Every attempt recorded (status, latency, truncated response). **Replay** creates a new delivery
 linked to the original. Endpoints auto-disabled after N consecutive days of failure, with notification.
 
+Implementation (S12): a subscription belongs to a workspace and receives only events whose payload carries that
+`workspace_id`; its environment's egress allowlist governs the destination (a refused destination dead-letters at
+once). The `hugi-webhook-fanout` consumer on `HUGI_EVENTS` inserts one delivery per (subscription, event), idempotent on
+the outbox message id. The dispatcher in `hugi-worker` claims due rows with `FOR UPDATE SKIP LOCKED` and leases them by
+moving `next_attempt_at` past the attempt timeout, so a crashed worker's delivery becomes due again; the attempt
+outcome is recorded only by the holder of that attempt number. `webhook-id` is `msg_<delivery id>`, stable across
+retries; a replay has a new id. Auto-disable happens after 5 days of continuous failure (no notification yet).
+
 ## 6. External workflow tools (n8n, Make, Zapier)
 
 Modeled as **built-in connectors**, nothing more: operations `trigger_workflow` (call their webhook / API) and inbound

@@ -2,16 +2,75 @@
 
 _Last updated: 2026-11-21_
 
-## Current stage: Phase 1 — S11 workflow engine complete (connector-backed nodes and the webhook trigger still open)
+## Current stage: Phase 1 — S12 webhook engine (connector-backed workflow nodes still open)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | S0–S11 implemented (S6 runtime, S9 E2E, connector-backed workflow nodes open); S12–S14 remain |
+| Phase 1 | In progress | S0–S12 implemented (S6 runtime, S9 E2E, connector-backed workflow nodes open); S13–S14 remain |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-21 — S12 webhook engine
+- **Migration `00015_webhooks`:** `webhook_endpoints` (public id, verifier, sealed signing secret, tolerance, per-endpoint
+  rate limit, received/rejected counters), `webhook_events` (verified requests only; redacted headers; JSON body or raw
+  text; `UNIQUE(endpoint_id, provider_event_id)` for dedupe), `webhook_subscriptions` (workspace + egress environment,
+  event types, sealed secret, failure streak), `webhook_deliveries` (one per subscription × event, `replay_of`,
+  `next_attempt_at` doubling as the claim lease), `webhook_delivery_attempts`. Tenant RLS for `hugi_app`; engine
+  policies for `hugi_system` (fan-out, claim, attempt log, auto-disable); pre-tenant `SECURITY DEFINER` lookup
+  `hugi_webhook_endpoint_lookup(public_id)` owned by `hugi_auth`; `webhook` resource type
+  (`read,create,update,delete,replay`) granted to org/workspace admins; index for `trigger.webhook` bindings.
+- **Inbound:** `POST /hooks/{public_id}` is mounted outside the operation table and outside the origin guard, CSRF and
+  session middleware — the signature is the credential. Verifiers: Standard Webhooks (default; `whsec_` secret
+  generated), generic HMAC-SHA256 (signature/timestamp/id headers, hex/base64, prefix), Stripe, GitHub, Slack (incl. the
+  `url_verification` challenge). Constant-time comparisons; ±5 min tolerance (configurable 30 s–1 h). Unknown and
+  disabled endpoints answer the same 404; failed verification answers 401 with a stable code
+  (`signature_missing`/`signature_malformed`/`signature_invalid`/`timestamp_out_of_tolerance`), is counted on the
+  endpoint and stores nothing; a repeated provider event id answers `200 duplicate` and emits nothing; bodies > 1 MiB
+  answer 413; Redis rate limit per endpoint (429). A verified request is stored and emitted in the same transaction as
+  `hugi.events.webhook.received` (payload inline up to 64 KiB, else `payload_truncated`).
+- **Workflow trigger:** `trigger.webhook` is available (`endpoint_id` + optional CEL condition). Deploy checks the
+  endpoint exists in the workflow's workspace and the deployment's environment
+  (`webhook_endpoint_not_found` / `webhook_endpoint_environment_mismatch`). The trigger runner starts executions from
+  `webhook.received`, idempotent per webhook event (`webhook:<event id>`); input is
+  `{event_id, endpoint_id, provider_event_id, event_type, content_type, received_at, payload|raw_body}`.
+- **Outbound:** subscriptions to the event catalog (`GET /event-types`: workflow.execution_finished, workflow.published,
+  workflow.approval_requested, workflow.approval_decided, webhook.received). A subscription only receives events of
+  its own workspace; organization-level events are not offered. A new worker consumer (`hugi-webhook-fanout`) enqueues
+  one delivery per matching subscription (idempotent per outbox message id); the dispatcher claims due deliveries
+  with `FOR UPDATE SKIP LOCKED`, signs Standard Webhooks headers (`webhook-id` stable across retries), sends through
+  the environment's egress policy and records every attempt (status, latency, 2 KiB excerpt). Retries after 30s, 2m,
+  10m, 30m, 2h, 6h, 12h; the eighth failure dead-letters; a blocked destination dead-letters at once
+  (`destination_blocked`). Replay creates a new delivery linked by `replay_of`. A subscription failing continuously
+  for 5 days is disabled (`failing_for_5_days`); re-enabling clears the streak. Test ping (`webhook.ping`), secret
+  rotation (pending retries use the new secret). 19 operations + the ingress (166 in the operation table).
+  `workflow.published` events now carry `workspace_id`.
+- **UI:** Webhooks page (`/automation/webhooks`): inbound endpoints (create with scheme-specific secret/HMAC options,
+  URL + shown-once secret, enable switch, rotate, delete, received events with redacted headers and body) and outbound
+  subscriptions (event picker, shown-once secret, enable, test, rotate, delete). Delivery log
+  (`/automation/webhook-deliveries`): filters, attempts x/8 with next retry, per-attempt detail, replay. Workflow
+  inspector picks the trigger's endpoint from the workspace.
+- **Verification:** 3 new integration tests against real Postgres + RLS — payment webhook → reconciliation workflow
+  E2E (Stripe preset; tampered, wrong-secret, stale and unsigned requests rejected and counted; captured replay
+  deduplicated; condition filter; disabled endpoint 404; secret rotation; tenant isolation; RBAC 403; audit),
+  Standard Webhooks generated secret + dedupe, outbound delivery (signature verified by the receiver, 30 s retry,
+  8-attempt dead letter, replay, ping, rotation, workspace scoping, egress guard, 5-day auto-disable, isolation).
+  Unit tests for every verifier, signing, retry schedule. Full backend suite passes with `-race` (170 tests, incl.
+  migration down/up). Web typecheck, lint and production build pass. **Browser-verified** against a live api +
+  worker + NATS + Postgres + Redis stack through the web `/api` proxy: Stripe endpoint created in the UI; a signed
+  request started the reconciliation workflow via the JetStream trigger consumer; replay → duplicate, tampered /
+  wrong key / unsigned / stale → 401; events dialog shows redacted headers; a subscription received signed
+  `webhook.received` and `workflow.execution_finished` deliveries; a 503 was retried after 30 s and logged as 2
+  attempts; replay delivered; no API 5xx.
+- **Not done / deviations:** delivery is dispatched by polling Postgres (lease on `next_attempt_at`) rather than the
+  provisioned `HUGI_WEBHOOK` stream; no CEL filter on endpoints or subscriptions (use the workflow trigger
+  condition); auto-disable is logged and audited by state only — no notification is sent; no workflow
+  "send webhook" node; payloads are inline JSONB (no object storage); endpoint secrets use the master-key secretbox
+  (row-bound AAD) like identity providers, not the S6 vault. The app shell lets wide tables overflow the viewport
+  (pre-existing; also on the audit log). The preview launcher could not start the Go binaries in this session, so
+  the live stack ran from background shell jobs.
 
 ### 2026-11-21 — S11 workflow engine complete
 - **Migration `00014_workflow_timers_approvals`:** `waiting` step state; `workflow_timers` (delay and human-task
@@ -338,7 +397,7 @@ _Last updated: 2026-11-21_
 | S8 Mapping engine & studio | ✅ | Mapping drafts, test cases, publish gates, immutable versions, JSONPath/transform/CEL evaluator, and Mapping Studio |
 | S9 API composition | ◐ | Tenant-scoped drafts/versions/executions, bounded DAG executor, OpenAPI routes, and editor are implemented; validate against the order-overview mock-service E2E |
 | S10 Workflow engine core | ◐ engine, API and designer implemented; connector/composition nodes pending | 3 acceptance integration tests (conditional+parallel, crash recovery, inspectable failures); designer not browser-verified |
-| S11 Workflow engine complete | ◐ engine, triggers, approvals, cancel/re-run and UI done; connector-backed nodes (db_query, notify, records) wait for the S6 runtime; webhook trigger is S12 | finance approval E2E + 4 more integration tests; browser-verified inbox, schedules, cancel, re-run |
-| S12 Webhook engine | ☐ | |
+| S11 Workflow engine complete | ◐ engine, triggers (incl. webhook since S12), approvals, cancel/re-run and UI done; connector-backed nodes (db_query, notify, records) wait for the S6 runtime | finance approval E2E + 4 more integration tests; browser-verified inbox, schedules, cancel, re-run |
+| S12 Webhook engine | ✅ inbound verifiers, dedupe, webhook trigger, outbound subscriptions with retry/DLQ/replay, UI | payment webhook → reconciliation E2E + forgery/replay rejection + outbound delivery integration tests; browser-verified against a live stack |
 | S13 External workflow tools | ☐ | |
 | S14 Phase review & hardening | ☐ | |

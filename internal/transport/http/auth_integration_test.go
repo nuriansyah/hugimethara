@@ -15,7 +15,9 @@ import (
 	"strings"
 	"testing"
 
+	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	webhookhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/webhook"
 	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
 
 	"github.com/google/uuid"
@@ -61,6 +63,7 @@ type env struct {
 	pg      *testsupport.Postgres
 	srv     *httptest.Server
 	secrets *secretssvc.SecretsService
+	sealer  *secretbox.Key
 }
 
 func setup(t *testing.T) *env {
@@ -101,11 +104,12 @@ func setup(t *testing.T) *env {
 		Services:     servicereghandler.NewHTTP(services),
 		Mappings:     mappinghandler.NewHTTP(mappings),
 		Workflows:    workflowhandler.NewHTTP(workflowsvc.NewService(pg.App, az, expressions)),
+		Webhooks:     webhookhandler.NewHTTP(webhooksvc.NewService(pg.App, az, sealer, webhooksvc.Config{})),
 	})
 	require.NoError(t, err)
 	srv := httptest.NewServer(router)
 	t.Cleanup(srv.Close)
-	return &env{t: t, pg: pg, srv: srv, secrets: secrets, az: az}
+	return &env{t: t, pg: pg, srv: srv, secrets: secrets, az: az, sealer: sealer}
 }
 
 func usage() map[string]entsvc.UsageFunc {

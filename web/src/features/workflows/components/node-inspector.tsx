@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@hugimethara/ui/components/badge";
 import { Button } from "@hugimethara/ui/components/button";
@@ -8,6 +9,7 @@ import { Input } from "@hugimethara/ui/components/input";
 import { Label } from "@hugimethara/ui/components/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hugimethara/ui/components/select";
 import { Textarea } from "@hugimethara/ui/components/textarea";
+import { useWebhookEndpoints } from "@/features/webhooks/api";
 import type { NodeType, WorkflowDefinition, WorkflowNode } from "../api";
 import { TRIGGER_ID } from "./workflow-canvas";
 
@@ -50,9 +52,55 @@ function JsonField({ field, value, onCommit }: { field: Field; value: unknown; o
   );
 }
 
-function ConfigField({ field, value, onChange }: { field: Field; value: unknown; onChange: (v: unknown) => void }) {
+/** Picks an inbound webhook endpoint of the workflow's workspace (trigger.webhook). */
+function EndpointField({ field, value, onChange, workspaceId }: { field: Field; value: unknown; onChange: (v: unknown) => void; workspaceId: string }) {
+  const endpoints = useWebhookEndpoints(workspaceId);
+  const id = `f-${field.key}`;
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={id}>
+        {field.label}
+        {field.required && <span className="text-destructive"> *</span>}
+      </Label>
+      <Select value={typeof value === "string" ? value : ""} onValueChange={(v) => onChange(v)}>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue placeholder={endpoints.data?.length === 0 ? "No endpoints in this workspace" : "Choose…"} />
+        </SelectTrigger>
+        <SelectContent>
+          {(endpoints.data ?? []).map((e) => (
+            <SelectItem key={e.id} value={e.id}>
+              {e.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p className="text-xs text-muted-foreground">
+        {field.description} Create endpoints on the{" "}
+        <Link href="/automation/webhooks" className="underline underline-offset-2">
+          Webhooks
+        </Link>{" "}
+        page.
+      </p>
+    </div>
+  );
+}
+
+function ConfigField({
+  field,
+  value,
+  onChange,
+  workspaceId,
+}: {
+  field: Field;
+  value: unknown;
+  onChange: (v: unknown) => void;
+  workspaceId?: string;
+}) {
   const id = `f-${field.key}`;
   if (field.kind === "json") return <JsonField key={field.key} field={field} value={value} onCommit={onChange} />;
+  if (field.kind === "webhook_endpoint" && workspaceId) {
+    return <EndpointField field={field} value={value} onChange={onChange} workspaceId={workspaceId} />;
+  }
   if (field.kind === "boolean") {
     return (
       <div className="flex flex-col gap-1.5">
@@ -111,6 +159,7 @@ function ConfigField({ field, value, onChange }: { field: Field; value: unknown;
 }
 
 export function NodeInspector({
+  workspaceId,
   definition,
   catalog,
   selectedId,
@@ -118,6 +167,7 @@ export function NodeInspector({
   onSelect,
   readOnly,
 }: {
+  workspaceId?: string;
   definition: WorkflowDefinition;
   catalog: NodeType[];
   selectedId?: string;
@@ -160,6 +210,7 @@ export function NodeInspector({
         {(triggers.find((t) => t.type === definition.trigger.type)?.fields ?? []).map((field) => (
           <ConfigField
             key={`${definition.trigger.type}-${field.key}`}
+            workspaceId={workspaceId}
             field={field}
             value={definition.trigger.config?.[field.key]}
             onChange={(v) => {

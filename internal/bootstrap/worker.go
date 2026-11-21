@@ -1,8 +1,9 @@
 // RunWorker runs data-plane background work: it provisions the JetStream
 // streams, relays the transactional outbox, executes workflow steps (S10),
 // runs the workflow reaper (which also fires delay and task-timeout timers),
-// and starts executions from schedule and platform-event triggers (S11).
-// Webhook delivery arrives in S12.
+// starts executions from schedule, platform-event and webhook triggers
+// (S11, S12), and fans platform events out to outbound webhook subscriptions
+// and delivers them with retries (S12).
 package bootstrap
 
 import (
@@ -12,7 +13,9 @@ import (
 	"net/http"
 	"os"
 
+	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	secretbox "github.com/nuriansyah/hugimethara/internal/platform/crypto"
 	"github.com/nuriansyah/hugimethara/internal/platform/id"
 
 	"github.com/google/uuid"
@@ -106,6 +109,33 @@ func RunWorker() error {
 		})
 	}
 
+	masterKey, defaulted, err := cfg.MasterKeyBytes()
+	if err != nil {
+		log.Error("invalid master key", "err", err)
+		return err
+	}
+	if defaulted {
+		log.Warn("HUGI_MASTER_KEY is not set; using the development key. Set it in every real deployment.")
+	}
+	sealer, err := secretbox.New(masterKey)
+	if err != nil {
+		log.Error("master key unusable", "err", err)
+		return err
+	}
+	webhooks := webhooksvc.NewDispatcher(sysPool, sealer, webhooksvc.DispatcherConfig{Log: log, Registerer: reg})
+	fanoutWebhooks := func(ctx context.Context) error {
+		return nb.ConsumeMessages(ctx, bus.WorkConsumer{Stream: "HUGI_EVENTS", Durable: "hugi-webhook-fanout",
+			Filter: "hugi.events.>", DeliverNew: true}, log, func(ctx context.Context, m bus.Message) error {
+			name, ok := workflowsvc.EventFromSubject(m.Subject)
+			orgID, err := uuid.Parse(first(m.Header["Hugi-Org-Id"]))
+			msgID := first(m.Header["Nats-Msg-Id"])
+			if !ok || err != nil || msgID == "" {
+				return nil // not a tenant event, or no stable id to deduplicate on
+			}
+			return webhooks.HandleEvent(ctx, webhooksvc.PlatformEvent{OrgID: orgID, Name: name, ID: msgID, Data: m.Data})
+		})
+	}
+
 	hc := health.New(0)
 	hc.Add("postgres", db.Check(sysPool))
 	hc.Add("migrations", migrate.Check(sysPool))
@@ -121,6 +151,8 @@ func RunWorker() error {
 		engine.RunReaper,
 		triggers.RunScheduler,
 		consumeEvents,
+		fanoutWebhooks,
+		webhooks.Run,
 		lifecycle.HTTPServer("probes", cfg.HTTPAddr, probes, cfg.ShutdownTTL, log),
 		lifecycle.MetricsServer(cfg.MetricsAddr, reg, cfg.ShutdownTTL, log),
 	)

@@ -32,6 +32,78 @@
                 }
             }
         },
+        "/hooks/{public_id}": {
+            "post": {
+                "description": "Unauthenticated; the request must carry a valid signature for the endpoint's verifier. Unknown or disabled endpoints answer 404. Invalid signatures and timestamps outside the tolerance answer 401 (signature_missing, signature_malformed, signature_invalid, timestamp_out_of_tolerance) and nothing is stored. A repeated provider event id answers 200 duplicate and starts nothing. Bodies are limited to 1 MiB; requests are rate-limited per endpoint.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Receive an inbound webhook",
+                "operationId": "receiveWebhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint public ID",
+                        "name": "public_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Provider payload",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Duplicate (or the Slack url_verification challenge)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookReceipt"
+                        }
+                    },
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookReceipt"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "413": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "429": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/readyz": {
             "get": {
                 "produces": [
@@ -2531,6 +2603,41 @@
                         }
                     },
                     "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/event-types": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "The events an outbound subscription can receive. Each carries a workspace_id; a subscription receives only its workspace's events.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Platform event catalog",
+                "operationId": "listEventTypes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.EventTypes"
+                        }
+                    },
+                    "401": {
                         "description": "Error (RFC 9457 problem details).",
                         "schema": {
                             "$ref": "#/definitions/dto.Problem"
@@ -6542,6 +6649,1061 @@
                 }
             }
         },
+        "/v1/hugimethara/webhook-deliveries": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Delivery log",
+                "operationId": "listWebhookDeliveries",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID (or subscription_id)",
+                        "name": "workspace_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Subscription ID",
+                        "name": "subscription_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pending, succeeded or dead_lettered",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (max 200)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookDeliveries"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-deliveries/{delivery_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Get a delivery with its payload and every attempt",
+                "operationId": "getWebhookDelivery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Delivery ID",
+                        "name": "delivery_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookDelivery"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-deliveries/{delivery_id}/replay": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Creates a new delivery of the same event (replay_of links it to the original). Only succeeded or dead-lettered deliveries can be replayed.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Replay a delivery",
+                "operationId": "replayWebhookDelivery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Delivery ID",
+                        "name": "delivery_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookDelivery"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-events": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Verified requests only (rejected ones are counted on the endpoint, never stored). Bodies are omitted; fetch one event for its payload.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "List received webhook events",
+                "operationId": "listWebhookEvents",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID (or endpoint_id)",
+                        "name": "workspace_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Endpoint ID",
+                        "name": "endpoint_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (max 200)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEvents"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-events/{event_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Get a received webhook event with its headers and body",
+                "operationId": "getWebhookEvent",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "event_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEvent"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-subscriptions": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "List outbound webhook subscriptions",
+                "operationId": "listWebhookSubscriptions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSubscriptions"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Deliveries are signed with Standard Webhooks headers using the whsec_ secret returned once in `secret`. Failed deliveries retry after 30s, 2m, 10m, 30m, 2h, 6h and 12h, then are dead-lettered.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Create an outbound webhook subscription",
+                "operationId": "createWebhookSubscription",
+                "parameters": [
+                    {
+                        "description": "Subscription",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSubscriptionCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSubscription"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-subscriptions/{subscription_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Get an outbound webhook subscription",
+                "operationId": "getWebhookSubscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Subscription ID",
+                        "name": "subscription_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSubscription"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Removes the subscription and its delivery log; pending deliveries are dropped.",
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Delete an outbound webhook subscription",
+                "operationId": "deleteWebhookSubscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Subscription ID",
+                        "name": "subscription_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Re-enabling a subscription that was disabled after failing for 5 days clears its failure streak.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Update an outbound webhook subscription",
+                "operationId": "updateWebhookSubscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Subscription ID",
+                        "name": "subscription_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Changes",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSubscriptionUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSubscription"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-subscriptions/{subscription_id}/ping": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Enqueues a webhook.ping delivery to the subscription.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Send a test delivery",
+                "operationId": "pingWebhookSubscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Subscription ID",
+                        "name": "subscription_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookDelivery"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhook-subscriptions/{subscription_id}/rotate-secret": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Pending retries are signed with the new secret. The secret is returned once in `secret`.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Rotate a subscription's signing secret",
+                "operationId": "rotateWebhookSubscriptionSecret",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Subscription ID",
+                        "name": "subscription_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSubscription"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhooks": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "List inbound webhook endpoints",
+                "operationId": "listWebhooks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEndpoints"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Senders POST to /hooks/{public_id}. For standard_webhooks and hmac_sha256 the signing secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Create an inbound webhook endpoint",
+                "operationId": "createWebhook",
+                "parameters": [
+                    {
+                        "description": "Endpoint",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEndpointCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEndpoint"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhooks/{webhook_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Get an inbound webhook endpoint",
+                "operationId": "getWebhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint ID",
+                        "name": "webhook_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEndpoint"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Removes the endpoint and the events it received. Workflows bound to it stop being triggered.",
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Delete an inbound webhook endpoint",
+                "operationId": "deleteWebhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint ID",
+                        "name": "webhook_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Update an inbound webhook endpoint",
+                "operationId": "updateWebhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint ID",
+                        "name": "webhook_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Changes",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEndpointUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEndpoint"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/webhooks/{webhook_id}/rotate-secret": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "The old secret stops verifying immediately. A generated secret is returned once in `secret`.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "webhooks"
+                ],
+                "summary": "Rotate an endpoint's signing secret",
+                "operationId": "rotateWebhookSecret",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Endpoint ID",
+                        "name": "webhook_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Provider-issued secret (stripe, github, slack)",
+                        "name": "body",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookSecretRotate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WebhookEndpoint"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/workflow-executions": {
             "get": {
                 "security": [
@@ -9345,6 +10507,40 @@
                 }
             }
         },
+        "dto.EventType": {
+            "type": "object",
+            "required": [
+                "description",
+                "example",
+                "type"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "example": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.EventTypes": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.EventType"
+                    }
+                }
+            }
+        },
         "dto.FeatureDefinition": {
             "type": "object",
             "required": [
@@ -10882,7 +12078,8 @@
                         "json",
                         "select",
                         "number",
-                        "boolean"
+                        "boolean",
+                        "webhook_endpoint"
                     ]
                 },
                 "label": {
@@ -12051,6 +13248,561 @@
                 "UserUpdateStatusActive",
                 "UserUpdateStatusSuspended"
             ]
+        },
+        "dto.WebhookDeliveries": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WebhookDelivery"
+                    }
+                }
+            }
+        },
+        "dto.WebhookDelivery": {
+            "type": "object",
+            "required": [
+                "attempts",
+                "created_at",
+                "error",
+                "event_id",
+                "event_type",
+                "id",
+                "max_attempts",
+                "response_excerpt",
+                "status",
+                "subscription_id",
+                "subscription_name",
+                "workspace_id"
+            ],
+            "properties": {
+                "attempt_log": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WebhookDeliveryAttempt"
+                    }
+                },
+                "attempts": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
+                },
+                "event_type": {
+                    "type": "string"
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_attempt_at": {
+                    "type": "string"
+                },
+                "latency_ms": {
+                    "type": "integer"
+                },
+                "max_attempts": {
+                    "type": "integer"
+                },
+                "next_attempt_at": {
+                    "type": "string"
+                },
+                "payload": {},
+                "replay_of": {
+                    "type": "string"
+                },
+                "response_excerpt": {
+                    "type": "string"
+                },
+                "response_status": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "succeeded",
+                        "dead_lettered"
+                    ]
+                },
+                "subscription_id": {
+                    "type": "string"
+                },
+                "subscription_name": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookDeliveryAttempt": {
+            "type": "object",
+            "required": [
+                "attempt",
+                "attempted_at",
+                "error",
+                "latency_ms",
+                "response_excerpt"
+            ],
+            "properties": {
+                "attempt": {
+                    "type": "integer"
+                },
+                "attempted_at": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "latency_ms": {
+                    "type": "integer"
+                },
+                "response_excerpt": {
+                    "type": "string"
+                },
+                "response_status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.WebhookEndpoint": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "description",
+                "enabled",
+                "environment_id",
+                "id",
+                "ingress_path",
+                "last_rejected_reason",
+                "name",
+                "public_id",
+                "rate_limit_per_minute",
+                "received_count",
+                "rejected_count",
+                "secret_hint",
+                "tolerance_seconds",
+                "updated_at",
+                "verifier",
+                "verifier_config",
+                "workspace_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ingress_path": {
+                    "type": "string"
+                },
+                "last_received_at": {
+                    "type": "string"
+                },
+                "last_rejected_at": {
+                    "type": "string"
+                },
+                "last_rejected_reason": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "public_id": {
+                    "type": "string"
+                },
+                "rate_limit_per_minute": {
+                    "type": "integer"
+                },
+                "received_count": {
+                    "type": "integer"
+                },
+                "rejected_count": {
+                    "type": "integer"
+                },
+                "secret": {
+                    "description": "Secret is returned once, on create or rotate, when the platform generated it.",
+                    "type": "string"
+                },
+                "secret_hint": {
+                    "type": "string"
+                },
+                "secret_rotated_at": {
+                    "type": "string"
+                },
+                "tolerance_seconds": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "verifier": {
+                    "type": "string",
+                    "enum": [
+                        "standard_webhooks",
+                        "hmac_sha256",
+                        "stripe",
+                        "github",
+                        "slack"
+                    ]
+                },
+                "verifier_config": {
+                    "$ref": "#/definitions/dto.WebhookVerifierConfig"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookEndpointCreate": {
+            "type": "object",
+            "required": [
+                "environment_id",
+                "name",
+                "workspace_id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rate_limit_per_minute": {
+                    "type": "integer"
+                },
+                "secret": {
+                    "type": "string"
+                },
+                "tolerance_seconds": {
+                    "type": "integer"
+                },
+                "verifier": {
+                    "type": "string",
+                    "enum": [
+                        "standard_webhooks",
+                        "hmac_sha256",
+                        "stripe",
+                        "github",
+                        "slack"
+                    ]
+                },
+                "verifier_config": {
+                    "$ref": "#/definitions/dto.WebhookVerifierConfig"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookEndpointUpdate": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rate_limit_per_minute": {
+                    "type": "integer"
+                },
+                "tolerance_seconds": {
+                    "type": "integer"
+                },
+                "verifier_config": {
+                    "$ref": "#/definitions/dto.WebhookVerifierConfig"
+                }
+            }
+        },
+        "dto.WebhookEndpoints": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WebhookEndpoint"
+                    }
+                }
+            }
+        },
+        "dto.WebhookEvent": {
+            "type": "object",
+            "required": [
+                "content_type",
+                "endpoint_id",
+                "event_type",
+                "headers",
+                "id",
+                "payload_size",
+                "received_at",
+                "source_ip",
+                "workspace_id"
+            ],
+            "properties": {
+                "content_type": {
+                    "type": "string"
+                },
+                "endpoint_id": {
+                    "type": "string"
+                },
+                "event_type": {
+                    "type": "string"
+                },
+                "headers": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "payload": {},
+                "payload_size": {
+                    "type": "integer"
+                },
+                "provider_event_id": {
+                    "type": "string"
+                },
+                "raw_body": {
+                    "type": "string"
+                },
+                "received_at": {
+                    "type": "string"
+                },
+                "source_ip": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookEvents": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WebhookEvent"
+                    }
+                }
+            }
+        },
+        "dto.WebhookReceipt": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "accepted",
+                        "duplicate"
+                    ]
+                }
+            }
+        },
+        "dto.WebhookSecretRotate": {
+            "type": "object",
+            "properties": {
+                "secret": {
+                    "description": "Secret is required for the provider presets (stripe, github, slack) and generated when omitted otherwise.",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookSubscription": {
+            "type": "object",
+            "required": [
+                "created_at",
+                "disabled_reason",
+                "enabled",
+                "environment_id",
+                "event_types",
+                "id",
+                "name",
+                "secret_hint",
+                "updated_at",
+                "url",
+                "workspace_id"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "disabled_reason": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "event_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "failing_since": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_success_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secret": {
+                    "description": "Secret (whsec_…) is returned once, on create or rotate.",
+                    "type": "string"
+                },
+                "secret_hint": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookSubscriptionCreate": {
+            "type": "object",
+            "required": [
+                "environment_id",
+                "event_types",
+                "name",
+                "url",
+                "workspace_id"
+            ],
+            "properties": {
+                "environment_id": {
+                    "type": "string"
+                },
+                "event_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookSubscriptionUpdate": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "event_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WebhookSubscriptions": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WebhookSubscription"
+                    }
+                }
+            }
+        },
+        "dto.WebhookVerifierConfig": {
+            "type": "object",
+            "properties": {
+                "encoding": {
+                    "type": "string",
+                    "enum": [
+                        "hex",
+                        "base64"
+                    ]
+                },
+                "id_header": {
+                    "type": "string"
+                },
+                "prefix": {
+                    "type": "string"
+                },
+                "signature_header": {
+                    "type": "string"
+                },
+                "timestamp_header": {
+                    "type": "string"
+                }
+            }
         },
         "dto.Workflow": {
             "type": "object",

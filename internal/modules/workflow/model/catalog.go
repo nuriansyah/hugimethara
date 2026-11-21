@@ -94,8 +94,15 @@ func Catalog() []NodeType {
 				{Key: "timezone", Label: "Time zone", Kind: "string", Description: "IANA name, e.g. Asia/Jakarta. Default UTC."},
 				{Key: "input", Label: "Input", Kind: "json", Description: "JSON object passed as the execution input."},
 			}},
-		{Type: TypeTriggerWebhook, Kind: KindTrigger, Label: "Webhook", Unavailable: "ships with the webhook engine (S12)",
-			Description: "Inbound signed webhook."},
+		{Type: TypeTriggerWebhook, Kind: KindTrigger, Label: "Webhook", Available: true,
+			Description: "Starts when a webhook endpoint of this workspace receives a verified request; " +
+				"input is {event_id, endpoint_id, provider_event_id, event_type, payload}.",
+			Fields: []ConfigField{
+				{Key: "endpoint_id", Label: "Webhook endpoint", Kind: "webhook_endpoint", Required: true,
+					Description: "An inbound endpoint in this workspace, in the environment the workflow is deployed to."},
+				{Key: "condition", Label: "Condition", Kind: "expression",
+					Description: "Optional CEL over input (e.g. input.event_type == 'payment_intent.succeeded'); the execution starts only when true."},
+			}},
 		{Type: TypeTriggerEvent, Kind: KindTrigger, Label: "Platform event", Available: true,
 			Description: "Starts when a platform event is emitted in this organization; input is {event, data}.",
 			Fields: []ConfigField{

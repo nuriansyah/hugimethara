@@ -76,6 +76,11 @@ func (v *validator) trigger() {
 			v.add("trigger.config.event", "invalid_event", "%s.", err.Error())
 		}
 		v.expr("trigger.config.condition", cfg["condition"], false)
+	case TypeTriggerWebhook:
+		if _, err := ParseWebhookTrigger(cfg); err != nil {
+			v.add("trigger.config.endpoint_id", "invalid_endpoint", "%s.", err.Error())
+		}
+		v.expr("trigger.config.condition", cfg["condition"], false)
 	}
 }
 

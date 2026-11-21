@@ -352,6 +352,7 @@ function Designer({ workflow, catalog, workspaceId }: { workflow: Workflow; cata
             </CardHeader>
             <CardContent>
               <NodeInspector
+                workspaceId={workflow.workspace_id}
                 definition={draft}
                 catalog={catalog}
                 selectedId={selectedNode}

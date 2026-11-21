@@ -5,7 +5,9 @@ import (
 	"context"
 	"os"
 
+	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	webhookhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/webhook"
 	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
 
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/messaging/bus"
@@ -129,6 +131,7 @@ func RunAPI() error {
 		return err
 	}
 	workflowSvc := workflowsvc.NewService(pool, az, expressions)
+	webhookSvc := webhooksvc.NewService(pool, az, sealer, webhooksvc.Config{Limiter: limiter, Registerer: reg})
 	orgSvc := orgsvc.NewService(pool, az, acl)
 	idSvc := identitysvc.NewService(pool, orgSvc, az, acl, limiter, log, identitysvc.Config{
 		PublicURL: cfg.PublicURL, Sealer: sealer,
@@ -147,6 +150,7 @@ func RunAPI() error {
 		Mappings:     mappinghandler.NewHTTP(mappingSvc),
 		Compositions: compositionhandler.NewHTTP(compositionSvc),
 		Workflows:    workflowhandler.NewHTTP(workflowSvc),
+		Webhooks:     webhookhandler.NewHTTP(webhookSvc),
 	})
 	if err != nil {
 		log.Error("router setup failed", "err", err)
