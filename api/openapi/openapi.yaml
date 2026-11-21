@@ -221,6 +221,133 @@ components:
                 - key
                 - secret
             type: object
+        ApprovalDecision:
+            properties:
+                comment:
+                    type: string
+                data:
+                    additionalProperties: true
+                    type: object
+                decision:
+                    enum:
+                        - approve
+                        - reject
+                        - submit
+                    type: string
+            required:
+                - decision
+            type: object
+        ApprovalTask:
+            properties:
+                allow_self_approval:
+                    type: boolean
+                assignee_group_ids:
+                    items:
+                        type: string
+                    type: array
+                assignee_user_ids:
+                    items:
+                        type: string
+                    type: array
+                can_decide:
+                    type: boolean
+                comment:
+                    type: string
+                context: {}
+                created_at:
+                    type: string
+                decided_at:
+                    type: string
+                decided_by:
+                    type: string
+                due_at:
+                    type: string
+                execution_id:
+                    type: string
+                fields:
+                    items:
+                        $ref: '#/components/schemas/ApprovalTaskField'
+                    type: array
+                id:
+                    type: string
+                instructions:
+                    type: string
+                kind:
+                    enum:
+                        - approval
+                        - input
+                    type: string
+                node_id:
+                    type: string
+                requested_by:
+                    type: string
+                response: {}
+                status:
+                    enum:
+                        - pending
+                        - approved
+                        - rejected
+                        - submitted
+                        - expired
+                        - cancelled
+                    type: string
+                title:
+                    type: string
+                workflow_id:
+                    type: string
+                workflow_name:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - allow_self_approval
+                - assignee_group_ids
+                - assignee_user_ids
+                - can_decide
+                - comment
+                - created_at
+                - execution_id
+                - fields
+                - id
+                - instructions
+                - kind
+                - node_id
+                - status
+                - title
+                - workflow_id
+                - workflow_name
+                - workspace_id
+            type: object
+        ApprovalTaskField:
+            properties:
+                key:
+                    type: string
+                label:
+                    type: string
+                required:
+                    type: boolean
+                type:
+                    enum:
+                        - string
+                        - text
+                        - number
+                        - boolean
+                    type: string
+            required:
+                - key
+                - label
+                - required
+                - type
+            type: object
+        ApprovalTasks:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/ApprovalTask'
+                    type: array
+            required:
+                - data
+            type: object
         AuditEvent:
             properties:
                 action:
@@ -1808,6 +1935,7 @@ components:
                         - trigger
                         - action
                         - logic
+                        - human
                     type: string
                 label:
                     type: string
@@ -1842,6 +1970,7 @@ components:
                         - json
                         - select
                         - number
+                        - boolean
                     type: string
                 label:
                     type: string
@@ -2831,6 +2960,8 @@ components:
                     type: string
                 input: {}
                 output: {}
+                rerun_count:
+                    type: integer
                 started_at:
                     type: string
                 status:
@@ -2863,6 +2994,7 @@ components:
                 - deadline_at
                 - environment_id
                 - id
+                - rerun_count
                 - status
                 - step_count
                 - trigger_type
@@ -2895,6 +3027,8 @@ components:
             type: object
         WorkflowLimits:
             properties:
+                max_concurrent_executions:
+                    type: integer
                 max_duration_seconds:
                     type: integer
                 max_steps:
@@ -2942,6 +3076,48 @@ components:
             required:
                 - max_attempts
             type: object
+        WorkflowSchedule:
+            properties:
+                cron:
+                    type: string
+                enabled:
+                    type: boolean
+                environment_id:
+                    type: string
+                environment_name:
+                    type: string
+                next_fire_at:
+                    type: string
+                timezone:
+                    type: string
+                version:
+                    type: integer
+                workflow_id:
+                    type: string
+                workflow_name:
+                    type: string
+                workflow_status:
+                    type: string
+            required:
+                - cron
+                - enabled
+                - environment_id
+                - environment_name
+                - timezone
+                - version
+                - workflow_id
+                - workflow_name
+                - workflow_status
+            type: object
+        WorkflowSchedules:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/WorkflowSchedule'
+                    type: array
+            required:
+                - data
+            type: object
         WorkflowStep:
             properties:
                 attempt:
@@ -2969,6 +3145,7 @@ components:
                         - pending
                         - queued
                         - running
+                        - waiting
                         - succeeded
                         - failed
                         - skipped
@@ -3646,6 +3823,164 @@ paths:
             summary: List immutable API composition versions
             tags:
                 - api-compositions
+    /v1/hugimethara/approval-tasks:
+        get:
+            description: assigned_to=me (the default) lists tasks assigned to the caller directly or through a group, in every workspace. assigned_to=any lists a workspace's tasks and needs workflow:read there.
+            operationId: listApprovalTasks
+            parameters:
+                - description: me (default) or any
+                  in: query
+                  name: assigned_to
+                  schema:
+                    type: string
+                - description: Workspace ID (required with assigned_to=any)
+                  in: query
+                  name: workspace_id
+                  schema:
+                    type: string
+                - description: Execution ID
+                  in: query
+                  name: execution_id
+                  schema:
+                    type: string
+                - description: Task status
+                  in: query
+                  name: status
+                  schema:
+                    type: string
+                - description: Page size (max 200)
+                  in: query
+                  name: limit
+                  schema:
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApprovalTasks'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Approvals inbox
+            tags:
+                - workflows
+    /v1/hugimethara/approval-tasks/{task_id}:
+        get:
+            operationId: getApprovalTask
+            parameters:
+                - description: Task ID
+                  in: path
+                  name: task_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApprovalTask'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Get an approval task
+            tags:
+                - workflows
+    /v1/hugimethara/approval-tasks/{task_id}/decide:
+        post:
+            description: Only assignees may decide. Unless the node allows it, whoever started the execution cannot approve it (self_approval_forbidden). The waiting step resumes on the approved, rejected or submitted branch.
+            operationId: decideApprovalTask
+            parameters:
+                - description: Task ID
+                  in: path
+                  name: task_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ApprovalDecision'
+                description: Decision
+                required: true
+                x-originalParamName: body
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ApprovalTask'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Approve, reject or submit a task
+            tags:
+                - workflows
     /v1/hugimethara/audit-events:
         get:
             operationId: listAuditEvents
@@ -7818,6 +8153,137 @@ paths:
                 - sessionCookie: []
                 - apiKey: []
             summary: Get an execution with every step's input, output and error
+            tags:
+                - workflows
+    /v1/hugimethara/workflow-executions/{execution_id}/cancel:
+        post:
+            description: 'Cancels open steps, pending approval tasks and timers. A step already running on a worker is fenced out: its result is discarded.'
+            operationId: cancelWorkflowExecution
+            parameters:
+                - description: Execution ID
+                  in: path
+                  name: execution_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowExecution'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Cancel an unfinished execution
+            tags:
+                - workflows
+    /v1/hugimethara/workflow-executions/{execution_id}/retry:
+        post:
+            description: Succeeded steps keep their outputs and are not re-run; the failed step and the steps cancelled because of it run again. The execution deadline restarts.
+            operationId: retryWorkflowExecution
+            parameters:
+                - description: Execution ID
+                  in: path
+                  name: execution_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "202":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowExecution'
+                    description: Accepted
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Re-run a failed or timed-out execution from its failed step
+            tags:
+                - workflows
+    /v1/hugimethara/workflow-schedules:
+        get:
+            operationId: listWorkflowSchedules
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/WorkflowSchedules'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: List deployed workflow schedules
             tags:
                 - workflows
     /v1/hugimethara/workflows:

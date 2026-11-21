@@ -95,6 +95,8 @@ func TestProtectedOperationsRequireSession(t *testing.T) {
 		"/v1/hugimethara/audit-events",
 		"/v1/hugimethara/api-compositions?workspace_id=" + workspaceID.String(),
 		"/v1/hugimethara/api-composition-executions/" + executionID.String(),
+		"/v1/hugimethara/approval-tasks",
+		"/v1/hugimethara/workflow-schedules?workspace_id=" + workspaceID.String(),
 	} {
 		resp, err := srv.Client().Get(srv.URL + path)
 		require.NoError(t, err)
@@ -112,7 +114,7 @@ func TestPublicOperationsAreExplicit(t *testing.T) {
 		"GetInvitationPreview": true, "AcceptInvitation": true, // S4: invitation links (token-gated, rate-limited)
 		"ListOidcProviders": true, "StartOidcLogin": true, "CompleteOidcLogin": true, // S5: SSO before a session exists
 	}, public, "adding a public operation is a security decision: update this test deliberately")
-	require.Len(t, routes, 141) // S10 added the 14 workflow operations
+	require.Len(t, routes, 147) // S10 added 14 workflow operations, S11 six more
 }
 
 func TestCrossSiteStateChangeRejected(t *testing.T) {

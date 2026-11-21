@@ -9,6 +9,7 @@ const (
 	StepPending        StepStatus = "pending"
 	StepQueued         StepStatus = "queued"
 	StepRunning        StepStatus = "running"
+	StepWaiting        StepStatus = "waiting" // delay, approval or manual input
 	StepSucceeded      StepStatus = "succeeded"
 	StepFailed         StepStatus = "failed"
 	StepSkipped        StepStatus = "skipped"
@@ -38,6 +39,8 @@ const (
 	EvLeaseExpired  StepEvent = "lease_expired"  // running → queued (worker died)
 	EvSkip          StepEvent = "skip"           // pending → skipped (dead path)
 	EvCancel        StepEvent = "cancel"         // any non-terminal → cancelled
+	EvSuspend       StepEvent = "suspend"        // running → waiting (timer or human task)
+	EvResume        StepEvent = "resume"         // waiting → succeeded (timer fired, task decided)
 )
 
 type stepKey struct {
@@ -58,6 +61,10 @@ var stepTable = map[stepKey]StepStatus{
 	{StepRunning, EvScheduleRetry}:   StepRetryScheduled,
 	{StepRunning, EvLeaseExpired}:    StepQueued,
 	{StepRunning, EvCancel}:          StepCancelled,
+	{StepRunning, EvSuspend}:         StepWaiting,
+	{StepWaiting, EvResume}:          StepSucceeded,
+	{StepWaiting, EvFail}:            StepFailed,
+	{StepWaiting, EvCancel}:          StepCancelled,
 	{StepRetryScheduled, EvRetryDue}: StepQueued,
 	{StepRetryScheduled, EvCancel}:   StepCancelled,
 }
@@ -101,6 +108,7 @@ const (
 	ExFail     ExecutionEvent = "fail"     // a step failed or a limit was exceeded
 	ExCancel   ExecutionEvent = "cancel"
 	ExTimeout  ExecutionEvent = "timeout" // deadline_at passed
+	ExRerun    ExecutionEvent = "rerun"   // re-run from the failed step
 )
 
 type execKey struct {
@@ -117,6 +125,8 @@ var execTable = map[execKey]ExecutionStatus{
 	{ExecRunning, ExFail}:     ExecFailed,
 	{ExecRunning, ExCancel}:   ExecCancelled,
 	{ExecRunning, ExTimeout}:  ExecTimedOut,
+	{ExecFailed, ExRerun}:     ExecRunning,
+	{ExecTimedOut, ExRerun}:   ExecRunning,
 }
 
 // ExecutionTransition returns the state reached by applying ev in from.
@@ -139,6 +149,11 @@ const (
 	ReasonEgressBlocked    = "egress_blocked"
 	ReasonInvalidState     = "invalid_state"
 	ReasonUpstreamFailed   = "upstream_failed"
+	ReasonLoopLimit        = "loop_limit_exceeded"
+	ReasonConcurrencyLimit = "concurrency_limit_exceeded"
+	ReasonCancelled        = "cancelled"
+	ReasonTaskExpired      = "task_expired"
+	ReasonInvalidConfig    = "invalid_config"
 )
 
 // StepError is the structured error stored on a failed step or execution.

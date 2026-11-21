@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -360,8 +361,18 @@ func (s *WorkflowService) Deploy(ctx context.Context, id, environmentID uuid.UUI
 			}
 			return err
 		}
+		var nextFire *time.Time
+		if v.Definition.Trigger.Type == model.TypeTriggerSchedule && in.Enabled {
+			sched, err := model.ParseScheduleTrigger(v.Definition.Trigger.Config)
+			if err != nil {
+				return validation("version_id", "invalid_schedule", err.Error())
+			}
+			if next := sched.Cron.Next(s.clock.Now(), sched.Location); !next.IsZero() {
+				nextFire = &next
+			}
+		}
 		if err := repository.UpsertDeployment(ctx, tx, p.OrgID, id, environmentID, v.ID, in.Enabled, p.ID,
-			v.Definition.Trigger); err != nil {
+			v.Definition.Trigger, nextFire); err != nil {
 			return err
 		}
 		if out, err = repository.GetDeployment(ctx, tx, id, environmentID); err != nil {
@@ -416,29 +427,13 @@ func (s *WorkflowService) Execute(ctx context.Context, id uuid.UUID, in dto.Exec
 		if err != nil {
 			return err
 		}
-		allow, err := repository.EnvironmentAllowlist(ctx, tx, in.EnvironmentID)
-		if err != nil {
-			return err
-		}
-		now := s.clock.Now()
-		newID := s.ids.New()
 		var created bool
-		execID, created, err = repository.InsertExecution(ctx, tx, repository.NewExecution{
-			ID: newID, OrgID: p.OrgID, WorkspaceID: w.WorkspaceID, WorkflowID: id, VersionID: v.ID,
-			EnvironmentID: in.EnvironmentID, TriggerType: model.TypeTriggerManual, TriggerRef: p.ID.String(),
-			IdempotencyKey: in.IdempotencyKey, Input: input, EgressAllowlist: allow,
-			MaxSteps: v.Definition.Limits.EffectiveMaxSteps(), CreatedBy: p.ID, RequestID: logging.RequestID(ctx),
-			DeadlineAt: now.Add(v.Definition.Limits.EffectiveMaxDuration()),
-		})
+		execID, created, err = startExecution(ctx, tx, s.ids, startRequest{OrgID: p.OrgID,
+			WorkspaceID: w.WorkspaceID, WorkflowID: id, EnvironmentID: in.EnvironmentID, Version: v,
+			TriggerType: model.TypeTriggerManual, TriggerRef: p.ID.String(), IdempotencyKey: in.IdempotencyKey,
+			Input: input, CreatedBy: p.ID, RequestID: logging.RequestID(ctx), Now: s.clock.Now()})
 		if err != nil || !created {
 			return err // idempotent replay returns the original execution
-		}
-		exec, err := repository.LockExecution(ctx, tx, execID)
-		if err != nil {
-			return err
-		}
-		if _, err := progress(ctx, tx, s.ids, exec, v.Definition); err != nil {
-			return err
 		}
 		return s.audit(ctx, tx, p, "workflow.executed", w, map[string]any{
 			"execution_id": execID, "version": v.Version, "environment_id": in.EnvironmentID})

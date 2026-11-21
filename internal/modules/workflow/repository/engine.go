@@ -18,18 +18,20 @@ import (
 // LockedExecution is the execution state the engine needs, read under
 // SELECT … FOR UPDATE.
 type LockedExecution struct {
-	ID              uuid.UUID `db:"id"`
-	OrgID           uuid.UUID `db:"org_id"`
-	WorkspaceID     uuid.UUID `db:"workspace_id"`
-	WorkflowID      uuid.UUID `db:"workflow_id"`
-	VersionID       uuid.UUID `db:"version_id"`
-	EnvironmentID   uuid.UUID `db:"environment_id"`
-	Status          string    `db:"status"`
-	Input           []byte    `db:"input"`
-	EgressAllowlist []byte    `db:"egress_allowlist"`
-	StepCount       int       `db:"step_count"`
-	MaxSteps        int       `db:"max_steps"`
-	DeadlineAt      time.Time `db:"deadline_at"`
+	ID              uuid.UUID     `db:"id"`
+	OrgID           uuid.UUID     `db:"org_id"`
+	WorkspaceID     uuid.UUID     `db:"workspace_id"`
+	WorkflowID      uuid.UUID     `db:"workflow_id"`
+	VersionID       uuid.UUID     `db:"version_id"`
+	EnvironmentID   uuid.UUID     `db:"environment_id"`
+	Status          string        `db:"status"`
+	Input           []byte        `db:"input"`
+	EgressAllowlist []byte        `db:"egress_allowlist"`
+	StepCount       int           `db:"step_count"`
+	MaxSteps        int           `db:"max_steps"`
+	DeadlineAt      time.Time     `db:"deadline_at"`
+	CreatedBy       uuid.NullUUID `db:"created_by"`
+	TriggerDepth    int           `db:"trigger_depth"`
 }
 
 // Allowlist decodes the egress allowlist snapshot.
@@ -197,9 +199,18 @@ func RedispatchStale(ctx context.Context, tx *sqlx.Tx, limit int, after time.Dur
 	return out, err
 }
 
+// ExpiredExecution identifies an execution the reaper timed out.
+type ExpiredExecution struct {
+	ID           uuid.UUID `db:"id"`
+	OrgID        uuid.UUID `db:"org_id"`
+	WorkflowID   uuid.UUID `db:"workflow_id"`
+	WorkspaceID  uuid.UUID `db:"workspace_id"`
+	TriggerDepth int       `db:"trigger_depth"`
+}
+
 // ExpireDeadlines times out executions past their deadline.
-func ExpireDeadlines(ctx context.Context, tx *sqlx.Tx, limit int) ([]uuid.UUID, error) {
-	var out []uuid.UUID
+func ExpireDeadlines(ctx context.Context, tx *sqlx.Tx, limit int) ([]ExpiredExecution, error) {
+	var out []ExpiredExecution
 	err := tx.SelectContext(ctx, &out, commands.SQL.Get("ExpireDeadlines"), limit)
 	return out, err
 }

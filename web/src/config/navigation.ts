@@ -2,9 +2,11 @@ import {
   Activity,
   Bot,
   Building2,
+  CalendarClock,
   CreditCard,
   Fingerprint,
   FolderKanban,
+  Inbox,
   Key,
   KeyRound,
   Layers,
@@ -56,7 +58,12 @@ export const navigation: NavSection[] = [
   },
   {
     title: "Automation",
-    items: [{ title: "Workflows", href: "/automation/workflows", icon: Workflow, permission: "workflow:read" }],
+    items: [
+      { title: "Workflows", href: "/automation/workflows", icon: Workflow, permission: "workflow:read" },
+      // Everyone may be an approver: the inbox is gated by the assignee rule, not a permission.
+      { title: "Approvals", href: "/automation/approvals", icon: Inbox },
+      { title: "Schedules", href: "/automation/schedules", icon: CalendarClock, permission: "workflow:read" },
+    ],
   },
   {
     title: "People",

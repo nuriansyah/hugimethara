@@ -52,8 +52,9 @@ type WorkflowEdge struct {
 }
 
 type WorkflowLimits struct {
-	MaxSteps           *int `json:"max_steps,omitempty"`
-	MaxDurationSeconds *int `json:"max_duration_seconds,omitempty"`
+	MaxSteps                *int `json:"max_steps,omitempty"`
+	MaxDurationSeconds      *int `json:"max_duration_seconds,omitempty"`
+	MaxConcurrentExecutions *int `json:"max_concurrent_executions,omitempty"`
 }
 
 // ---- resources ----
@@ -139,7 +140,7 @@ type WorkflowStep struct {
 	NodeId     string         `json:"node_id" binding:"required"`
 	NodeType   string         `json:"node_type" binding:"required"`
 	Attempt    int            `json:"attempt" binding:"required"`
-	Status     string         `json:"status" binding:"required" enums:"pending,queued,running,succeeded,failed,skipped,cancelled,retry_scheduled"`
+	Status     string         `json:"status" binding:"required" enums:"pending,queued,running,waiting,succeeded,failed,skipped,cancelled,retry_scheduled"`
 	Input      interface{}    `json:"input,omitempty"`
 	Output     interface{}    `json:"output,omitempty"`
 	Port       *string        `json:"port,omitempty"`
@@ -162,6 +163,7 @@ type WorkflowExecution struct {
 	Output        interface{}    `json:"output,omitempty"`
 	Error         *WorkflowError `json:"error,omitempty"`
 	StepCount     int            `json:"step_count" binding:"required"`
+	RerunCount    int            `json:"rerun_count" binding:"required"`
 	CreatedAt     time.Time      `json:"created_at" binding:"required"`
 	StartedAt     *time.Time     `json:"started_at,omitempty"`
 	FinishedAt    *time.Time     `json:"finished_at,omitempty"`
@@ -172,7 +174,7 @@ type WorkflowExecution struct {
 type NodeTypeField struct {
 	Key         string   `json:"key" binding:"required"`
 	Label       string   `json:"label" binding:"required"`
-	Kind        string   `json:"kind" binding:"required" enums:"string,text,expression,json,select,number"`
+	Kind        string   `json:"kind" binding:"required" enums:"string,text,expression,json,select,number,boolean"`
 	Required    bool     `json:"required" binding:"required"`
 	Options     []string `json:"options,omitempty"`
 	Description *string  `json:"description,omitempty"`
@@ -180,7 +182,7 @@ type NodeTypeField struct {
 
 type NodeType struct {
 	Type              string          `json:"type" binding:"required"`
-	Kind              string          `json:"kind" binding:"required" enums:"trigger,action,logic"`
+	Kind              string          `json:"kind" binding:"required" enums:"trigger,action,logic,human"`
 	Label             string          `json:"label" binding:"required"`
 	Description       string          `json:"description" binding:"required"`
 	Ports             []string        `json:"ports" binding:"required"`

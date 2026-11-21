@@ -148,8 +148,9 @@ func progress(ctx context.Context, tx *sqlx.Tx, ids id.Generator, exec repositor
 		finish(ctx, tx, exec, model.ExecSucceeded, out, nil)
 }
 
-// finish moves the execution to a terminal state, cancels leftover steps and
-// emits a domain event for downstream consumers (notifications, analytics).
+// finish moves the execution to a terminal state, cancels leftover steps,
+// pending human tasks and timers, and emits a domain event for downstream
+// consumers (event triggers, notifications, analytics).
 func finish(ctx context.Context, tx *sqlx.Tx, exec repository.LockedExecution, status model.ExecutionStatus,
 	output any, se *model.StepError) error {
 	if status != model.ExecSucceeded {
@@ -157,15 +158,54 @@ func finish(ctx context.Context, tx *sqlx.Tx, exec repository.LockedExecution, s
 			return err
 		}
 	}
+	if err := releaseWaits(ctx, tx, exec.ID); err != nil {
+		return err
+	}
 	if err := repository.FinishExecution(ctx, tx, exec.ID, status, output, se); err != nil {
 		return err
 	}
-	payload := map[string]any{"execution_id": exec.ID, "workflow_id": exec.WorkflowID,
-		"workspace_id": exec.WorkspaceID, "status": status}
+	return publishFinished(ctx, tx, exec.OrgID, exec.ID, exec.WorkflowID, exec.WorkspaceID, exec.TriggerDepth, status, se)
+}
+
+// releaseWaits cancels the pending tasks and disarms the timers of an
+// execution that is finishing.
+func releaseWaits(ctx context.Context, tx *sqlx.Tx, executionID uuid.UUID) error {
+	if err := repository.CancelTasks(ctx, tx, executionID); err != nil {
+		return err
+	}
+	return repository.ConsumeTimers(ctx, tx, executionID)
+}
+
+func publishFinished(ctx context.Context, tx *sqlx.Tx, orgID, executionID, workflowID, workspaceID uuid.UUID,
+	depth int, status model.ExecutionStatus, se *model.StepError) error {
+	payload := map[string]any{"execution_id": executionID, "workflow_id": workflowID,
+		"workspace_id": workspaceID, "status": status, "trigger_depth": depth}
 	if se != nil {
 		payload["error_code"] = se.Code
 	}
-	_, err := outbox.Publish(ctx, tx, outbox.Event{OrgID: exec.OrgID,
+	_, err := outbox.Publish(ctx, tx, outbox.Event{OrgID: orgID,
 		Subject: "hugi.events.workflow.execution_finished", Payload: payload})
 	return err
+}
+
+// resume completes a waiting step with its resolution and advances the
+// graph. The caller holds the execution row lock. A step that is no longer
+// waiting (decided twice, cancelled) is left alone.
+func resume(ctx context.Context, tx *sqlx.Tx, ids id.Generator, exec repository.LockedExecution,
+	def model.Definition, stepID uuid.UUID, port string, output any) (progressResult, error) {
+	ok, err := repository.ResumeStep(ctx, tx, stepID, output, port)
+	if err != nil || !ok {
+		return progressResult{}, err
+	}
+	return progress(ctx, tx, ids, exec, def)
+}
+
+// hasPortEdge reports whether node has an outgoing edge on port.
+func hasPortEdge(def model.Definition, nodeID, port string) bool {
+	for _, e := range def.Outbound(nodeID) {
+		if e.Port == port {
+			return true
+		}
+	}
+	return false
 }

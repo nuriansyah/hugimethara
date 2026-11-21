@@ -1,6 +1,8 @@
 // RunWorker runs data-plane background work: it provisions the JetStream
-// streams, relays the transactional outbox, executes workflow steps (S10) and
-// runs the workflow reaper. Timers and webhook delivery arrive in S11–S12.
+// streams, relays the transactional outbox, executes workflow steps (S10),
+// runs the workflow reaper (which also fires delay and task-timeout timers),
+// and starts executions from schedule and platform-event triggers (S11).
+// Webhook delivery arrives in S12.
 package bootstrap
 
 import (
@@ -12,6 +14,8 @@ import (
 
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
 	"github.com/nuriansyah/hugimethara/internal/platform/id"
+
+	"github.com/google/uuid"
 
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/messaging/bus"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
@@ -84,6 +88,24 @@ func RunWorker() error {
 			})
 	}
 
+	triggers := workflowsvc.NewTriggerRunner(sysPool, expressions, workflowsvc.TriggerConfig{Log: log, Registerer: reg})
+	consumeEvents := func(ctx context.Context) error {
+		return nb.ConsumeMessages(ctx, bus.WorkConsumer{Stream: "HUGI_EVENTS", Durable: "hugi-wf-event-triggers",
+			Filter: "hugi.events.>", DeliverNew: true}, log, func(ctx context.Context, m bus.Message) error {
+			name, ok := workflowsvc.EventFromSubject(m.Subject)
+			orgID, err := uuid.Parse(first(m.Header["Hugi-Org-Id"]))
+			if !ok || err != nil {
+				return nil // not a tenant event: nothing can be triggered by it
+			}
+			msgID := first(m.Header["Nats-Msg-Id"])
+			if msgID == "" {
+				log.WarnContext(ctx, "event without message id; event triggers skipped", "subject", m.Subject)
+				return nil // no stable id means no idempotency key
+			}
+			return triggers.HandleEvent(ctx, workflowsvc.Event{OrgID: orgID, Name: name, ID: msgID, Data: m.Data})
+		})
+	}
+
 	hc := health.New(0)
 	hc.Add("postgres", db.Check(sysPool))
 	hc.Add("migrations", migrate.Check(sysPool))
@@ -97,6 +119,8 @@ func RunWorker() error {
 		relay.Run,
 		consumeSteps,
 		engine.RunReaper,
+		triggers.RunScheduler,
+		consumeEvents,
 		lifecycle.HTTPServer("probes", cfg.HTTPAddr, probes, cfg.ShutdownTTL, log),
 		lifecycle.MetricsServer(cfg.MetricsAddr, reg, cfg.ShutdownTTL, log),
 	)
@@ -106,4 +130,11 @@ func RunWorker() error {
 	}
 	log.Info("stopped")
 	return nil
+}
+
+func first(v []string) string {
+	if len(v) == 0 {
+		return ""
+	}
+	return v[0]
 }

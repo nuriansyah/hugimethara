@@ -62,6 +62,7 @@ type Execution struct {
 	Output        json.RawMessage
 	Error         *StepError
 	StepCount     int
+	RerunCount    int
 	CreatedAt     time.Time
 	StartedAt     *time.Time
 	FinishedAt    *time.Time
@@ -85,6 +86,70 @@ type Step struct {
 	FinishedAt *time.Time
 }
 
+// TaskStatus is the lifecycle state of a human task.
+type TaskStatus string
+
+const (
+	TaskPending   TaskStatus = "pending"
+	TaskApproved  TaskStatus = "approved"
+	TaskRejected  TaskStatus = "rejected"
+	TaskSubmitted TaskStatus = "submitted"
+	TaskExpired   TaskStatus = "expired"
+	TaskCancelled TaskStatus = "cancelled"
+)
+
+// ApprovalTask is a human task (approval or manual input) that a waiting step
+// is blocked on.
+type ApprovalTask struct {
+	ID                uuid.UUID
+	WorkspaceID       uuid.UUID
+	WorkflowID        uuid.UUID
+	WorkflowName      string
+	ExecutionID       uuid.UUID
+	StepID            uuid.UUID
+	NodeID            string
+	Kind              string // approval | input
+	Title             string
+	Instructions      string
+	Context           json.RawMessage // the step input, shown to the assignee
+	Fields            []FormField
+	Users             []uuid.UUID
+	Groups            []uuid.UUID
+	AllowSelfApproval bool
+	RequestedBy       *uuid.UUID
+	Status            TaskStatus
+	Response          json.RawMessage
+	Comment           string
+	DecidedBy         *uuid.UUID
+	DecidedAt         *time.Time
+	DueAt             *time.Time
+	CreatedAt         time.Time
+	// CanDecide is computed for the caller: pending, assigned to them, and not
+	// a self-approval they are barred from.
+	CanDecide bool
+}
+
+// Decision values accepted by POST /approval-tasks/{id}/decide.
+const (
+	DecisionApprove = "approve"
+	DecisionReject  = "reject"
+	DecisionSubmit  = "submit"
+)
+
+// Schedule is a deployed schedule trigger (schedules page).
+type Schedule struct {
+	WorkflowID      uuid.UUID
+	WorkflowName    string
+	WorkflowStatus  string
+	EnvironmentID   uuid.UUID
+	EnvironmentName string
+	Version         int
+	Enabled         bool
+	Cron            string
+	Timezone        string
+	NextFireAt      *time.Time
+}
+
 // EmptyDefinition is the draft of a new workflow.
 func EmptyDefinition() Definition {
 	return Definition{SchemaVersion: SchemaVersion, Trigger: Trigger{Type: TypeTriggerManual},
@@ -101,6 +166,17 @@ var (
 		"The draft is identical to the latest published version.")
 	ErrSlugTaken = apperrors.NewProblem(http.StatusConflict, "slug_taken", "Address unavailable",
 		"Another workflow in this workspace already uses this slug.")
+	ErrTaskNotFound      = apperrors.NotFound("Approval task not found.")
+	ErrExecutionFinished = apperrors.NewProblem(http.StatusConflict, "execution_finished", "Execution already finished",
+		"Only pending or running executions can be cancelled.")
+	ErrNotRetryable = apperrors.NewProblem(http.StatusConflict, "execution_not_retryable", "Execution cannot be re-run",
+		"Only failed or timed-out executions can be re-run from their failed step.")
+	ErrTaskDecided = apperrors.NewProblem(http.StatusConflict, "task_not_pending", "Task already resolved",
+		"This task was already decided, expired or cancelled.")
+	ErrNotAssignee = apperrors.NewProblem(http.StatusForbidden, "not_assignee", "Not an assignee",
+		"Only the users and groups assigned to this task can act on it.")
+	ErrSelfApproval = apperrors.NewProblem(http.StatusForbidden, "self_approval_forbidden", "Self-approval is not allowed",
+		"You started this execution, so another assignee must approve it.")
 )
 
 // InvalidDefinition wraps validation issues in an RFC 9457 problem.

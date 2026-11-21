@@ -12,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/prometheus/client_golang/prometheus"
 
+	"github.com/nuriansyah/hugimethara/internal/infrastructure/persistence/outbox"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/security/egress"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/model"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/repository"
@@ -125,7 +126,7 @@ func (e *Engine) HandleStep(ctx context.Context, msg StepMessage) error {
 			break
 		}
 		res, runErr = e.run(ctx, c.step.ID, exec, NodeContext{Node: node, ExecutionID: c.exec.ID, Attempt: c.step.Attempt,
-			Input: input, Trigger: c.trigger, Outputs: c.snap.outputs, Egress: policy,
+			Input: input, Trigger: c.trigger, Outputs: c.snap.outputs, Egress: policy, Now: started,
 			IdempotencyKey: fmt.Sprintf("%s:%s::%d", c.exec.ID, node.ID, c.step.Attempt)})
 	}
 	e.stepDuration.WithLabelValues(c.step.NodeType).Observe(e.cfg.Clock.Now().Sub(started).Seconds())
@@ -263,6 +264,9 @@ func (e *Engine) complete(ctx context.Context, c claim, node model.Node, input a
 			e.finishedTotal.WithLabelValues(string(model.ExecFailed)).Inc()
 			return finish(ctx, tx, exec, model.ExecFailed, nil, se)
 		}
+		if res.Suspend != nil {
+			return e.suspend(ctx, tx, c, exec, node, inputJSON, res.Suspend)
+		}
 		ok, err := repository.CompleteStep(ctx, tx, c.step.ID, e.cfg.WorkerID, repository.StepResult{
 			Status: model.StepSucceeded, Input: inputJSON, Output: outputJSON, Port: res.Port})
 		if err != nil || !ok {
@@ -275,6 +279,134 @@ func (e *Engine) complete(ctx context.Context, c claim, node model.Node, input a
 		}
 		return err
 	})
+}
+
+// suspend parks the step as waiting and arms what will resume it: a timer, a
+// human task, or both (a task with a timeout).
+func (e *Engine) suspend(ctx context.Context, tx *sqlx.Tx, c claim, exec repository.LockedExecution, node model.Node,
+	inputJSON []byte, s *Suspension) error {
+	ok, err := repository.SuspendStep(ctx, tx, c.step.ID, e.cfg.WorkerID, inputJSON)
+	if err != nil || !ok {
+		return err
+	}
+	if s.Task != nil {
+		taskID := e.cfg.IDs.New()
+		if err := repository.InsertTask(ctx, tx, repository.NewTask{ID: taskID, OrgID: exec.OrgID,
+			WorkspaceID: exec.WorkspaceID, WorkflowID: exec.WorkflowID, ExecutionID: exec.ID, StepID: c.step.ID,
+			NodeID: node.ID, Task: *s.Task, Context: inputJSON, RequestedBy: nullableUUID(exec.CreatedBy),
+			DueAt: s.WakeAt}); err != nil {
+			return err
+		}
+		if _, err := outbox.Publish(ctx, tx, outbox.Event{OrgID: exec.OrgID,
+			Subject: "hugi.events.workflow.approval_requested", Payload: map[string]any{
+				"task_id": taskID, "execution_id": exec.ID, "workflow_id": exec.WorkflowID,
+				"workspace_id": exec.WorkspaceID, "node_id": node.ID, "kind": s.Task.Kind, "title": s.Task.Title,
+				"assignee_users": s.Task.Users, "assignee_groups": s.Task.Groups,
+				"trigger_depth": exec.TriggerDepth}}); err != nil {
+			return err
+		}
+	}
+	if s.WakeAt != nil {
+		kind := repository.TimerDelay
+		if s.Task != nil {
+			kind = repository.TimerTaskTimeout
+		}
+		if err := repository.InsertTimer(ctx, tx, e.cfg.IDs.New(), exec.OrgID, exec.ID, c.step.ID, kind,
+			*s.WakeAt); err != nil {
+			return err
+		}
+	}
+	e.stepsTotal.WithLabelValues(node.Type, "waiting").Inc()
+	return nil
+}
+
+func nullableUUID(n uuid.NullUUID) *uuid.UUID {
+	if !n.Valid {
+		return nil
+	}
+	return &n.UUID
+}
+
+// FireTimers resumes the waiting steps whose timer is due: a delay continues
+// with its input; an expired human task takes its timeout branch, or fails the
+// execution with task_expired when the node has none. Each timer is handled
+// in its own tenant transaction that locks the execution first — the same
+// order as task decisions, so the two never deadlock.
+func (e *Engine) FireTimers(ctx context.Context) (int, error) {
+	due, err := repository.DueTimers(ctx, e.pool, e.cfg.ReapBatch)
+	if err != nil {
+		return 0, err
+	}
+	fired := 0
+	for _, d := range due {
+		err := db.InTenantTx(ctx, e.pool, d.OrgID, func(tx *sqlx.Tx) error {
+			execID, err := repository.TimerExecution(ctx, tx, d.ID)
+			if err != nil {
+				return err
+			}
+			exec, err := repository.LockExecution(ctx, tx, execID)
+			if err != nil {
+				return err
+			}
+			t, ok, err := repository.LockDueTimer(ctx, tx, d.ID)
+			if err != nil || !ok {
+				return err
+			}
+			if err := repository.MarkTimerFired(ctx, tx, t.ID); err != nil {
+				return err
+			}
+			fired++
+			if model.ExecutionStatus(exec.Status).Terminal() {
+				return nil
+			}
+			step, err := repository.StepByID(ctx, tx, t.StepID)
+			if err != nil || model.StepStatus(step.Status) != model.StepWaiting {
+				return err
+			}
+			def, err := repository.EngineDefinition(ctx, tx, exec.VersionID)
+			if err != nil {
+				return err
+			}
+			var pr progressResult
+			switch t.Kind {
+			case repository.TimerDelay:
+				var in any
+				if len(step.Input) > 0 {
+					if err := json.Unmarshal(step.Input, &in); err != nil {
+						return err
+					}
+				}
+				pr, err = resume(ctx, tx, e.cfg.IDs, exec, def, step.ID, "", in)
+			case repository.TimerTaskTimeout:
+				if _, err := repository.ExpireTask(ctx, tx, step.ID); err != nil {
+					return err
+				}
+				if hasPortEdge(def, step.NodeID, model.PortTimeout) {
+					pr, err = resume(ctx, tx, e.cfg.IDs, exec, def, step.ID, model.PortTimeout,
+						map[string]any{"status": string(model.TaskExpired)})
+					break
+				}
+				se := &model.StepError{Code: model.ReasonTaskExpired, NodeID: step.NodeID,
+					Message: "The task expired before anyone acted on it, and the node has no timeout branch."}
+				if _, err := repository.FailWaitingStep(ctx, tx, step.ID, se); err != nil {
+					return err
+				}
+				pr = progressResult{finished: model.ExecFailed}
+				err = finish(ctx, tx, exec, model.ExecFailed, nil, se)
+			}
+			if err == nil && pr.finished != "" {
+				e.finishedTotal.WithLabelValues(string(pr.finished)).Inc()
+			}
+			return err
+		})
+		if err != nil && ctx.Err() == nil {
+			e.cfg.Log.ErrorContext(ctx, "workflow timer failed", "timer_id", d.ID, "err", err)
+		}
+	}
+	if fired > 0 {
+		e.recovered.WithLabelValues("timer").Add(float64(fired))
+	}
+	return fired, nil
 }
 
 // RunReaper recovers stuck work until ctx is cancelled. Every worker runs
@@ -294,8 +426,17 @@ func (e *Engine) RunReaper(ctx context.Context) error {
 	}
 }
 
-// ReapOnce performs one recovery pass.
+// ReapOnce performs one recovery pass: requeue lost or due steps, time out
+// executions past their deadline, then fire due timers.
 func (e *Engine) ReapOnce(ctx context.Context) error {
+	if err := e.reapSteps(ctx); err != nil {
+		return err
+	}
+	_, err := e.FireTimers(ctx)
+	return err
+}
+
+func (e *Engine) reapSteps(ctx context.Context) error {
 	return db.InTx(ctx, e.pool, func(tx *sqlx.Tx) error {
 		type pass struct {
 			reason string
@@ -330,8 +471,16 @@ func (e *Engine) ReapOnce(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("deadlines: %w", err)
 		}
-		for _, id := range expired {
-			if err := repository.CancelOpenSteps(ctx, tx, id); err != nil {
+		for _, x := range expired {
+			if err := repository.CancelOpenSteps(ctx, tx, x.ID); err != nil {
+				return err
+			}
+			if err := releaseWaits(ctx, tx, x.ID); err != nil {
+				return err
+			}
+			if err := publishFinished(ctx, tx, x.OrgID, x.ID, x.WorkflowID, x.WorkspaceID, x.TriggerDepth,
+				model.ExecTimedOut, &model.StepError{Code: model.ReasonDeadlineExceeded,
+					Message: "The execution exceeded its maximum duration."}); err != nil {
 				return err
 			}
 		}

@@ -45,3 +45,22 @@ type ExecutionFilter struct {
 	Status      string
 	Limit       int
 }
+
+// TaskFilter narrows the approvals inbox. Mine lists tasks assigned to the
+// caller (directly or via a group) across workspaces; otherwise WorkspaceID
+// is required and the caller needs workflow:read there.
+type TaskFilter struct {
+	WorkspaceID *uuid.UUID
+	ExecutionID *uuid.UUID
+	Status      string
+	Mine        bool
+	Limit       int
+}
+
+// DecideInput resolves a human task: approve/reject an approval, or submit a
+// manual-input form with Data.
+type DecideInput struct {
+	Decision string
+	Comment  string
+	Data     map[string]any
+}

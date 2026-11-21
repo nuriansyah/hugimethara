@@ -103,18 +103,41 @@ steps. Bounded by node policy and platform cap (10).
 
 **Timeouts** — per-step (context deadline) and per-execution (`deadline_at`, enforced by reaper).
 
-**Cancellation** — `POST /workflow-executions/{id}/cancel` sets `cancelling`; no new steps are queued; running
-steps are signalled via `hugi.wf.cancel.{execution_id}` and their ctx cancelled; then `cancelled`.
+**Cancellation** — `POST /workflow-executions/{id}/cancel` moves the execution straight to `cancelled` under its
+row lock and cancels open steps, pending tasks and timers. A step running on a worker is fenced: its completion is
+discarded and its lease heartbeat fails, which cancels the node's context within a third of the lease. (No
+separate `cancelling` state or `hugi.wf.cancel` subject is needed for that.)
 
 **Idempotency** — trigger: unique `(workflow_id, idempotency_key)`; step side-effects: key
 `{execution_id}:{node_id}:{iteration}:{attempt}`.
 
 **Human tasks** — approval/input create `approval_tasks`; the step is `waiting`. Decision API (authorized against
-the assignee rule) resumes it; timeout timer resolves to the node's `on_timeout` port.
+the assignee rule) resumes it; timeout timer resolves to the node's `timeout` port, or fails the execution with
+`task_expired` when the node has no timeout branch. The requester cannot approve their own execution unless the
+node sets `allow_self_approval`. Resuming completes the waiting step directly (`waiting → succeeded`, output =
+the decision, carrying the original input as `request`) instead of re-queuing it: there is no work left to run.
+Decisions and timers both lock the execution row before the task/timer row, so they cannot deadlock.
+
+**Timers** — `workflow_timers` rows (`delay`, `task_timeout`) are fired by the reaper in every worker; each is
+handled in its own tenant transaction (`SKIP LOCKED`), so a waiting step never holds a worker or a lease.
+
+**Triggers** — schedule triggers store `next_fire_at` on deploy; the trigger runner claims due rows
+(`SKIP LOCKED`), starts one execution per activation (idempotency key = scheduled instant) and computes the next
+activation from now, so downtime collapses missed slots into one run. Event triggers consume `HUGI_EVENTS`
+(new messages only), key executions by the outbox message id, skip a workflow's own events and stop chains deeper
+than 5 (`trigger_depth`).
+
+**Re-run** — `POST /workflow-executions/{id}/retry` on a failed/timed-out execution deletes its failed and
+cancelled steps, reopens it with a fresh deadline and lets progression re-queue the affected nodes; succeeded
+steps keep their outputs. The previous error is kept in the audit event.
+
+**Loops (Phase 1 scope)** — `logic.loop` runs one action (`action.http` / `action.transform`) per item rather than
+a body sub-graph; its timeout bounds the whole loop. Sub-graph loops stay a Phase 3 item with sub-workflows.
 
 **Limits** — per execution: max steps (500 default, 5000 cap), max loop iterations (1000), max parallel branches (50),
-max duration; per org: concurrent running steps, executions/minute. Exceeding a limit fails the execution with a
-specific reason code — never silently truncates.
+max duration, `max_concurrent_executions` per workflow and environment (refused with
+`concurrency_limit_exceeded`); per org: concurrent running steps, executions/minute (not yet enforced). Exceeding a
+limit fails or refuses with a specific reason code — never silently truncates.
 
 ## 5. Executor abstraction
 

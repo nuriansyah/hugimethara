@@ -53,6 +53,23 @@ function JsonField({ field, value, onCommit }: { field: Field; value: unknown; o
 function ConfigField({ field, value, onChange }: { field: Field; value: unknown; onChange: (v: unknown) => void }) {
   const id = `f-${field.key}`;
   if (field.kind === "json") return <JsonField key={field.key} field={field} value={value} onCommit={onChange} />;
+  if (field.kind === "boolean") {
+    return (
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor={id}>{field.label}</Label>
+        <Select value={value === true ? "true" : "false"} onValueChange={(v) => onChange(v === "true" ? true : undefined)}>
+          <SelectTrigger id={id} className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="false">No</SelectItem>
+            <SelectItem value="true">Yes</SelectItem>
+          </SelectContent>
+        </Select>
+        {field.description && <p className="text-xs text-muted-foreground">{field.description}</p>}
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={id}>
@@ -121,7 +138,7 @@ export function NodeInspector({
   if (selectedId === TRIGGER_ID) {
     const triggers = catalog.filter((t) => t.kind === "trigger");
     return (
-      <div className="flex flex-col gap-3">
+      <fieldset disabled={readOnly} className="flex flex-col gap-3">
         <h3 className="text-sm font-semibold">Trigger</h3>
         <Select
           value={definition.trigger.type}
@@ -140,8 +157,24 @@ export function NodeInspector({
             ))}
           </SelectContent>
         </Select>
-        <p className="text-xs text-muted-foreground">The execution input is passed to every node connected to the trigger.</p>
-      </div>
+        {(triggers.find((t) => t.type === definition.trigger.type)?.fields ?? []).map((field) => (
+          <ConfigField
+            key={`${definition.trigger.type}-${field.key}`}
+            field={field}
+            value={definition.trigger.config?.[field.key]}
+            onChange={(v) => {
+              const config = { ...(definition.trigger.config ?? {}) };
+              if (v === undefined) delete config[field.key];
+              else config[field.key] = v;
+              onChange({ ...definition, trigger: { ...definition.trigger, config } });
+            }}
+          />
+        ))}
+        <p className="text-xs text-muted-foreground">
+          The execution input is passed to every node connected to the trigger. Any deployed workflow can also be run
+          manually.
+        </p>
+      </fieldset>
     );
   }
   const node = definition.nodes.find((n) => n.id === selectedId);
@@ -173,7 +206,7 @@ export function NodeInspector({
       {(type?.fields ?? []).map((field) => (
         <ConfigField key={field.key} field={field} value={node.config?.[field.key]} onChange={(v) => setConfig(field.key, v)} />
       ))}
-      {type?.kind === "action" && (
+      {(type?.kind === "action" || node.type === "logic.loop") && (
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="node-attempts">Max attempts</Label>

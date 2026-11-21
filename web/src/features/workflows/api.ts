@@ -129,3 +129,87 @@ export function useWorkflowMutations(workspaceId: string) {
     }),
   };
 }
+
+// ---- S11: approvals inbox, schedules, cancel / re-run ----
+
+export type ApprovalTask = Schema<"ApprovalTask">;
+export type ApprovalDecision = Schema<"ApprovalDecision">;
+export type WorkflowSchedule = Schema<"WorkflowSchedule">;
+
+export function useApprovalTasks(filter: { status?: string; executionId?: string; enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: ["approval-tasks", filter.status ?? "", filter.executionId ?? ""],
+    enabled: filter.enabled ?? true,
+    refetchInterval: 10_000,
+    queryFn: async () =>
+      unwrap(
+        await api.GET("/v1/hugimethara/approval-tasks", {
+          params: {
+            query: { assigned_to: "me", status: filter.status || undefined, execution_id: filter.executionId || undefined },
+          },
+        }),
+      ).data,
+  });
+}
+
+/** Every task of one execution (needs workflow:read in its workspace). */
+export function useExecutionTasks(workspaceId: string, executionId: string, enabled = true) {
+  return useQuery({
+    queryKey: ["approval-tasks", "execution", executionId],
+    enabled: enabled && Boolean(workspaceId && executionId),
+    refetchInterval: 5_000,
+    queryFn: async () =>
+      unwrap(
+        await api.GET("/v1/hugimethara/approval-tasks", {
+          params: { query: { assigned_to: "any", workspace_id: workspaceId, execution_id: executionId } },
+        }),
+      ).data,
+  });
+}
+
+export function useDecideTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, body }: { id: string; body: ApprovalDecision }) =>
+      unwrap(await api.POST("/v1/hugimethara/approval-tasks/{task_id}/decide", { params: { path: { task_id: id } }, body })),
+    onSuccess: (t) => {
+      qc.invalidateQueries({ queryKey: ["approval-tasks"] });
+      qc.invalidateQueries({ queryKey: ["workflow-execution", t.execution_id] });
+    },
+  });
+}
+
+export function useWorkflowSchedules(workspaceId: string) {
+  return useQuery({
+    queryKey: ["workflow-schedules", workspaceId],
+    enabled: Boolean(workspaceId),
+    refetchInterval: 30_000,
+    queryFn: async () =>
+      unwrap(await api.GET("/v1/hugimethara/workflow-schedules", { params: { query: { workspace_id: workspaceId } } })).data,
+  });
+}
+
+export function useExecutionControls() {
+  const qc = useQueryClient();
+  const refresh = (e: WorkflowExecution) => {
+    qc.setQueryData(["workflow-execution", e.id], e);
+    qc.invalidateQueries({ queryKey: ["workflow-executions", e.workspace_id] });
+    qc.invalidateQueries({ queryKey: ["approval-tasks"] });
+  };
+  return {
+    cancel: useMutation({
+      mutationFn: async (id: string) =>
+        unwrap(
+          await api.POST("/v1/hugimethara/workflow-executions/{execution_id}/cancel", { params: { path: { execution_id: id } } }),
+        ),
+      onSuccess: refresh,
+    }),
+    rerun: useMutation({
+      mutationFn: async (id: string) =>
+        unwrap(
+          await api.POST("/v1/hugimethara/workflow-executions/{execution_id}/retry", { params: { path: { execution_id: id } } }),
+        ),
+      onSuccess: refresh,
+    }),
+  };
+}

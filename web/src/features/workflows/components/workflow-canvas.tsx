@@ -36,6 +36,7 @@ export const STATUS_STYLES: Record<string, string> = {
   running: "border-sky-500 bg-sky-50 dark:bg-sky-950/40 animate-pulse",
   queued: "border-sky-300",
   retry_scheduled: "border-amber-500 bg-amber-50 dark:bg-amber-950/40",
+  waiting: "border-violet-500 bg-violet-50 dark:bg-violet-950/40",
   skipped: "border-dashed opacity-60",
   cancelled: "border-dashed opacity-60",
 };
@@ -75,6 +76,16 @@ function WorkflowNodeView({ data, selected }: NodeProps<Node<CanvasNodeData>>) {
 }
 
 const flowNodeTypes: FlowNodeTypes = { workflow: WorkflowNodeView };
+
+/** A switch has one output per configured case plus default; others use the catalog. */
+export function nodePorts(node: WorkflowDefinition["nodes"][number], catalogPorts: string[]): string[] {
+  if (node.type !== "logic.switch") return catalogPorts;
+  const cases = Array.isArray(node.config?.cases) ? (node.config.cases as unknown[]) : [];
+  const ports = cases
+    .map((c) => (c && typeof c === "object" ? (c as { port?: unknown }).port : undefined))
+    .filter((p): p is string => typeof p === "string" && p !== "" && p !== "default");
+  return [...new Set(ports), "default"];
+}
 
 /** Depth-first column layout for nodes that have no saved position. */
 function autoLayout(def: WorkflowDefinition): Map<string, { x: number; y: number }> {
@@ -149,7 +160,7 @@ export function WorkflowCanvas({
         data: {
           label: n.name || n.id,
           type: n.type,
-          ports: portsOf.get(n.type) ?? [],
+          ports: nodePorts(n, portsOf.get(n.type) ?? []),
           isTrigger: false,
           status: stepStatus?.[n.id],
         },

@@ -88,6 +88,7 @@ type executionRow struct {
 	Output        []byte       `db:"output"`
 	Error         []byte       `db:"error"`
 	StepCount     int          `db:"step_count"`
+	RerunCount    int          `db:"rerun_count"`
 	CreatedAt     time.Time    `db:"created_at"`
 	StartedAt     sql.NullTime `db:"started_at"`
 	FinishedAt    sql.NullTime `db:"finished_at"`
@@ -98,7 +99,7 @@ func (r executionRow) toModel() model.Execution {
 	return model.Execution{ID: r.ID, WorkspaceID: r.WorkspaceID, WorkflowID: r.WorkflowID,
 		VersionID: r.VersionID, Version: r.Version, EnvironmentID: r.EnvironmentID, TriggerType: r.TriggerType,
 		Status: model.ExecutionStatus(r.Status), Input: r.Input, Output: r.Output, Error: stepError(r.Error),
-		StepCount: r.StepCount, CreatedAt: r.CreatedAt, StartedAt: timePtr(r.StartedAt),
+		StepCount: r.StepCount, RerunCount: r.RerunCount, CreatedAt: r.CreatedAt, StartedAt: timePtr(r.StartedAt),
 		FinishedAt: timePtr(r.FinishedAt), DeadlineAt: r.DeadlineAt}
 }
 
@@ -291,7 +292,7 @@ func ListVersions(ctx context.Context, tx *sqlx.Tx, workflowID uuid.UUID) ([]mod
 
 // UpsertDeployment pins a version to an environment and records its trigger.
 func UpsertDeployment(ctx context.Context, tx *sqlx.Tx, orgID, workflowID, environmentID, versionID uuid.UUID,
-	enabled bool, by uuid.UUID, trigger model.Trigger) error {
+	enabled bool, by uuid.UUID, trigger model.Trigger, nextFire *time.Time) error {
 	if _, err := tx.ExecContext(ctx, commands.SQL.Get("UpsertDeployment"), orgID, workflowID, environmentID,
 		versionID, enabled, by); err != nil {
 		return err
@@ -304,7 +305,7 @@ func UpsertDeployment(ctx context.Context, tx *sqlx.Tx, orgID, workflowID, envir
 		cfg = []byte("{}")
 	}
 	_, err = tx.ExecContext(ctx, commands.SQL.Get("UpsertTrigger"), orgID, workflowID, environmentID,
-		trigger.Type, cfg)
+		trigger.Type, cfg, nextFire)
 	return err
 }
 

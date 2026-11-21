@@ -97,10 +97,10 @@ func TestValidateRejectsUnsafeHTTPConfig(t *testing.T) {
 }
 
 func TestStepStateMachineIsExhaustive(t *testing.T) {
-	statuses := []StepStatus{StepPending, StepQueued, StepRunning, StepSucceeded, StepFailed, StepSkipped,
+	statuses := []StepStatus{StepPending, StepQueued, StepRunning, StepWaiting, StepSucceeded, StepFailed, StepSkipped,
 		StepCancelled, StepRetryScheduled}
 	events := []StepEvent{EvDispatch, EvClaim, EvSucceed, EvFail, EvScheduleRetry, EvRetryDue, EvLeaseExpired,
-		EvSkip, EvCancel}
+		EvSkip, EvCancel, EvSuspend, EvResume}
 	valid := 0
 	for _, s := range statuses {
 		for _, ev := range events {
@@ -197,11 +197,13 @@ func TestChecksumIsStable(t *testing.T) {
 	require.Len(t, a, 64)
 }
 
-// The shipped example must stay publishable.
-func TestExampleDefinitionIsValid(t *testing.T) {
-	raw, err := os.ReadFile("../../../../examples/workflows/order-approval.json")
-	require.NoError(t, err)
-	d, err := ParseDefinition(raw)
-	require.NoError(t, err)
-	require.Empty(t, Validate(d, nil))
+// The shipped examples must stay publishable.
+func TestExampleDefinitionsAreValid(t *testing.T) {
+	for _, f := range []string{"order-approval.json", "finance-approval.json"} {
+		raw, err := os.ReadFile("../../../../examples/workflows/" + f)
+		require.NoError(t, err)
+		d, err := ParseDefinition(raw)
+		require.NoError(t, err, f)
+		require.Empty(t, Validate(d, nil), f)
+	}
 }

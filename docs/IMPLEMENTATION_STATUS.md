@@ -2,16 +2,61 @@
 
 _Last updated: 2026-11-21_
 
-## Current stage: Phase 1 — S10 workflow engine core (backend complete; designer UI not yet browser-verified)
+## Current stage: Phase 1 — S11 workflow engine complete (connector-backed nodes and the webhook trigger still open)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | S0–S10 implemented (S6 runtime, S9 E2E, S10 connector/composition nodes open); S11–S14 remain |
+| Phase 1 | In progress | S0–S11 implemented (S6 runtime, S9 E2E, connector-backed workflow nodes open); S12–S14 remain |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-21 — S11 workflow engine complete
+- **Migration `00014_workflow_timers_approvals`:** `waiting` step state; `workflow_timers` (delay and human-task
+  expiry); `approval_tasks` (approval / manual input; assignee users + groups, segregation-of-duties flag, form,
+  decision, comment); `rerun_count` and `trigger_depth` on executions; engine (hugi_system) read policies for
+  workflows, deployments, triggers and environment allowlists so the trigger runner can start executions.
+- **Nodes:** `logic.switch` (per-case ports + default; ports are derived from config in validator and canvas),
+  `logic.loop` (for-each over one `action.http`/`action.transform` body, bounded concurrency ≤ 10, max 1000
+  iterations → `loop_limit_exceeded`, per-item idempotency key), `logic.delay` (fixed seconds or an RFC 3339
+  `until` expression; waits without holding a worker), `human.approval` (ports approved/rejected/timeout),
+  `human.input` (typed form; port submitted/timeout). An expired task with no timeout branch fails the execution
+  with `task_expired`. Publish validation rejects timeouts/delays longer than the execution may run
+  (`timeout_exceeds_execution_limit`) and timeout edges on tasks without a timeout.
+- **Triggers:** `trigger.schedule` (5-field cron incl. names, steps, ranges; IANA time zone; next fire stored on
+  deploy; missed activations collapse into one run; idempotency key = scheduled instant) and `trigger.event`
+  (platform events from `HUGI_EVENTS`, optional CEL condition, idempotent per outbox message id, never
+  self-triggered, chain depth ≤ 5). The new events consumer starts at new messages, not the retained history.
+- **Control:** `POST /workflow-executions/{id}/cancel` (cancels open steps, pending tasks and timers; a running
+  step's worker is fenced out and its lease heartbeat stops it), `POST /workflow-executions/{id}/retry`
+  (re-run from the failed step: succeeded steps are kept, failed/cancelled ones re-queued, deadline restarts),
+  `limits.max_concurrent_executions` (429 `concurrency_limit_exceeded`; serialized by an advisory lock).
+  Timed-out executions now emit `execution_finished` and release their tasks and timers.
+- **Approvals inbox API:** `GET /approval-tasks` (`assigned_to=me` across workspaces, or `any` with
+  workflow:read), `GET /approval-tasks/{id}`, `POST /approval-tasks/{id}/decide`. Only assignees decide;
+  the requester cannot approve their own execution unless the node allows it (`self_approval_forbidden`);
+  decisions are audited (`workflow.task_decided`) and emitted as `workflow.approval_decided`.
+  `GET /workflow-schedules` lists deployed schedules. 147 operations in the contract (+6).
+- **UI:** Approvals inbox (`/automation/approvals`, approve/reject/submit with comment and typed form),
+  Schedules page (`/automation/schedules`), cancel and "re-run from failed step" controls plus the run's human
+  tasks in execution detail, trigger configuration (cron, time zone, event) and boolean fields in the inspector,
+  switch ports on the canvas.
+- **Verification:** 5 new integration tests against real Postgres + RLS — finance approval E2E (assignee rule,
+  self-approval refused, approve → payment call, reject branch, expiry → escalation), manual input + expired
+  task without timeout branch, cancel / delay timer / re-run from failed step, concurrency + loop limits,
+  schedule and event triggers (idempotency, self-trigger and chain guards, tenant isolation). Full backend
+  suite passes with `-race` (161 tests, incl. migration down/up round trip); unit tests for cron (DST gap,
+  half-hour zones), validation, form data and the new nodes. Web typecheck, lint and production build pass.
+  **Browser-verified** against a live api + worker + NATS + Postgres stack: inbox approval resumed the
+  execution, cancel and re-run from the execution panel, schedules page, switch ports, no server errors.
+- **Not done:** `action.db_query`, `action.notify`, `action.record_create/update` stay catalogued but
+  unavailable (`node_type_unavailable`) — they need the S6 connector invocation runtime. `trigger.webhook`
+  ships with S12. Loops run a single action per item, not a sub-graph. Cancelling does not interrupt an
+  in-flight HTTP call immediately (it is fenced and its heartbeat stops it within a third of the lease).
+  `golangci-lint` reports 11 pre-existing findings outside the workflow module (compositions, mappings,
+  router, swaggergen).
 
 ### 2026-11-21 — Modular layout refactor (ADR-0014) and S10 workflow engine core
 - **Refactor:** every module now uses `model/` (+ `model/dto/`), `repository/` (rows) with SQL split into
@@ -293,7 +338,7 @@ _Last updated: 2026-11-21_
 | S8 Mapping engine & studio | ✅ | Mapping drafts, test cases, publish gates, immutable versions, JSONPath/transform/CEL evaluator, and Mapping Studio |
 | S9 API composition | ◐ | Tenant-scoped drafts/versions/executions, bounded DAG executor, OpenAPI routes, and editor are implemented; validate against the order-overview mock-service E2E |
 | S10 Workflow engine core | ◐ engine, API and designer implemented; connector/composition nodes pending | 3 acceptance integration tests (conditional+parallel, crash recovery, inspectable failures); designer not browser-verified |
-| S11 Workflow engine complete | ☐ | |
+| S11 Workflow engine complete | ◐ engine, triggers, approvals, cancel/re-run and UI done; connector-backed nodes (db_query, notify, records) wait for the S6 runtime; webhook trigger is S12 | finance approval E2E + 4 more integration tests; browser-verified inbox, schedules, cancel, re-run |
 | S12 Webhook engine | ☐ | |
 | S13 External workflow tools | ☐ | |
 | S14 Phase review & hardening | ☐ | |

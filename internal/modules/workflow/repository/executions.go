@@ -25,6 +25,7 @@ type NewExecution struct {
 	CreatedBy                                                    uuid.UUID
 	RequestID                                                    string
 	DeadlineAt                                                   time.Time
+	TriggerDepth                                                 int
 }
 
 // InsertExecution creates an execution. created is false when an execution
@@ -51,7 +52,7 @@ func InsertExecution(ctx context.Context, tx *sqlx.Tx, e NewExecution) (id uuid.
 	}
 	err = tx.GetContext(ctx, &id, commands.SQL.Get("InsertExecution"), e.ID, e.OrgID, e.WorkspaceID, e.WorkflowID,
 		e.VersionID, e.EnvironmentID, e.TriggerType, e.TriggerRef, key, input, allow, e.MaxSteps, createdBy,
-		e.RequestID, e.DeadlineAt)
+		e.RequestID, e.DeadlineAt, e.TriggerDepth)
 	if errors.Is(err, sql.ErrNoRows) && e.IdempotencyKey != "" {
 		err = tx.GetContext(ctx, &id, queries.SQL.Get("ExecutionByIdempotencyKey"), e.WorkflowID, e.IdempotencyKey)
 		return id, false, err
@@ -126,4 +127,18 @@ func nullJSON(b []byte) any {
 		return nil
 	}
 	return b
+}
+
+// ExecutionByKey returns the execution started with an idempotency key.
+func ExecutionByKey(ctx context.Context, tx *sqlx.Tx, workflowID uuid.UUID, key string) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := tx.GetContext(ctx, &id, queries.SQL.Get("ExecutionByIdempotencyKey"), workflowID, key)
+	return id, err
+}
+
+// LockStarts serializes execution starts of one workflow in one environment
+// for the rest of the transaction (advisory lock; any role may take it).
+func LockStarts(ctx context.Context, tx *sqlx.Tx, workflowID, environmentID uuid.UUID) error {
+	_, err := tx.ExecContext(ctx, commands.SQL.Get("LockStarts"), workflowID.String()+"/"+environmentID.String())
+	return err
 }

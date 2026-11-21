@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "trigger": { "type": "trigger.manual" },
+  "nodes": [
+    {
+      "id": "route", "type": "logic.switch", "name": "Amount band",
+      "config": { "cases": [ { "port": "large", "condition": "input.amount >= 1000.0" } ] },
+      "position": { "x": 260, "y": 0 }
+    },
+    {
+      "id": "approve", "type": "human.approval", "name": "Finance approval",
+      "config": {
+        "title": "Approve vendor payment",
+        "instructions": "Check the invoice and the vendor bank details.",
+        "assignees": { "groups": [ "00000000-0000-7000-8000-000000000000" ] },
+        "timeout_seconds": 43200
+      },
+      "position": { "x": 520, "y": -80 }
+    },
+    {
+      "id": "pay", "type": "action.http", "name": "Release payment",
+      "config": {
+        "method": "POST", "url": "https://payments.example.com/v1/payouts",
+        "body_expression": "{\"amount\": input.request.amount, \"invoice\": input.request.invoice, \"approved_by\": input.decided_by}"
+      },
+      "retry": { "max_attempts": 3, "backoff": "exponential", "initial_ms": 2000 },
+      "position": { "x": 800, "y": -160 }
+    },
+    {
+      "id": "refuse", "type": "action.transform", "name": "Rejection record",
+      "config": { "rules": [ { "target": "rejected", "source": "$" } ] },
+      "position": { "x": 800, "y": -40 }
+    },
+    {
+      "id": "escalate", "type": "action.transform", "name": "Escalate to CFO",
+      "config": { "rules": [ { "target": "escalated", "source": "$" } ] },
+      "position": { "x": 800, "y": 80 }
+    },
+    {
+      "id": "auto", "type": "action.transform", "name": "Auto-approve",
+      "config": { "rules": [ { "target": "auto_approved", "source": "$.amount" } ] },
+      "position": { "x": 520, "y": 140 }
+    }
+  ],
+  "edges": [
+    { "from": "trigger", "to": "route" },
+    { "from": "route", "to": "approve", "port": "large" },
+    { "from": "route", "to": "auto", "port": "default" },
+    { "from": "approve", "to": "pay", "port": "approved" },
+    { "from": "approve", "to": "refuse", "port": "rejected" },
+    { "from": "approve", "to": "escalate", "port": "timeout" }
+  ],
+  "limits": { "max_steps": 50, "max_duration_seconds": 86400, "max_concurrent_executions": 100 }
+}

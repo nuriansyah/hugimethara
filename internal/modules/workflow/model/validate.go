@@ -65,6 +65,18 @@ func (v *validator) trigger() {
 	case !t.Available:
 		v.add("trigger.type", "trigger_unavailable", "Trigger %q is not available yet (%s).", t.Type, t.Unavailable)
 	}
+	cfg := v.def.Trigger.Config
+	switch v.def.Trigger.Type {
+	case TypeTriggerSchedule:
+		if _, err := ParseScheduleTrigger(cfg); err != nil {
+			v.add("trigger.config", "invalid_schedule", "%s.", err.Error())
+		}
+	case TypeTriggerEvent:
+		if _, err := ParseEventTrigger(cfg); err != nil {
+			v.add("trigger.config.event", "invalid_event", "%s.", err.Error())
+		}
+		v.expr("trigger.config.condition", cfg["condition"], false)
+	}
 }
 
 func (v *validator) nodeSet() {
@@ -182,6 +194,45 @@ func (v *validator) config(path string, n Node) {
 		if m, ok := c["mode"]; ok && m != "all" && m != "any" && m != nil && m != "" {
 			v.add(path+".mode", "invalid_mode", "mode must be all or any.")
 		}
+	case TypeLogicSwitch:
+		cases, err := ParseSwitchCases(c)
+		if err != nil {
+			v.add(path+".cases", "invalid_cases", "%s.", err.Error())
+		}
+		for i, sc := range cases {
+			v.expr(fmt.Sprintf("%s.cases[%d].condition", path, i), sc.Condition, true)
+		}
+	case TypeLogicLoop:
+		l, err := ParseLoop(n)
+		if err != nil {
+			v.add(path, "invalid_loop", "%s.", err.Error())
+			return
+		}
+		v.expr(path+".items", c["items"], false)
+		v.config(path+".body.config", l.Body)
+	case TypeLogicDelay:
+		d, err := ParseDelay(c)
+		if err != nil {
+			v.add(path, "invalid_delay", "%s.", err.Error())
+			return
+		}
+		v.expr(path+".until", c["until"], false)
+		if d.Until == "" && d.Fixed > v.def.Limits.EffectiveMaxDuration() {
+			v.add(path+".seconds", "timeout_exceeds_execution_limit",
+				"The delay is longer than the execution may run (limits.max_duration_seconds = %d).",
+				int(v.def.Limits.EffectiveMaxDuration().Seconds()))
+		}
+	case TypeHumanApproval, TypeHumanInput:
+		t, err := ParseHumanTask(n)
+		if err != nil {
+			v.add(path, "invalid_task", "%s.", err.Error())
+			return
+		}
+		if t.Timeout > v.def.Limits.EffectiveMaxDuration() {
+			v.add(path+".timeout_seconds", "timeout_exceeds_execution_limit",
+				"The task timeout is longer than the execution may run (limits.max_duration_seconds = %d).",
+				int(v.def.Limits.EffectiveMaxDuration().Seconds()))
+		}
 	}
 }
 
@@ -208,8 +259,13 @@ func (v *validator) edgeSet() {
 		seen[e] = true
 		var ports []string
 		if e.From != TriggerNodeID {
-			t, _ := LookupNodeType(v.nodes[e.From].Type)
-			ports = t.Ports
+			ports = NodePorts(v.nodes[e.From])
+			if e.Port == PortTimeout && isHuman(v.nodes[e.From].Type) {
+				if t, err := ParseHumanTask(v.nodes[e.From]); err == nil && t.Timeout == 0 {
+					v.add(p+".port", "timeout_not_configured",
+						"Node %q has no timeout_seconds, so its timeout branch can never run.", e.From)
+				}
+			}
 		}
 		if !validPort(ports, e.Port) {
 			if len(ports) == 0 {
@@ -220,6 +276,8 @@ func (v *validator) edgeSet() {
 		}
 	}
 }
+
+func isHuman(t string) bool { return t == TypeHumanApproval || t == TypeHumanInput }
 
 func validPort(ports []string, port string) bool {
 	if len(ports) == 0 {
@@ -317,6 +375,10 @@ func (v *validator) limits() {
 	if l.MaxDurationSeconds < 0 || l.MaxDurationSeconds > int(MaxDurationCap.Seconds()) {
 		v.add("limits.max_duration_seconds", "limit_out_of_range",
 			"max_duration_seconds must be between 1 and %d.", int(MaxDurationCap.Seconds()))
+	}
+	if l.MaxConcurrentExecutions < 0 || l.MaxConcurrentExecutions > MaxConcurrentExecsCap {
+		v.add("limits.max_concurrent_executions", "limit_out_of_range",
+			"max_concurrent_executions must be between 0 (unlimited) and %d.", MaxConcurrentExecsCap)
 	}
 	if l.MaxSteps > 0 && l.MaxSteps < len(v.def.Nodes) {
 		v.add("limits.max_steps", "limit_below_graph", "max_steps (%d) is smaller than the number of nodes (%d).",

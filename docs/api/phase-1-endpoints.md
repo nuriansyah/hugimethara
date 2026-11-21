@@ -60,8 +60,9 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | POST | /workflows/{id}/execute (manual; Idempotency-Key) | workflow:execute | S10 |
 | POST | /workflows/{id}/nodes/{node_id}/test (single-node test with sample input) | workflow:update | S10 |
 | GET | /workflow-executions?workflow_id=&status=; GET /workflow-executions/{id} (+ steps) | workflow:read | S10 |
-| POST | /workflow-executions/{id}/cancel · /retry (re-run from failed step) | workflow:execute | S11 |
-| GET | /approval-tasks?assigned_to=me; POST /approval-tasks/{id}/decide | (assignee rule) | S11 |
+| POST | /workflow-executions/{id}/cancel · /retry (re-run from failed step) | workflow:execute | S11 ✅ |
+| GET | /approval-tasks?assigned_to=me\|any&workspace_id=&execution_id=&status=; GET /approval-tasks/{id}; POST /approval-tasks/{id}/decide | (assignee rule; `any` needs workflow:read) | S11 ✅ |
+| GET | /workflow-schedules?workspace_id= | workflow:read | S11 ✅ |
 | GET | /node-types (catalog + config schemas) | workflow:read | S10 |
 | **Webhook** ||||
 | CRUD | /webhooks (inbound endpoints; secret shown once on create/rotate); POST /webhooks/{id}/rotate-secret | webhook:* | S12 |

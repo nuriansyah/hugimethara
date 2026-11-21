@@ -177,6 +177,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/approval-tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Approvals inbox
+         * @description assigned_to=me (the default) lists tasks assigned to the caller directly or through a group, in every workspace. assigned_to=any lists a workspace's tasks and needs workflow:read there.
+         */
+        get: operations["listApprovalTasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/approval-tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an approval task */
+        get: operations["getApprovalTask"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/approval-tasks/{task_id}/decide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve, reject or submit a task
+         * @description Only assignees may decide. Unless the node allows it, whoever started the execution cannot approve it (self_approval_forbidden). The waiting step resumes on the approved, rejected or submitted branch.
+         */
+        post: operations["decideApprovalTask"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/audit-events": {
         parameters: {
             query?: never;
@@ -1389,6 +1446,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/workflow-executions/{execution_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel an unfinished execution
+         * @description Cancels open steps, pending approval tasks and timers. A step already running on a worker is fenced out: its result is discarded.
+         */
+        post: operations["cancelWorkflowExecution"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workflow-executions/{execution_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Re-run a failed or timed-out execution from its failed step
+         * @description Succeeded steps keep their outputs and are not re-run; the failed step and the steps cancelled because of it run again. The execution deadline restarts.
+         */
+        post: operations["retryWorkflowExecution"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/workflow-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List deployed workflow schedules */
+        get: operations["listWorkflowSchedules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/workflows": {
         parameters: {
             query?: never;
@@ -1731,6 +1845,51 @@ export interface components {
         ApiKeyCreated: {
             key: components["schemas"]["ApiKey"];
             secret: string;
+        };
+        ApprovalDecision: {
+            comment?: string;
+            data?: {
+                [key: string]: unknown;
+            };
+            /** @enum {string} */
+            decision: "approve" | "reject" | "submit";
+        };
+        ApprovalTask: {
+            allow_self_approval: boolean;
+            assignee_group_ids: string[];
+            assignee_user_ids: string[];
+            can_decide: boolean;
+            comment: string;
+            context?: unknown;
+            created_at: string;
+            decided_at?: string;
+            decided_by?: string;
+            due_at?: string;
+            execution_id: string;
+            fields: components["schemas"]["ApprovalTaskField"][];
+            id: string;
+            instructions: string;
+            /** @enum {string} */
+            kind: "approval" | "input";
+            node_id: string;
+            requested_by?: string;
+            response?: unknown;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected" | "submitted" | "expired" | "cancelled";
+            title: string;
+            workflow_id: string;
+            workflow_name: string;
+            workspace_id: string;
+        };
+        ApprovalTaskField: {
+            key: string;
+            label: string;
+            required: boolean;
+            /** @enum {string} */
+            type: "string" | "text" | "number" | "boolean";
+        };
+        ApprovalTasks: {
+            data: components["schemas"]["ApprovalTask"][];
         };
         AuditEvent: {
             /** @description Action is the exact event action, for example organization.updated. */
@@ -2343,7 +2502,7 @@ export interface components {
             description: string;
             fields: components["schemas"]["NodeTypeField"][];
             /** @enum {string} */
-            kind: "trigger" | "action" | "logic";
+            kind: "trigger" | "action" | "logic" | "human";
             label: string;
             ports: string[];
             type: string;
@@ -2353,7 +2512,7 @@ export interface components {
             description?: string;
             key: string;
             /** @enum {string} */
-            kind: "string" | "text" | "expression" | "json" | "select" | "number";
+            kind: "string" | "text" | "expression" | "json" | "select" | "number" | "boolean";
             label: string;
             options?: string[];
             required: boolean;
@@ -2736,6 +2895,7 @@ export interface components {
             id: string;
             input?: unknown;
             output?: unknown;
+            rerun_count: number;
             started_at?: string;
             /** @enum {string} */
             status: "pending" | "running" | "succeeded" | "failed" | "cancelled" | "timed_out";
@@ -2756,6 +2916,7 @@ export interface components {
             path: string;
         };
         WorkflowLimits: {
+            max_concurrent_executions?: number;
             max_duration_seconds?: number;
             max_steps?: number;
         };
@@ -2779,6 +2940,21 @@ export interface components {
             initial_ms?: number;
             max_attempts: number;
         };
+        WorkflowSchedule: {
+            cron: string;
+            enabled: boolean;
+            environment_id: string;
+            environment_name: string;
+            next_fire_at?: string;
+            timezone: string;
+            version: number;
+            workflow_id: string;
+            workflow_name: string;
+            workflow_status: string;
+        };
+        WorkflowSchedules: {
+            data: components["schemas"]["WorkflowSchedule"][];
+        };
         WorkflowStep: {
             attempt: number;
             error?: components["schemas"]["WorkflowError"];
@@ -2792,7 +2968,7 @@ export interface components {
             queued_at?: string;
             started_at?: string;
             /** @enum {string} */
-            status: "pending" | "queued" | "running" | "succeeded" | "failed" | "skipped" | "cancelled" | "retry_scheduled";
+            status: "pending" | "queued" | "running" | "waiting" | "succeeded" | "failed" | "skipped" | "cancelled" | "retry_scheduled";
         };
         WorkflowTrigger: {
             config?: {
@@ -3478,6 +3654,178 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listApprovalTasks: {
+        parameters: {
+            query?: {
+                /** @description me (default) or any */
+                assigned_to?: string;
+                /** @description Workspace ID (required with assigned_to=any) */
+                workspace_id?: string;
+                /** @description Execution ID */
+                execution_id?: string;
+                /** @description Task status */
+                status?: string;
+                /** @description Page size (max 200) */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalTasks"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getApprovalTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Task ID */
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalTask"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    decideApprovalTask: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Task ID */
+                task_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Decision */
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApprovalDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApprovalTask"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8546,6 +8894,165 @@ export interface operations {
             };
             /** @description Error (RFC 9457 problem details). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    cancelWorkflowExecution: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Execution ID */
+                execution_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowExecution"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    retryWorkflowExecution: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Execution ID */
+                execution_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowExecution"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listWorkflowSchedules: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkflowSchedules"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

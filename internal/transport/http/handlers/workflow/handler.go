@@ -102,7 +102,8 @@ func apiExecution(e model.Execution) (dto.WorkflowExecution, error) {
 	res := dto.WorkflowExecution{Id: e.ID, WorkspaceId: e.WorkspaceID, WorkflowId: e.WorkflowID,
 		VersionId: e.VersionID, Version: e.Version, EnvironmentId: e.EnvironmentID, TriggerType: e.TriggerType,
 		Status: string(e.Status), Input: in, Output: out, Error: apiError(e.Error), StepCount: e.StepCount,
-		CreatedAt: e.CreatedAt, StartedAt: e.StartedAt, FinishedAt: e.FinishedAt, DeadlineAt: e.DeadlineAt}
+		RerunCount: e.RerunCount,
+		CreatedAt:  e.CreatedAt, StartedAt: e.StartedAt, FinishedAt: e.FinishedAt, DeadlineAt: e.DeadlineAt}
 	for _, s := range e.Steps {
 		sin, err := decode(s.Input)
 		if err != nil {

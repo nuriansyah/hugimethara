@@ -163,7 +163,7 @@ erDiagram
 | 00010_connector_registry | S6 connectors |
 | 0009_service_registry | S7 |
 | 0011_mappings · 0012_compositions | S8–S9 |
-| 0012_workflows · 0013_workflow_timers_approvals | S10–S11 |
+| ✅ 00013_workflows · ✅ 00014_workflow_timers_approvals (waiting state, workflow_timers, approval_tasks, rerun/trigger-depth columns, engine read policies for the trigger runner) | S10–S11 |
 | 0014_webhooks | S12 |
 
 Seed: global connector catalog + role templates (idempotent, run by `hugi-migrate seed`).

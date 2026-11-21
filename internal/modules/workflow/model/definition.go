@@ -77,6 +77,10 @@ type Edge struct {
 type Limits struct {
 	MaxSteps           int `json:"max_steps,omitempty"`
 	MaxDurationSeconds int `json:"max_duration_seconds,omitempty"`
+	// MaxConcurrentExecutions caps unfinished executions of this workflow per
+	// environment; 0 is unlimited. Starts beyond it are refused with
+	// concurrency_limit_exceeded.
+	MaxConcurrentExecutions int `json:"max_concurrent_executions,omitempty"`
 }
 
 // RetryPolicy retries a failed node with exponential or fixed backoff.

@@ -30,6 +30,7 @@ type NodeContext struct {
 	Outputs        map[string]any // outputs of succeeded nodes, by id
 	Egress         egress.Policy  // the execution's environment policy snapshot
 	IdempotencyKey string         // {execution}:{node}:{iteration}:{attempt}
+	Now            time.Time      // engine clock at claim time (delays, task due dates)
 }
 
 // vars is the CEL activation for this node.
@@ -42,9 +43,19 @@ func (c NodeContext) vars() map[string]any {
 }
 
 // NodeResult is a node's output and, for branching nodes, the chosen port.
+// A node that must wait (delay, human task) returns Suspend instead: the step
+// parks as waiting without holding a worker, and is resumed by a timer or a
+// task decision with the output and port decided then.
 type NodeResult struct {
-	Output any
-	Port   string
+	Output  any
+	Port    string
+	Suspend *Suspension
+}
+
+// Suspension describes what a waiting step waits for.
+type Suspension struct {
+	WakeAt *time.Time       // delay end, or human-task expiry
+	Task   *model.HumanTask // creates an approval task when set
 }
 
 // NodeExecutor runs one node type (workflow-runtime.md §2).
@@ -61,9 +72,11 @@ func NewRegistry(x *Expressions) Registry {
 	r := Registry{}
 	for _, n := range []NodeExecutor{
 		httpNode{x}, transformNode{}, ifNode{x}, parallelNode{}, mergeNode{}, filterNode{x},
+		switchNode{x}, delayNode{x}, humanNode{model.TypeHumanApproval}, humanNode{model.TypeHumanInput},
 	} {
 		r[n.Type()] = n
 	}
+	r[model.TypeLogicLoop] = loopNode{x: x, body: r}
 	return r
 }
 

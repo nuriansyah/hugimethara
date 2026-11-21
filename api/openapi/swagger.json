@@ -701,6 +701,214 @@
                 }
             }
         },
+        "/v1/hugimethara/approval-tasks": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "assigned_to=me (the default) lists tasks assigned to the caller directly or through a group, in every workspace. assigned_to=any lists a workspace's tasks and needs workflow:read there.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Approvals inbox",
+                "operationId": "listApprovalTasks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "me (default) or any",
+                        "name": "assigned_to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Workspace ID (required with assigned_to=any)",
+                        "name": "workspace_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Execution ID",
+                        "name": "execution_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Task status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (max 200)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApprovalTasks"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/approval-tasks/{task_id}": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Get an approval task",
+                "operationId": "getApprovalTask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApprovalTask"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/approval-tasks/{task_id}/decide": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Only assignees may decide. Unless the node allows it, whoever started the execution cannot approve it (self_approval_forbidden). The waiting step resumes on the approved, rejected or submitted branch.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Approve, reject or submit a task",
+                "operationId": "decideApprovalTask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task ID",
+                        "name": "task_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Decision",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApprovalDecision"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApprovalTask"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/audit-events": {
             "get": {
                 "security": [
@@ -6462,6 +6670,179 @@
                 }
             }
         },
+        "/v1/hugimethara/workflow-executions/{execution_id}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Cancels open steps, pending approval tasks and timers. A step already running on a worker is fenced out: its result is discarded.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Cancel an unfinished execution",
+                "operationId": "cancelWorkflowExecution",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Execution ID",
+                        "name": "execution_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowExecution"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflow-executions/{execution_id}/retry": {
+            "post": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Succeeded steps keep their outputs and are not re-run; the failed step and the steps cancelled because of it run again. The execution deadline restarts.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "Re-run a failed or timed-out execution from its failed step",
+                "operationId": "retryWorkflowExecution",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Execution ID",
+                        "name": "execution_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowExecution"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "404": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "409": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/workflow-schedules": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workflows"
+                ],
+                "summary": "List deployed workflow schedules",
+                "operationId": "listWorkflowSchedules",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.WorkflowSchedules"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/workflows": {
             "get": {
                 "security": [
@@ -7968,6 +8349,182 @@
                 },
                 "secret": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.ApprovalDecision": {
+            "type": "object",
+            "required": [
+                "decision"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "decision": {
+                    "type": "string",
+                    "enum": [
+                        "approve",
+                        "reject",
+                        "submit"
+                    ]
+                }
+            }
+        },
+        "dto.ApprovalTask": {
+            "type": "object",
+            "required": [
+                "allow_self_approval",
+                "assignee_group_ids",
+                "assignee_user_ids",
+                "can_decide",
+                "comment",
+                "created_at",
+                "execution_id",
+                "fields",
+                "id",
+                "instructions",
+                "kind",
+                "node_id",
+                "status",
+                "title",
+                "workflow_id",
+                "workflow_name",
+                "workspace_id"
+            ],
+            "properties": {
+                "allow_self_approval": {
+                    "type": "boolean"
+                },
+                "assignee_group_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "assignee_user_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "can_decide": {
+                    "type": "boolean"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "context": {},
+                "created_at": {
+                    "type": "string"
+                },
+                "decided_at": {
+                    "type": "string"
+                },
+                "decided_by": {
+                    "type": "string"
+                },
+                "due_at": {
+                    "type": "string"
+                },
+                "execution_id": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ApprovalTaskField"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "instructions": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "approval",
+                        "input"
+                    ]
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "requested_by": {
+                    "type": "string"
+                },
+                "response": {},
+                "status": {
+                    "type": "string",
+                    "enum": [
+                        "pending",
+                        "approved",
+                        "rejected",
+                        "submitted",
+                        "expired",
+                        "cancelled"
+                    ]
+                },
+                "title": {
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "type": "string"
+                },
+                "workflow_name": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ApprovalTaskField": {
+            "type": "object",
+            "required": [
+                "key",
+                "label",
+                "required",
+                "type"
+            ],
+            "properties": {
+                "key": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "string",
+                        "text",
+                        "number",
+                        "boolean"
+                    ]
+                }
+            }
+        },
+        "dto.ApprovalTasks": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ApprovalTask"
+                    }
                 }
             }
         },
@@ -10280,7 +10837,8 @@
                     "enum": [
                         "trigger",
                         "action",
-                        "logic"
+                        "logic",
+                        "human"
                     ]
                 },
                 "label": {
@@ -10323,7 +10881,8 @@
                         "expression",
                         "json",
                         "select",
-                        "number"
+                        "number",
+                        "boolean"
                     ]
                 },
                 "label": {
@@ -11726,6 +12285,7 @@
                 "deadline_at",
                 "environment_id",
                 "id",
+                "rerun_count",
                 "status",
                 "step_count",
                 "trigger_type",
@@ -11755,6 +12315,9 @@
                 },
                 "input": {},
                 "output": {},
+                "rerun_count": {
+                    "type": "integer"
+                },
                 "started_at": {
                     "type": "string"
                 },
@@ -11831,6 +12394,9 @@
         "dto.WorkflowLimits": {
             "type": "object",
             "properties": {
+                "max_concurrent_executions": {
+                    "type": "integer"
+                },
                 "max_duration_seconds": {
                     "type": "integer"
                 },
@@ -11902,6 +12468,66 @@
                 }
             }
         },
+        "dto.WorkflowSchedule": {
+            "type": "object",
+            "required": [
+                "cron",
+                "enabled",
+                "environment_id",
+                "environment_name",
+                "timezone",
+                "version",
+                "workflow_id",
+                "workflow_name",
+                "workflow_status"
+            ],
+            "properties": {
+                "cron": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "environment_name": {
+                    "type": "string"
+                },
+                "next_fire_at": {
+                    "type": "string"
+                },
+                "timezone": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                },
+                "workflow_id": {
+                    "type": "string"
+                },
+                "workflow_name": {
+                    "type": "string"
+                },
+                "workflow_status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.WorkflowSchedules": {
+            "type": "object",
+            "required": [
+                "data"
+            ],
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.WorkflowSchedule"
+                    }
+                }
+            }
+        },
         "dto.WorkflowStep": {
             "type": "object",
             "required": [
@@ -11947,6 +12573,7 @@
                         "pending",
                         "queued",
                         "running",
+                        "waiting",
                         "succeeded",
                         "failed",
                         "skipped",
