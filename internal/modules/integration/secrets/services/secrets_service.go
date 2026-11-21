@@ -296,10 +296,14 @@ func (s *SecretsService) loadDEK(ctx context.Context, tx *sqlx.Tx, org, id uuid.
 }
 
 func (s *SecretsService) unwrapDEK(org uuid.UUID, row repository.DataKeyRow) ([]byte, error) {
-	if row.KEKID != s.kekID {
-		return nil, fmt.Errorf("secret: configured KEK %q does not match stored KEK %q", s.kekID, row.KEKID)
+	return unwrapDEK(s.master, s.kekID, org, row)
+}
+
+func unwrapDEK(master *secretbox.Key, kekID string, org uuid.UUID, row repository.DataKeyRow) ([]byte, error) {
+	if row.KEKID != kekID {
+		return nil, fmt.Errorf("secret: configured KEK %q does not match stored KEK %q", kekID, row.KEKID)
 	}
-	dek, err := s.master.OpenWithAAD(row.Wrapped, secretsmodel.KeyAAD(org, row.ID))
+	dek, err := master.OpenWithAAD(row.Wrapped, secretsmodel.KeyAAD(org, row.ID))
 	if err != nil {
 		return nil, fmt.Errorf("secret: unwrap data key: %w", err)
 	}

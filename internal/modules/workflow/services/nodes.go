@@ -31,6 +31,7 @@ type NodeContext struct {
 	Egress         egress.Policy  // the execution's environment policy snapshot
 	IdempotencyKey string         // {execution}:{node}:{iteration}:{attempt}
 	Now            time.Time      // engine clock at claim time (delays, task due dates)
+	Prepared       any            // what the executor's Prepare returned (Preparer only)
 }
 
 // vars is the CEL activation for this node.

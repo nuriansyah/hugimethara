@@ -1995,6 +1995,7 @@ components:
                         - number
                         - boolean
                         - webhook_endpoint
+                        - connector
                     type: string
                 label:
                     type: string
@@ -2180,6 +2181,176 @@ components:
                 - id
                 - name
                 - slug
+            type: object
+        Overview:
+            properties:
+                connectors:
+                    $ref: '#/components/schemas/OverviewConnectors'
+                from:
+                    type: string
+                to:
+                    type: string
+                webhooks:
+                    $ref: '#/components/schemas/OverviewWebhooks'
+                window:
+                    enum:
+                        - 24h
+                        - 7d
+                        - 30d
+                    type: string
+                workflows:
+                    $ref: '#/components/schemas/OverviewWorkflows'
+                workspace_id:
+                    type: string
+            required:
+                - from
+                - to
+                - window
+                - workspace_id
+            type: object
+        OverviewConnectors:
+            properties:
+                enabled:
+                    type: integer
+                failing:
+                    items:
+                        $ref: '#/components/schemas/OverviewUnhealthyConnector'
+                    type: array
+                healthy:
+                    type: integer
+                total:
+                    type: integer
+                unchecked:
+                    type: integer
+                unhealthy:
+                    type: integer
+            required:
+                - enabled
+                - failing
+                - healthy
+                - total
+                - unchecked
+                - unhealthy
+            type: object
+        OverviewFailingWorkflow:
+            properties:
+                failures:
+                    type: integer
+                last_error_code:
+                    type: string
+                last_failed_at:
+                    type: string
+                name:
+                    type: string
+                workflow_id:
+                    type: string
+            required:
+                - failures
+                - last_error_code
+                - last_failed_at
+                - name
+                - workflow_id
+            type: object
+        OverviewSeriesPoint:
+            properties:
+                bucket:
+                    type: string
+                failed:
+                    type: integer
+                succeeded:
+                    type: integer
+            required:
+                - bucket
+                - failed
+                - succeeded
+            type: object
+        OverviewUnhealthyConnector:
+            properties:
+                checked_at:
+                    type: string
+                connector_id:
+                    type: string
+                definition_key:
+                    type: string
+                environment_id:
+                    type: string
+                error_code:
+                    type: string
+                ref_key:
+                    type: string
+            required:
+                - checked_at
+                - connector_id
+                - definition_key
+                - environment_id
+                - error_code
+                - ref_key
+            type: object
+        OverviewWebhooks:
+            properties:
+                deliveries_dead_lettered:
+                    type: integer
+                deliveries_pending:
+                    type: integer
+                deliveries_succeeded:
+                    type: integer
+                endpoints:
+                    type: integer
+                received:
+                    type: integer
+                rejected_total:
+                    type: integer
+                subscriptions:
+                    type: integer
+            required:
+                - deliveries_dead_lettered
+                - deliveries_pending
+                - deliveries_succeeded
+                - endpoints
+                - received
+                - rejected_total
+                - subscriptions
+            type: object
+        OverviewWorkflows:
+            properties:
+                active_workflows:
+                    type: integer
+                cancelled:
+                    type: integer
+                failed:
+                    type: integer
+                p50_ms:
+                    type: integer
+                p95_ms:
+                    type: integer
+                pending_approvals:
+                    type: integer
+                running:
+                    type: integer
+                series:
+                    items:
+                        $ref: '#/components/schemas/OverviewSeriesPoint'
+                    type: array
+                succeeded:
+                    type: integer
+                success_rate:
+                    type: number
+                top_failing:
+                    items:
+                        $ref: '#/components/schemas/OverviewFailingWorkflow'
+                    type: array
+                total:
+                    type: integer
+            required:
+                - active_workflows
+                - cancelled
+                - failed
+                - pending_approvals
+                - running
+                - series
+                - succeeded
+                - top_failing
+                - total
             type: object
         Plan:
             properties:
@@ -2951,6 +3122,9 @@ components:
                         - stripe
                         - github
                         - slack
+                        - n8n
+                        - make
+                        - zapier
                     type: string
                 verifier_config:
                     $ref: '#/components/schemas/WebhookVerifierConfig'
@@ -2997,6 +3171,9 @@ components:
                         - stripe
                         - github
                         - slack
+                        - n8n
+                        - make
+                        - zapier
                     type: string
                 verifier_config:
                     $ref: '#/components/schemas/WebhookVerifierConfig'
@@ -7268,6 +7445,53 @@ paths:
             summary: Update the caller's organization
             tags:
                 - organization
+    /v1/hugimethara/overview:
+        get:
+            description: Executions, failures and duration percentiles in the window, connector health from the latest connection test of each instance, and webhook traffic. Each section is present only when the caller can read workflows, connectors or webhooks in the workspace; with none of them the request is refused.
+            operationId: getOverview
+            parameters:
+                - description: Workspace ID
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+                - description: 24h (default), 7d or 30d
+                  in: query
+                  name: window
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Overview'
+                    description: OK
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Problem'
+                    description: Error (RFC 9457 problem details).
+            security:
+                - sessionCookie: []
+                - apiKey: []
+            summary: Workspace overview (operational KPIs)
+            tags:
+                - overview
     /v1/hugimethara/plans:
         get:
             operationId: listPlans
@@ -9119,7 +9343,7 @@ paths:
             tags:
                 - webhooks
         post:
-            description: Senders POST to /hooks/{public_id}. For standard_webhooks and hmac_sha256 the signing secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
+            description: Senders POST to /hooks/{public_id}. For standard_webhooks, hmac_sha256 and the n8n/make/zapier token presets (sent in X-Hugi-Token) the secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
             operationId: createWebhook
             requestBody:
                 content:

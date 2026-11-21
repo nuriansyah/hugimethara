@@ -154,7 +154,7 @@ func (h *HTTP) ListWebhooks(ctx context.Context, req dto.ListWebhooksRequestObje
 }
 
 // @Summary Create an inbound webhook endpoint
-// @Description Senders POST to /hooks/{public_id}. For standard_webhooks and hmac_sha256 the signing secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
+// @Description Senders POST to /hooks/{public_id}. For standard_webhooks, hmac_sha256 and the n8n/make/zapier token presets (sent in X-Hugi-Token) the secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
 // @ID createWebhook
 // @Tags webhooks
 // @Param body body dto.WebhookEndpointCreate true "Endpoint"

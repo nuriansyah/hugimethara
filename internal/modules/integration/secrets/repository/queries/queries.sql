@@ -16,3 +16,8 @@ FROM secrets WHERE id = $1;
 
 -- name: GetDataKey
 SELECT id, kek_id, wrapped_key FROM data_keys WHERE org_id = $1;
+
+-- name: OpenCredential
+-- Data-plane read (also granted to hugi_system): only the columns needed to
+-- decrypt, never metadata.
+SELECT dek_id, ciphertext FROM secrets WHERE id = $1 AND org_id = $2;

@@ -28,13 +28,13 @@ func StandardKey(secret []byte) ([]byte, error) {
 
 // GenerateSecret creates a signing secret for scheme: a Standard Webhooks
 // "whsec_" secret for standard_webhooks (and outbound subscriptions), a
-// 64-character hex string for generic HMAC.
+// 64-character hex string for generic HMAC and the external-tool token presets.
 func GenerateSecret(scheme Scheme) (string, error) {
 	b := make([]byte, 32)
 	if _, err := rand.Read(b); err != nil {
 		return "", err
 	}
-	if scheme == SchemeHMAC {
+	if scheme == SchemeHMAC || scheme.IsToken() {
 		return hex.EncodeToString(b), nil
 	}
 	return StandardSecretPrefix + base64.StdEncoding.EncodeToString(b), nil

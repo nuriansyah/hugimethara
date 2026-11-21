@@ -50,7 +50,7 @@ func TestValidateReportsEveryStructuralIssue(t *testing.T) {
 	d := conditionalParallel()
 	d.Nodes = append(d.Nodes,
 		Node{ID: "orphan", Type: TypeLogicParallel},
-		Node{ID: "conn", Type: TypeActionConnector},
+		Node{ID: "conn", Type: TypeActionDBQuery},
 	)
 	d.Edges = append(d.Edges, Edge{From: "a", To: "b"}) // b now has two inputs without a merge
 	issues := Validate(d, nil)

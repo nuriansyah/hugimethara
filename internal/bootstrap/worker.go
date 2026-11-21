@@ -13,6 +13,8 @@ import (
 	"net/http"
 	"os"
 
+	connectorsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/connector/services"
+	secretssvc "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/services"
 	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
 	secretbox "github.com/nuriansyah/hugimethara/internal/platform/crypto"
@@ -75,8 +77,22 @@ func RunWorker() error {
 		log.Error("workflow expression environment", "err", err)
 		return err
 	}
+	masterKey, defaulted, err := cfg.MasterKeyBytes()
+	if err != nil {
+		log.Error("invalid master key", "err", err)
+		return err
+	}
+	if defaulted {
+		log.Warn("HUGI_MASTER_KEY is not set; using the development key. Set it in every real deployment.")
+	}
+	opener, err := secretssvc.NewOpener(masterKey, cfg.MasterKeyID)
+	if err != nil {
+		log.Error("secret opener", "err", err)
+		return err
+	}
+	nodes := workflowsvc.NewRegistry(expressions).WithConnectors(expressions, connectorsvc.NewRuntime(opener))
 	hostname, _ := os.Hostname()
-	engine := workflowsvc.NewEngine(sysPool, workflowsvc.NewRegistry(expressions), workflowsvc.EngineConfig{
+	engine := workflowsvc.NewEngine(sysPool, nodes, workflowsvc.EngineConfig{
 		WorkerID: hostname + "/" + id.New().String(), Log: log, Registerer: reg,
 	})
 	consumeSteps := func(ctx context.Context) error {
@@ -109,14 +125,6 @@ func RunWorker() error {
 		})
 	}
 
-	masterKey, defaulted, err := cfg.MasterKeyBytes()
-	if err != nil {
-		log.Error("invalid master key", "err", err)
-		return err
-	}
-	if defaulted {
-		log.Warn("HUGI_MASTER_KEY is not set; using the development key. Set it in every real deployment.")
-	}
 	sealer, err := secretbox.New(masterKey)
 	if err != nil {
 		log.Error("master key unusable", "err", err)

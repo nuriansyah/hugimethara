@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import (
 	authzsvc "github.com/nuriansyah/hugimethara/internal/modules/authorization/services"
 	auditmodel "github.com/nuriansyah/hugimethara/internal/modules/governance/audit/model"
 	auditsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/audit/services"
+	connectorsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/connector/services"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/model"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/workflow/repository"
@@ -367,6 +369,11 @@ func (s *WorkflowService) Deploy(ctx context.Context, id, environmentID uuid.UUI
 				return err
 			}
 		}
+		if in.Enabled {
+			if err := checkConnectors(ctx, tx, v.Definition, w.WorkspaceID, environmentID); err != nil {
+				return err
+			}
+		}
 		var nextFire *time.Time
 		if v.Definition.Trigger.Type == model.TypeTriggerSchedule && in.Enabled {
 			sched, err := model.ParseScheduleTrigger(v.Definition.Trigger.Config)
@@ -408,6 +415,40 @@ func checkWebhookEndpoint(ctx context.Context, tx *sqlx.Tx, cfg map[string]any, 
 	if scope.EnvironmentID != environmentID {
 		return validation("environment_id", "webhook_endpoint_environment_mismatch",
 			"The trigger's webhook endpoint belongs to another environment; deploy to that environment or pick an endpoint of this one.")
+	}
+	return nil
+}
+
+// checkConnectors ensures every action.connector node references a connector
+// instance of the workflow's workspace in the target environment that the
+// runtime can invoke for the configured operation. The tools themselves are
+// not contacted: deploying never depends on them being reachable.
+func checkConnectors(ctx context.Context, tx *sqlx.Tx, def model.Definition, workspaceID, environmentID uuid.UUID) error {
+	for _, n := range def.Nodes {
+		if n.Type != model.TypeActionConnector {
+			continue
+		}
+		a, err := model.ParseConnectorAction(n.Config)
+		if err != nil {
+			return validation("version_id", "invalid_connector", err.Error())
+		}
+		scope, err := repository.ConnectorInstanceScope(ctx, tx, workspaceID, environmentID, a.Connector)
+		if db.IsNoRows(err) {
+			return validation("environment_id", "connector_not_found", fmt.Sprintf(
+				"Node %q references connector %q, which does not exist in this workspace for the target environment.",
+				n.ID, a.Connector))
+		}
+		if err != nil {
+			return err
+		}
+		declared := false
+		for _, op := range connectorsvc.OperationKeys(scope.Operations) {
+			declared = declared || op == a.Operation
+		}
+		if !declared || !connectorsvc.Supports(scope.Key, a.Operation) {
+			return validation("version_id", "connector_operation_unsupported", fmt.Sprintf(
+				"Node %q: connector %q (%s) cannot run operation %q.", n.ID, a.Connector, scope.Key, a.Operation))
+		}
 	}
 	return nil
 }

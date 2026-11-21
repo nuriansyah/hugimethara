@@ -24,7 +24,7 @@ type WebhookEndpoint struct {
 	EnvironmentId      uuid.UUID             `json:"environment_id" binding:"required"`
 	Name               string                `json:"name" binding:"required"`
 	Description        string                `json:"description" binding:"required"`
-	Verifier           string                `json:"verifier" binding:"required" enums:"standard_webhooks,hmac_sha256,stripe,github,slack"`
+	Verifier           string                `json:"verifier" binding:"required" enums:"standard_webhooks,hmac_sha256,stripe,github,slack,n8n,make,zapier"`
 	VerifierConfig     WebhookVerifierConfig `json:"verifier_config" binding:"required"`
 	PublicId           string                `json:"public_id" binding:"required"`
 	IngressPath        string                `json:"ingress_path" binding:"required"`
@@ -53,7 +53,7 @@ type WebhookEndpointCreate struct {
 	EnvironmentId      uuid.UUID              `json:"environment_id" binding:"required"`
 	Name               string                 `json:"name" binding:"required"`
 	Description        *string                `json:"description,omitempty"`
-	Verifier           *string                `json:"verifier,omitempty" enums:"standard_webhooks,hmac_sha256,stripe,github,slack"`
+	Verifier           *string                `json:"verifier,omitempty" enums:"standard_webhooks,hmac_sha256,stripe,github,slack,n8n,make,zapier"`
 	VerifierConfig     *WebhookVerifierConfig `json:"verifier_config,omitempty"`
 	Secret             *string                `json:"secret,omitempty"`
 	ToleranceSeconds   *int                   `json:"tolerance_seconds,omitempty"`

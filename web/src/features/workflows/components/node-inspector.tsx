@@ -9,6 +9,7 @@ import { Input } from "@hugimethara/ui/components/input";
 import { Label } from "@hugimethara/ui/components/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@hugimethara/ui/components/select";
 import { Textarea } from "@hugimethara/ui/components/textarea";
+import { useConnectors } from "@/features/integrations/api";
 import { useWebhookEndpoints } from "@/features/webhooks/api";
 import type { NodeType, WorkflowDefinition, WorkflowNode } from "../api";
 import { TRIGGER_ID } from "./workflow-canvas";
@@ -48,6 +49,55 @@ function JsonField({ field, value, onCommit }: { field: Field; value: unknown; o
       {error ? <p className="text-xs text-destructive">{error}</p> : field.description && (
         <p className="text-xs text-muted-foreground">{field.description}</p>
       )}
+    </div>
+  );
+}
+
+/** Connector definitions the workflow runtime can invoke (S13 external workflow tools). */
+const INVOCABLE_CONNECTORS = ["n8n", "make", "zapier"];
+
+/**
+ * Picks a connector instance ref key of the workflow's workspace (action.connector). A ref key
+ * resolves per environment, so one entry stands for every environment that defines it.
+ */
+function ConnectorField({ field, value, onChange, workspaceId }: { field: Field; value: unknown; onChange: (v: unknown) => void; workspaceId: string }) {
+  const connectors = useConnectors();
+  const id = `f-${field.key}`;
+  const byRef = new Map<string, { kind: string; envs: number }>();
+  for (const c of connectors.data ?? []) {
+    if (c.workspace_id !== workspaceId || !INVOCABLE_CONNECTORS.includes(c.definition_key)) continue;
+    const entry = byRef.get(c.ref_key) ?? { kind: c.definition_key, envs: 0 };
+    entry.envs += 1;
+    byRef.set(c.ref_key, entry);
+  }
+  const current = typeof value === "string" ? value : "";
+  if (current && !byRef.has(current)) byRef.set(current, { kind: "not found", envs: 0 });
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label htmlFor={id}>
+        {field.label}
+        {field.required && <span className="text-destructive"> *</span>}
+      </Label>
+      <Select value={current} onValueChange={(v) => onChange(v)}>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue placeholder={byRef.size === 0 ? "No n8n, Make or Zapier connectors in this workspace" : "Choose…"} />
+        </SelectTrigger>
+        <SelectContent>
+          {[...byRef].map(([ref, c]) => (
+            <SelectItem key={ref} value={ref}>
+              {ref} · {c.kind}
+              {c.envs > 1 ? ` · ${c.envs} environments` : ""}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <p className="text-xs text-muted-foreground">
+        {field.description} Configure connectors on the{" "}
+        <Link href="/integrations/connectors" className="underline underline-offset-2">
+          Connectors
+        </Link>{" "}
+        page.
+      </p>
     </div>
   );
 }
@@ -100,6 +150,9 @@ function ConfigField({
   if (field.kind === "json") return <JsonField key={field.key} field={field} value={value} onCommit={onChange} />;
   if (field.kind === "webhook_endpoint" && workspaceId) {
     return <EndpointField field={field} value={value} onChange={onChange} workspaceId={workspaceId} />;
+  }
+  if (field.kind === "connector" && workspaceId) {
+    return <ConnectorField field={field} value={value} onChange={onChange} workspaceId={workspaceId} />;
   }
   if (field.kind === "boolean") {
     return (

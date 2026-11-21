@@ -1115,6 +1115,26 @@ export interface paths {
         patch: operations["updateCurrentOrganization"];
         trace?: never;
     };
+    "/v1/hugimethara/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Workspace overview (operational KPIs)
+         * @description Executions, failures and duration percentiles in the window, connector health from the latest connection test of each instance, and webhook traffic. Each section is present only when the caller can read workflows, connectors or webhooks in the workspace; with none of them the request is refused.
+         */
+        get: operations["getOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/plans": {
         parameters: {
             query?: never;
@@ -1641,7 +1661,7 @@ export interface paths {
         put?: never;
         /**
          * Create an inbound webhook endpoint
-         * @description Senders POST to /hooks/{public_id}. For standard_webhooks and hmac_sha256 the signing secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
+         * @description Senders POST to /hooks/{public_id}. For standard_webhooks, hmac_sha256 and the n8n/make/zapier token presets (sent in X-Hugi-Token) the secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.
          */
         post: operations["createWebhook"];
         delete?: never;
@@ -2802,7 +2822,7 @@ export interface components {
             description?: string;
             key: string;
             /** @enum {string} */
-            kind: "string" | "text" | "expression" | "json" | "select" | "number" | "boolean" | "webhook_endpoint";
+            kind: "string" | "text" | "expression" | "json" | "select" | "number" | "boolean" | "webhook_endpoint" | "connector";
             label: string;
             options?: string[];
             required: boolean;
@@ -2868,6 +2888,67 @@ export interface components {
             id: string;
             name: string;
             slug: string;
+        };
+        Overview: {
+            connectors?: components["schemas"]["OverviewConnectors"];
+            from: string;
+            to: string;
+            webhooks?: components["schemas"]["OverviewWebhooks"];
+            /** @enum {string} */
+            window: "24h" | "7d" | "30d";
+            workflows?: components["schemas"]["OverviewWorkflows"];
+            workspace_id: string;
+        };
+        OverviewConnectors: {
+            enabled: number;
+            failing: components["schemas"]["OverviewUnhealthyConnector"][];
+            healthy: number;
+            total: number;
+            unchecked: number;
+            unhealthy: number;
+        };
+        OverviewFailingWorkflow: {
+            failures: number;
+            last_error_code: string;
+            last_failed_at: string;
+            name: string;
+            workflow_id: string;
+        };
+        OverviewSeriesPoint: {
+            bucket: string;
+            failed: number;
+            succeeded: number;
+        };
+        OverviewUnhealthyConnector: {
+            checked_at: string;
+            connector_id: string;
+            definition_key: string;
+            environment_id: string;
+            error_code: string;
+            ref_key: string;
+        };
+        OverviewWebhooks: {
+            deliveries_dead_lettered: number;
+            deliveries_pending: number;
+            deliveries_succeeded: number;
+            endpoints: number;
+            received: number;
+            rejected_total: number;
+            subscriptions: number;
+        };
+        OverviewWorkflows: {
+            active_workflows: number;
+            cancelled: number;
+            failed: number;
+            p50_ms?: number;
+            p95_ms?: number;
+            pending_approvals: number;
+            running: number;
+            series: components["schemas"]["OverviewSeriesPoint"][];
+            succeeded: number;
+            success_rate?: number;
+            top_failing: components["schemas"]["OverviewFailingWorkflow"][];
+            total: number;
         };
         Plan: {
             currency: string;
@@ -3172,7 +3253,7 @@ export interface components {
             tolerance_seconds: number;
             updated_at: string;
             /** @enum {string} */
-            verifier: "standard_webhooks" | "hmac_sha256" | "stripe" | "github" | "slack";
+            verifier: "standard_webhooks" | "hmac_sha256" | "stripe" | "github" | "slack" | "n8n" | "make" | "zapier";
             verifier_config: components["schemas"]["WebhookVerifierConfig"];
             workspace_id: string;
         };
@@ -3184,7 +3265,7 @@ export interface components {
             secret?: string;
             tolerance_seconds?: number;
             /** @enum {string} */
-            verifier?: "standard_webhooks" | "hmac_sha256" | "stripe" | "github" | "slack";
+            verifier?: "standard_webhooks" | "hmac_sha256" | "stripe" | "github" | "slack" | "n8n" | "make" | "zapier";
             verifier_config?: components["schemas"]["WebhookVerifierConfig"];
             workspace_id: string;
         };
@@ -7769,6 +7850,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Error (RFC 9457 problem details). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getOverview: {
+        parameters: {
+            query: {
+                /** @description Workspace ID */
+                workspace_id: string;
+                /** @description 24h (default), 7d or 30d */
+                window?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Overview"];
                 };
             };
             /** @description Error (RFC 9457 problem details). */

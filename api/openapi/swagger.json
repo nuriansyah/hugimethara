@@ -4869,6 +4869,68 @@
                 }
             }
         },
+        "/v1/hugimethara/overview": {
+            "get": {
+                "security": [
+                    {
+                        "sessionCookie": []
+                    },
+                    {
+                        "apiKey": []
+                    }
+                ],
+                "description": "Executions, failures and duration percentiles in the window, connector health from the latest connection test of each instance, and webhook traffic. Each section is present only when the caller can read workflows, connectors or webhooks in the workspace; with none of them the request is refused.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "overview"
+                ],
+                "summary": "Workspace overview (operational KPIs)",
+                "operationId": "getOverview",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Workspace ID",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "24h (default), 7d or 30d",
+                        "name": "window",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Overview"
+                        }
+                    },
+                    "401": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "403": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    },
+                    "422": {
+                        "description": "Error (RFC 9457 problem details).",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/plans": {
             "get": {
                 "security": [
@@ -7412,7 +7474,7 @@
                         "apiKey": []
                     }
                 ],
-                "description": "Senders POST to /hooks/{public_id}. For standard_webhooks and hmac_sha256 the signing secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.",
+                "description": "Senders POST to /hooks/{public_id}. For standard_webhooks, hmac_sha256 and the n8n/make/zapier token presets (sent in X-Hugi-Token) the secret is generated when omitted and returned once in `secret`; stripe, github and slack need the secret the provider issued.",
                 "consumes": [
                     "application/json"
                 ],
@@ -12079,7 +12141,8 @@
                         "select",
                         "number",
                         "boolean",
-                        "webhook_endpoint"
+                        "webhook_endpoint",
+                        "connector"
                     ]
                 },
                 "label": {
@@ -12341,6 +12404,247 @@
                 },
                 "slug": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.Overview": {
+            "type": "object",
+            "required": [
+                "from",
+                "to",
+                "window",
+                "workspace_id"
+            ],
+            "properties": {
+                "connectors": {
+                    "$ref": "#/definitions/dto.OverviewConnectors"
+                },
+                "from": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "webhooks": {
+                    "$ref": "#/definitions/dto.OverviewWebhooks"
+                },
+                "window": {
+                    "type": "string",
+                    "enum": [
+                        "24h",
+                        "7d",
+                        "30d"
+                    ]
+                },
+                "workflows": {
+                    "$ref": "#/definitions/dto.OverviewWorkflows"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.OverviewConnectors": {
+            "type": "object",
+            "required": [
+                "enabled",
+                "failing",
+                "healthy",
+                "total",
+                "unchecked",
+                "unhealthy"
+            ],
+            "properties": {
+                "enabled": {
+                    "type": "integer"
+                },
+                "failing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OverviewUnhealthyConnector"
+                    }
+                },
+                "healthy": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "unchecked": {
+                    "type": "integer"
+                },
+                "unhealthy": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.OverviewFailingWorkflow": {
+            "type": "object",
+            "required": [
+                "failures",
+                "last_error_code",
+                "last_failed_at",
+                "name",
+                "workflow_id"
+            ],
+            "properties": {
+                "failures": {
+                    "type": "integer"
+                },
+                "last_error_code": {
+                    "type": "string"
+                },
+                "last_failed_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.OverviewSeriesPoint": {
+            "type": "object",
+            "required": [
+                "bucket",
+                "failed",
+                "succeeded"
+            ],
+            "properties": {
+                "bucket": {
+                    "type": "string"
+                },
+                "failed": {
+                    "type": "integer"
+                },
+                "succeeded": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.OverviewUnhealthyConnector": {
+            "type": "object",
+            "required": [
+                "checked_at",
+                "connector_id",
+                "definition_key",
+                "environment_id",
+                "error_code",
+                "ref_key"
+            ],
+            "properties": {
+                "checked_at": {
+                    "type": "string"
+                },
+                "connector_id": {
+                    "type": "string"
+                },
+                "definition_key": {
+                    "type": "string"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "error_code": {
+                    "type": "string"
+                },
+                "ref_key": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.OverviewWebhooks": {
+            "type": "object",
+            "required": [
+                "deliveries_dead_lettered",
+                "deliveries_pending",
+                "deliveries_succeeded",
+                "endpoints",
+                "received",
+                "rejected_total",
+                "subscriptions"
+            ],
+            "properties": {
+                "deliveries_dead_lettered": {
+                    "type": "integer"
+                },
+                "deliveries_pending": {
+                    "type": "integer"
+                },
+                "deliveries_succeeded": {
+                    "type": "integer"
+                },
+                "endpoints": {
+                    "type": "integer"
+                },
+                "received": {
+                    "type": "integer"
+                },
+                "rejected_total": {
+                    "type": "integer"
+                },
+                "subscriptions": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.OverviewWorkflows": {
+            "type": "object",
+            "required": [
+                "active_workflows",
+                "cancelled",
+                "failed",
+                "pending_approvals",
+                "running",
+                "series",
+                "succeeded",
+                "top_failing",
+                "total"
+            ],
+            "properties": {
+                "active_workflows": {
+                    "type": "integer"
+                },
+                "cancelled": {
+                    "type": "integer"
+                },
+                "failed": {
+                    "type": "integer"
+                },
+                "p50_ms": {
+                    "type": "integer"
+                },
+                "p95_ms": {
+                    "type": "integer"
+                },
+                "pending_approvals": {
+                    "type": "integer"
+                },
+                "running": {
+                    "type": "integer"
+                },
+                "series": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OverviewSeriesPoint"
+                    }
+                },
+                "succeeded": {
+                    "type": "integer"
+                },
+                "success_rate": {
+                    "type": "number"
+                },
+                "top_failing": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.OverviewFailingWorkflow"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },
@@ -13466,7 +13770,10 @@
                         "hmac_sha256",
                         "stripe",
                         "github",
-                        "slack"
+                        "slack",
+                        "n8n",
+                        "make",
+                        "zapier"
                     ]
                 },
                 "verifier_config": {
@@ -13510,7 +13817,10 @@
                         "hmac_sha256",
                         "stripe",
                         "github",
-                        "slack"
+                        "slack",
+                        "n8n",
+                        "make",
+                        "zapier"
                     ]
                 },
                 "verifier_config": {

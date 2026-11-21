@@ -1,5 +1,6 @@
 import {
   Activity,
+  BookOpen,
   Bot,
   Building2,
   CalendarClock,
@@ -43,7 +44,10 @@ export type NavSection = { title: string; items: NavItem[] };
 export const navigation: NavSection[] = [
   {
     title: "Platform",
-    items: [{ title: "Overview", href: "/", icon: Activity }],
+    items: [
+      { title: "Overview", href: "/", icon: Activity },
+      { title: "API reference", href: "/developer/api-reference", icon: BookOpen },
+    ],
   },
   {
     title: "Workspace",

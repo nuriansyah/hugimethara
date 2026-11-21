@@ -18,7 +18,15 @@ export const VERIFIERS: { value: WebhookEndpoint["verifier"]; label: string; hin
   { value: "stripe", label: "Stripe", hint: "Stripe-Signature; paste the endpoint's signing secret from Stripe." },
   { value: "github", label: "GitHub", hint: "X-Hub-Signature-256; paste the webhook secret you set in GitHub." },
   { value: "slack", label: "Slack", hint: "X-Slack-Signature; paste the app's signing secret." },
+  { value: "n8n", label: "n8n status", hint: "n8n sends the token we generate in an X-Hugi-Token header (HTTP Request node); body {run_id, status}." },
+  { value: "make", label: "Make status", hint: "Make sends the token we generate in an X-Hugi-Token header (HTTP module); body {run_id, status}." },
+  { value: "zapier", label: "Zapier status", hint: "Zapier sends the token we generate in an X-Hugi-Token header (Webhooks by Zapier); body {run_id, status}." },
 ];
+
+/** External-tool presets authenticate with a shared token header instead of a signature. */
+export function isTokenVerifier(v: string) {
+  return v === "n8n" || v === "make" || v === "zapier";
+}
 
 export function verifierLabel(v: string) {
   return VERIFIERS.find((x) => x.value === v)?.label ?? v;

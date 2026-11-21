@@ -30,6 +30,7 @@ const MaxEventPayload = 64 << 10
 var redactedHeaders = map[string]bool{
 	"Authorization": true, "Cookie": true, "Proxy-Authorization": true, "Webhook-Signature": true,
 	"Stripe-Signature": true, "X-Hub-Signature": true, "X-Hub-Signature-256": true, "X-Slack-Signature": true,
+	"X-Hugi-Token": true,
 }
 
 func storedHeaders(h http.Header, extraSecret string) map[string]string {

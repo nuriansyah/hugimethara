@@ -127,3 +127,18 @@ func WebhookEndpointScope(ctx context.Context, tx *sqlx.Tx, endpointID uuid.UUID
 	err := tx.GetContext(ctx, &s, queries.SQL.Get("WebhookEndpointScope"), endpointID)
 	return s, err
 }
+
+// ConnectorScope is the definition key and declared operations of the
+// connector instance an action.connector node references.
+type ConnectorScope struct {
+	Key        string `db:"key"`
+	Operations []byte `db:"operations"`
+}
+
+// ConnectorInstanceScope looks up the instance with refKey in a workspace and
+// environment.
+func ConnectorInstanceScope(ctx context.Context, tx *sqlx.Tx, workspaceID, environmentID uuid.UUID, refKey string) (ConnectorScope, error) {
+	var s ConnectorScope
+	err := tx.GetContext(ctx, &s, queries.SQL.Get("ConnectorInstanceScope"), workspaceID, environmentID, refKey)
+	return s, err
+}

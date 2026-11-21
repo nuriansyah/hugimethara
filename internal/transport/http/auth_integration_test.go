@@ -17,6 +17,10 @@ import (
 
 	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	compositionsvc "github.com/nuriansyah/hugimethara/internal/modules/api_composition/services"
+	overviewsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/overview/services"
+	compositionhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/api_composition"
+	overviewhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/overview"
 	webhookhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/webhook"
 	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
 
@@ -105,6 +109,8 @@ func setup(t *testing.T) *env {
 		Mappings:     mappinghandler.NewHTTP(mappings),
 		Workflows:    workflowhandler.NewHTTP(workflowsvc.NewService(pg.App, az, expressions)),
 		Webhooks:     webhookhandler.NewHTTP(webhooksvc.NewService(pg.App, az, sealer, webhooksvc.Config{})),
+		Compositions: compositionhandler.NewHTTP(compositionsvc.NewService(pg.App, az, services)),
+		Overview:     overviewhandler.NewHTTP(overviewsvc.NewService(pg.App, az)),
 	})
 	require.NoError(t, err)
 	srv := httptest.NewServer(router)

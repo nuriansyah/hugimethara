@@ -119,7 +119,8 @@ func TestPublicOperationsAreExplicit(t *testing.T) {
 	}, public, "adding a public operation is a security decision: update this test deliberately")
 	// S10 added 14 workflow operations, S11 six more, S12 nineteen webhook operations. The webhook
 	// ingress (/hooks/{public_id}) is deliberately outside this table: its credential is the signature.
-	require.Len(t, routes, 166)
+	// S14 added getOverview; the OpenAPI document (/v1/hugimethara/openapi.*) is static and also outside.
+	require.Len(t, routes, 167)
 }
 
 func TestCrossSiteStateChangeRejected(t *testing.T) {
@@ -149,4 +150,43 @@ func TestCORSPreflightStillAnswered(t *testing.T) {
 	_ = resp.Body.Close()
 	require.Less(t, resp.StatusCode, 300)
 	require.Equal(t, "https://app.example", resp.Header.Get("Access-Control-Allow-Origin"))
+}
+
+// The served contract documents exactly the operation table (S14: "backend
+// APIs documented"): every route is in the spec and every spec path is routed.
+func TestOpenAPIContractMatchesTheOperationTable(t *testing.T) {
+	srv := newTestRouter(t, nil)
+	resp, err := srv.Client().Get(srv.URL + OpenAPIPath + ".json")
+	require.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
+	require.Equal(t, 200, resp.StatusCode)
+	require.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	var spec struct {
+		OpenAPI string                               `json:"openapi"`
+		Paths   map[string]map[string]map[string]any `json:"paths"`
+	}
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&spec))
+	require.Equal(t, "3.0.3", spec.OpenAPI)
+
+	documented := map[string]string{}
+	for path, methods := range spec.Paths {
+		for method, op := range methods {
+			id, _ := op["operationId"].(string)
+			documented[strings.ToUpper(method)+" "+path] = id
+		}
+	}
+	routed := map[string]bool{"POST " + IngressPath: true}
+	for _, r := range routes {
+		key := r.method + " " + r.path
+		routed[key] = true
+		require.Equal(t, r.operation, documented[key], "%s is routed but not documented as %s", key, r.operation)
+	}
+	for key := range documented {
+		require.True(t, routed[key], "%s is documented but not routed", key)
+	}
+
+	yamlResp, err := srv.Client().Get(srv.URL + OpenAPIPath + ".yaml")
+	require.NoError(t, err)
+	_ = yamlResp.Body.Close()
+	require.Equal(t, 200, yamlResp.StatusCode)
 }

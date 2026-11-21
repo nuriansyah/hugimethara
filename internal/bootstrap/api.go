@@ -5,8 +5,10 @@ import (
 	"context"
 	"os"
 
+	overviewsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/overview/services"
 	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	overviewhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/overview"
 	webhookhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/webhook"
 	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
 
@@ -151,6 +153,7 @@ func RunAPI() error {
 		Compositions: compositionhandler.NewHTTP(compositionSvc),
 		Workflows:    workflowhandler.NewHTTP(workflowSvc),
 		Webhooks:     webhookhandler.NewHTTP(webhookSvc),
+		Overview:     overviewhandler.NewHTTP(overviewsvc.NewService(pool, az)),
 	})
 	if err != nil {
 		log.Error("router setup failed", "err", err)

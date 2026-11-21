@@ -29,10 +29,27 @@ const (
 	SchemeGitHub Scheme = "github"
 	// SchemeSlack is Slack's v0 request signing (X-Slack-Signature).
 	SchemeSlack Scheme = "slack"
+	// SchemeN8N, SchemeMake and SchemeZapier are inbound status presets for
+	// external workflow tools (S13). None of them signs outgoing requests
+	// natively, but each can send a static header, so they authenticate with
+	// a platform-generated token in TokenHeader over TLS. Status callbacks
+	// follow one payload convention: {"run_id", "status", "event_id"?, …}.
+	SchemeN8N    Scheme = "n8n"
+	SchemeMake   Scheme = "make"
+	SchemeZapier Scheme = "zapier"
 )
 
+// TokenHeader carries the shared token of the external-tool presets.
+const TokenHeader = "X-Hugi-Token" //nolint:gosec // a header name, not a credential
+
+// EventIDHeader optionally carries the sender's event id for the
+// external-tool presets (dedupe); the body's event_id, or run_id + status,
+// is used otherwise.
+const EventIDHeader = "X-Hugi-Event-Id"
+
 // Schemes lists every supported scheme.
-var Schemes = []Scheme{SchemeStandardWebhooks, SchemeHMAC, SchemeStripe, SchemeGitHub, SchemeSlack}
+var Schemes = []Scheme{SchemeStandardWebhooks, SchemeHMAC, SchemeStripe, SchemeGitHub, SchemeSlack,
+	SchemeN8N, SchemeMake, SchemeZapier}
 
 // Valid reports whether s is a supported scheme.
 func (s Scheme) Valid() bool {
@@ -47,7 +64,13 @@ func (s Scheme) Valid() bool {
 // GeneratesSecret reports whether the platform generates the signing secret
 // (the sender is configured with it) rather than receiving it from the
 // provider (Stripe, GitHub and Slack issue their own).
-func (s Scheme) GeneratesSecret() bool { return s == SchemeStandardWebhooks || s == SchemeHMAC }
+func (s Scheme) GeneratesSecret() bool {
+	return s == SchemeStandardWebhooks || s == SchemeHMAC || s.IsToken()
+}
+
+// IsToken reports whether s is an external-tool preset authenticated by a
+// shared token header rather than a signature.
+func (s Scheme) IsToken() bool { return s == SchemeN8N || s == SchemeMake || s == SchemeZapier }
 
 // HMACConfig configures SchemeHMAC. Every header name is optional except the
 // signature header, which defaults to X-Signature.
@@ -231,6 +254,18 @@ func Verify(scheme Scheme, cfg HMACConfig, secret []byte, req VerifyRequest) (Ve
 		}
 		return Verified{EventID: str(body, "event_id"), EventType: typ}, nil
 
+	case SchemeN8N, SchemeMake, SchemeZapier:
+		token := strings.TrimSpace(req.Header.Get(TokenHeader))
+		if token == "" {
+			return Verified{}, reject(ReasonMissingSignature)
+		}
+		// Compare digests so the comparison time does not depend on the length.
+		got, want := sha256.Sum256([]byte(token)), sha256.Sum256(secret)
+		if !hmac.Equal(got[:], want[:]) {
+			return Verified{}, reject(ReasonInvalidSignature)
+		}
+		return toolStatus(scheme, req.Header, body), nil
+
 	case SchemeHMAC:
 		c := cfg.Normalize()
 		h := strings.TrimSpace(req.Header.Get(c.SignatureHeader))
@@ -278,6 +313,39 @@ func Verify(scheme Scheme, cfg HMACConfig, secret []byte, req VerifyRequest) (Ve
 		return v, nil
 	}
 	return Verified{}, reject(ReasonInvalidSignature)
+}
+
+// toolStatus derives the event id and type of an external-tool status
+// callback: the id from X-Hugi-Event-Id, the body's event_id, or
+// "<run_id>:<status>"; the type from the body's event, or "<tool>.<status>".
+func toolStatus(scheme Scheme, h http.Header, body map[string]any) Verified {
+	scalar := func(k string) string {
+		switch v := body[k].(type) {
+		case string:
+			return strings.TrimSpace(v)
+		case float64:
+			return strconv.FormatFloat(v, 'f', -1, 64)
+		}
+		return ""
+	}
+	v := Verified{EventID: strings.TrimSpace(h.Get(EventIDHeader)), EventType: scalar("event")}
+	status, run := scalar("status"), scalar("run_id")
+	if v.EventID == "" {
+		v.EventID = scalar("event_id")
+	}
+	if v.EventID == "" && run != "" && status != "" {
+		v.EventID = run + ":" + status
+	}
+	if v.EventType == "" && status != "" {
+		v.EventType = string(scheme) + "." + status
+	}
+	if len(v.EventID) > 200 {
+		v.EventID = v.EventID[:200]
+	}
+	if len(v.EventType) > 200 {
+		v.EventType = v.EventType[:200]
+	}
+	return v
 }
 
 func mac(key, prefix, body []byte) []byte {

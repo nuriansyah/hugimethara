@@ -403,3 +403,26 @@ func ParseWebhookTrigger(cfg map[string]any) (WebhookTrigger, error) {
 	w.Condition, _ = cfg["condition"].(string)
 	return w, nil
 }
+
+// ConnectorAction is an action.connector configuration.
+type ConnectorAction struct {
+	Connector string // instance ref key, resolved per workspace and environment
+	Operation string
+}
+
+var connectorRefRe = regexp.MustCompile(`^[a-z][a-z0-9_-]{1,63}$`)
+
+// ParseConnectorAction reads an action.connector configuration.
+func ParseConnectorAction(cfg map[string]any) (ConnectorAction, error) {
+	var a ConnectorAction
+	a.Connector, _ = cfg["connector"].(string)
+	a.Operation, _ = cfg["operation"].(string)
+	a.Connector, a.Operation = strings.TrimSpace(a.Connector), strings.TrimSpace(a.Operation)
+	if !connectorRefRe.MatchString(a.Connector) {
+		return a, errors.New("connector must be the ref key of a connector instance")
+	}
+	if a.Operation == "" || len(a.Operation) > 64 {
+		return a, errors.New("operation is required")
+	}
+	return a, nil
+}

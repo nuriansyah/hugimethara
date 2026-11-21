@@ -523,9 +523,7 @@ func (s *IdentityService) DeleteGroupMapping(ctx context.Context, id, mappingID 
 	}
 	var groupID uuid.UUID
 	err = s.tenantTx(ctx, p, func(tx *sqlx.Tx) error {
-		var row struct {
-			GroupID uuid.UUID `db:"group_id"`
-		}
+		var row identitymodel.GroupMapping
 		if err := tx.GetContext(ctx, &row, queries.SQL.Get("GetGroupMapping"), mappingID, id); err != nil {
 			if db.IsNoRows(err) {
 				return identitymodel.ErrMappingNotFound

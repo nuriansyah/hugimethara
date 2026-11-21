@@ -2,16 +2,56 @@
 
 _Last updated: 2026-11-21_
 
-## Current stage: Phase 1 — S12 webhook engine (connector-backed workflow nodes still open)
+## Current stage: Phase 1 — S13 external workflow tools (S14 hardening next)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | S0–S12 implemented (S6 runtime, S9 E2E, connector-backed workflow nodes open); S13–S14 remain |
+| Phase 1 | In progress | S0–S13 implemented (S6 runtime beyond n8n/Make/Zapier, S9 E2E, db_query/notify/record nodes open); S14 remains |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-21 — S13 external workflow tools
+- **Migration `00016_external_workflow_tools`:** built-in connector definitions `n8n`, `make`, `zapier` (category
+  `automation`, version 1.0.0, config `webhook_url` + optional `auth_header`; auth `none`/`header`, Zapier `none`
+  only) with one operation `trigger_workflow`. Webhook verifier constraint gains `n8n`, `make`, `zapier`. Tenant-bound
+  `hugi_system` read policies (column grants only) on connector definitions/versions/instances, `secrets` and
+  `data_keys` so the engine can resolve a step's connector and credential inside the step's tenant transaction.
+- **Connector runtime (first slice of S6):** `connector/services.Runtime` resolves an instance by
+  (workspace, environment, ref key) and decrypts its credential through `secrets/services.Opener` (system-side
+  decryption in a caller-held tenant tx, no principal check; the buffer is zeroed after the call). `trigger_workflow`
+  POSTs the input as JSON to the webhook through the environment's egress policy with `Idempotency-Key`,
+  `X-Hugi-Execution-Id`, `X-Hugi-Node-Id` and, for `header` auth, the vault credential in `auth_header` (default
+  `Authorization` for n8n, `x-make-apikey` for Make). Instance timeout applies; 1 MiB response cap. Classified codes:
+  `connector_unavailable` / `connector_timeout` / `connector_upstream_error` (5xx, 429) are retryable;
+  `connector_upstream_rejected` (4xx), `egress_blocked`, `connector_disabled`, `connector_operation_unsupported`,
+  `connector_misconfigured`, `connector_not_found` are not. Messages never contain the URL or credential.
+- **Workflow:** `action.connector` is available (`connector` ref key, `operation`, `input` / `input_expression`). The
+  engine gained a generic `Preparer` hook: executors that need tenant data resolve it in a short tenant tx before
+  `Execute` (which still never touches the database). Deploy checks every connector node's ref key exists in the
+  workspace for the target environment and supports the operation (`connector_not_found`,
+  `connector_operation_unsupported`) without contacting the tool. Other connector-backed nodes stay unavailable.
+- **Inbound status presets:** `n8n`, `make`, `zapier` verifiers. None of these tools signs requests natively, so they
+  authenticate with a platform-generated 64-hex token in `X-Hugi-Token` (constant-time digest compare; header
+  redacted in stored events). Convention `{"run_id", "status", "event_id"?}`: event id from `X-Hugi-Event-Id`, body
+  `event_id`, or `run_id:status` (dedupe); event type from body `event` or `<tool>.<status>`.
+- **UI:** webhook create dialog lists the three presets and shows the token with the header/body convention; the
+  workflow inspector picks a connector ref key of the workspace (n8n/Make/Zapier), one entry per ref key across
+  environments.
+- **Verification:** integration test `TestExternalWorkflowToolsAreOptional` against real Postgres + RLS — n8n hand-off
+  with vault header credential and correlation headers; Zapier unreachable (connection refused) → retried then
+  `connector_unavailable`, URL not leaked, while a native workflow in the same org succeeds, deploys succeed and the
+  connection test reports `unreachable`; n8n status on a token endpoint starts a workflow, missing/wrong token
+  rejected, duplicate dropped, token redacted; disabled connector fails without a call; cross-org reference refused.
+  Unit tests for the runtime (auth, timeout, refused connection, 4xx/5xx/429, egress, unsupported) and the presets.
+  Full backend suite with `-race` passes (180 tests); golangci-lint has no new findings; web typecheck + lint pass.
+- **Not verified:** the new UI was not exercised in a browser against a live stack; no real n8n/Make/Zapier account
+  was called (mock servers only).
+- **Known limitations:** token presets have no timestamp, so replay protection relies on run/status dedupe and TLS;
+  Make/Zapier webhook URLs are capability URLs stored in connector config (redacted only for query secrets); no
+  per-instance rate limit or circuit breaker yet (runtime wrapper still S6).
 
 ### 2026-11-21 — S12 webhook engine
 - **Migration `00015_webhooks`:** `webhook_endpoints` (public id, verifier, sealed signing secret, tolerance, per-endpoint
@@ -399,5 +439,5 @@ _Last updated: 2026-11-21_
 | S10 Workflow engine core | ◐ engine, API and designer implemented; connector/composition nodes pending | 3 acceptance integration tests (conditional+parallel, crash recovery, inspectable failures); designer not browser-verified |
 | S11 Workflow engine complete | ◐ engine, triggers (incl. webhook since S12), approvals, cancel/re-run and UI done; connector-backed nodes (db_query, notify, records) wait for the S6 runtime | finance approval E2E + 4 more integration tests; browser-verified inbox, schedules, cancel, re-run |
 | S12 Webhook engine | ✅ inbound verifiers, dedupe, webhook trigger, outbound subscriptions with retry/DLQ/replay, UI | payment webhook → reconciliation E2E + forgery/replay rejection + outbound delivery integration tests; browser-verified against a live stack |
-| S13 External workflow tools | ☐ | |
+| S13 External workflow tools | ✅ n8n/Make/Zapier `trigger_workflow` via `action.connector`, token status presets, UI | `TestExternalWorkflowToolsAreOptional` (tools unreachable → only their steps fail) + runtime/preset unit tests; UI not browser-verified |
 | S14 Phase review & hardening | ☐ | |

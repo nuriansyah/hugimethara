@@ -186,6 +186,11 @@ func (v *validator) config(path string, n Node) {
 			}
 		}
 		v.expr(path+".body_expression", c["body_expression"], false)
+	case TypeActionConnector:
+		if _, err := ParseConnectorAction(c); err != nil {
+			v.add(path, "invalid_connector", "%s.", err.Error())
+		}
+		v.expr(path+".input_expression", c["input_expression"], false)
 	case TypeActionTransform:
 		if _, ok := c["rules"].([]any); !ok {
 			v.add(path+".rules", "required", "rules must be an array of mapping rules.")

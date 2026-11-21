@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/nuriansyah/hugimethara/api/openapi"
 	authzmodel "github.com/nuriansyah/hugimethara/internal/modules/authorization/model"
 	problem "github.com/nuriansyah/hugimethara/internal/platform/errors"
 	"github.com/nuriansyah/hugimethara/internal/platform/principal"
@@ -58,6 +59,7 @@ var routes = []route{
 	{"GET", "/v1/hugimethara/organizations/current", "getCurrentOrganization"},
 	{"PATCH", "/v1/hugimethara/organizations/current", "updateCurrentOrganization"},
 	{"GET", "/v1/hugimethara/audit-events", "listAuditEvents"},
+	{"GET", "/v1/hugimethara/overview", "getOverview"},
 	{"GET", "/v1/hugimethara/credentials", "listCredentials"},
 	{"POST", "/v1/hugimethara/credentials", "createCredential"},
 	{"GET", "/v1/hugimethara/credentials/{credential_id}", "getCredential"},
@@ -218,6 +220,27 @@ func PublicOperations() (map[string]bool, error) {
 // so it bypasses the origin guard, CSRF and the identity middleware.
 const IngressPath = "/hooks/{public_id}"
 
+// OpenAPIPath (+ ".json" / ".yaml") serves the API contract. Like the
+// ingress it is outside the operation table: it is static, public metadata
+// (the same document is in the repository) read by the web API reference.
+const OpenAPIPath = "/v1/hugimethara/openapi"
+
+func serveOpenAPI(contentType string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		body := openapi.YAML
+		if contentType == "application/json" {
+			var err error
+			if body, err = openapi.JSON(); err != nil {
+				problem.WriteError(w, r, err)
+				return
+			}
+		}
+		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Cache-Control", "public, max-age=300") // overrides the API-wide no-store
+		_, _ = w.Write(body)
+	}
+}
+
 // NewRouter returns the root handler for the API listener.
 func NewRouter(d Deps) (http.Handler, error) {
 	r := chi.NewRouter()
@@ -239,6 +262,8 @@ func NewRouter(d Deps) (http.Handler, error) {
 	if d.Webhooks != nil {
 		r.Post(IngressPath, d.Webhooks.Ingress)
 	}
+	r.Get(OpenAPIPath+".json", serveOpenAPI("application/json"))
+	r.Get(OpenAPIPath+".yaml", serveOpenAPI("application/yaml"))
 
 	public, err := PublicOperations()
 	if err != nil {
@@ -288,16 +313,18 @@ func newOperationHandler(server any, spec route, public bool) (http.Handler, err
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		request := reflect.New(methodType.In(1)).Elem()
-		if err := bindRequest(r, request); err != nil {
-			problem.WriteError(w, r, problem.BadRequest(err.Error()))
-			return
-		}
+		// Authenticate before looking at the input: an anonymous caller learns
+		// nothing about a route's parameters or validation rules.
 		if !public {
 			if _, ok := principal.From(r.Context()); !ok {
 				problem.WriteError(w, r, authzmodel.Unauthenticated())
 				return
 			}
+		}
+		request := reflect.New(methodType.In(1)).Elem()
+		if err := bindRequest(r, request); err != nil {
+			problem.WriteError(w, r, problem.BadRequest(err.Error()))
+			return
 		}
 		result := method.Call([]reflect.Value{reflect.ValueOf(r.Context()), request})
 		if !result[1].IsNil() {
@@ -461,4 +488,21 @@ func isNil(value reflect.Value) bool {
 	default:
 		return false
 	}
+}
+
+// Operation is one entry of the operation table, exported for the
+// route-table-driven security suite.
+type Operation struct {
+	Method, Path, ID string
+	Public           bool
+}
+
+// Operations returns the operation table with each entry's public flag.
+func Operations() []Operation {
+	public, _ := PublicOperations()
+	out := make([]Operation, len(routes))
+	for i, r := range routes {
+		out[i] = Operation{Method: r.method, Path: r.path, ID: r.operation, Public: public[exportedOperation(r.operation)]}
+	}
+	return out
 }

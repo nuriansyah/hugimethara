@@ -21,6 +21,7 @@ import (
 	identityhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/identity"
 	mappinghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/mapping"
 	orghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/organization"
+	overviewhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/overview"
 	secretshandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/secrets"
 	servicereghandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/service_registry"
 )
@@ -44,6 +45,7 @@ type Deps struct {
 	Compositions *compositionhandler.HTTP
 	Workflows    *workflowhandler.HTTP
 	Webhooks     *webhookhandler.HTTP
+	Overview     *overviewhandler.HTTP
 }
 
 func NewServer(d Deps) any {
@@ -58,6 +60,7 @@ func NewServer(d Deps) any {
 		compositionHTTP: compositionHTTP{d.Compositions},
 		workflowHTTP:    workflowHTTP{d.Workflows},
 		webhookHTTP:     webhookHTTP{d.Webhooks},
+		overviewHTTP:    overviewHTTP{d.Overview},
 	}
 }
 
@@ -75,6 +78,7 @@ type server struct {
 	compositionHTTP
 	workflowHTTP
 	webhookHTTP
+	overviewHTTP
 }
 
 type orgHTTP struct{ *orghandler.HTTP }
@@ -88,6 +92,7 @@ type mappingHTTP struct{ *mappinghandler.HTTP }
 type compositionHTTP struct{ *compositionhandler.HTTP }
 type workflowHTTP struct{ *workflowhandler.HTTP }
 type webhookHTTP struct{ *webhookhandler.HTTP }
+type overviewHTTP struct{ *overviewhandler.HTTP }
 
 type system struct {
 	env    string

@@ -169,3 +169,12 @@ retries; a replay has a new id. Auto-disable happens after 5 days of continuous 
 Modeled as **built-in connectors**, nothing more: operations `trigger_workflow` (call their webhook / API) and inbound
 status/events arrive through normal inbound webhook endpoints with a preset verifier. If they are down, only workflows
 that explicitly call them are affected; the platform has no dependency on them.
+
+Implementation (S13): the definitions `n8n`, `make` and `zapier` declare `trigger_workflow`, which the workflow node
+`action.connector` invokes: the engine resolves the instance by ref key in the execution's workspace and environment
+and opens its credential inside the step's tenant transaction, then POSTs the input to the configured `webhook_url`
+through the environment's egress policy (headers `Idempotency-Key`, `X-Hugi-Execution-Id`, `X-Hugi-Node-Id`). An
+unreachable tool yields the retryable `connector_unavailable`/`connector_timeout`; nothing else in the platform calls
+the tools (deploy only checks the reference). Inbound status uses the verifier presets `n8n`/`make`/`zapier`: a
+generated token in `X-Hugi-Token`, since none of these tools signs requests; payload convention
+`{"run_id", "status"}` gives the event type `<tool>.<status>` and dedupe key `<run_id>:<status>`.

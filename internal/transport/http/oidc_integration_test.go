@@ -275,6 +275,13 @@ func TestOIDCJITLoginAndGroupSync(t *testing.T) {
 	// JIT membership gets the baseline member role: it may read groups but not configure SSO.
 	require.Equal(t, 403, bob2.do("GET", base+"/identity/providers", nil, false).Status)
 	require.Contains(t, auditActions(t, owner, "?action=user"), "user.joined:success")
+
+	// Deleting a mapping works (S14 regression: it answered 500) and only once.
+	mappingID := r.Body["id"].(string)
+	path := base + "/identity/providers/" + providerID + "/group-mappings/" + mappingID
+	require.Equal(t, 204, owner.do("DELETE", path, nil, true).Status)
+	require.Equal(t, 404, owner.do("DELETE", path, nil, true).Status)
+	require.Empty(t, data(owner.do("GET", base+"/identity/providers/"+providerID+"/group-mappings", nil, false)))
 }
 
 func TestOIDCProviderSecurityAndLifecycle(t *testing.T) {

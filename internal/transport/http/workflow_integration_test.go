@@ -290,7 +290,7 @@ func TestWorkflowFailuresAreInspectableAndRetriesAreBounded(t *testing.T) {
 	bad := f.owner.do("POST", base+"/workflows", map[string]any{"workspace_id": f.workspaceID, "name": "Bad",
 		"slug": "bad", "draft": map[string]any{"schema_version": 1, "trigger": map[string]any{"type": "trigger.manual"},
 			"nodes": []any{map[string]any{"id": "x", "type": "logic.if", "config": map[string]any{"condition": "input.("}},
-				map[string]any{"id": "y", "type": "action.connector"}},
+				map[string]any{"id": "y", "type": "action.db_query"}},
 			"edges": []any{map[string]any{"from": "trigger", "to": "x"}}}}, true)
 	require.Equal(t, 201, bad.Status, bad.Body)
 	v := f.owner.do("POST", base+"/workflows/"+bad.Body["id"].(string)+"/validate", nil, true)

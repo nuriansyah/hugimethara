@@ -151,3 +151,11 @@ WHERE t.org_id = $1 AND t.type = 'trigger.webhook' AND t.config ->> 'endpoint_id
 
 -- name: WebhookEndpointScope
 SELECT workspace_id, environment_id FROM webhook_endpoints WHERE id = $1;
+
+-- name: ConnectorInstanceScope
+-- Deploy-time check of an action.connector reference (S13).
+SELECT d.key, v.operations
+FROM connector_instances i
+JOIN connector_versions v ON v.id = i.connector_version_id
+JOIN connector_definitions d ON d.id = v.definition_id
+WHERE i.workspace_id = $1 AND i.environment_id = $2 AND i.ref_key = $3;

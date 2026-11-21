@@ -125,9 +125,19 @@ func (e *Engine) HandleStep(ctx context.Context, msg StepMessage) error {
 			runErr = &model.StepError{Code: model.ReasonEgressBlocked, Message: perr.Error()}
 			break
 		}
-		res, runErr = e.run(ctx, c.step.ID, exec, NodeContext{Node: node, ExecutionID: c.exec.ID, Attempt: c.step.Attempt,
+		nc := NodeContext{Node: node, ExecutionID: c.exec.ID, Attempt: c.step.Attempt,
 			Input: input, Trigger: c.trigger, Outputs: c.snap.outputs, Egress: policy, Now: started,
-			IdempotencyKey: fmt.Sprintf("%s:%s::%d", c.exec.ID, node.ID, c.step.Attempt)})
+			IdempotencyKey: fmt.Sprintf("%s:%s::%d", c.exec.ID, node.ID, c.step.Attempt)}
+		var release func()
+		if p, ok := exec.(Preparer); ok {
+			if nc.Prepared, release, runErr = e.prepare(ctx, p, c.exec, node); runErr != nil {
+				break
+			}
+		}
+		res, runErr = e.run(ctx, c.step.ID, exec, nc)
+		if release != nil {
+			release()
+		}
 	}
 	e.stepDuration.WithLabelValues(c.step.NodeType).Observe(e.cfg.Clock.Now().Sub(started).Seconds())
 	return e.complete(ctx, c, node, input, res, runErr)
@@ -172,6 +182,30 @@ func (e *Engine) claim(ctx context.Context, msg StepMessage) (claim, bool, error
 		return nil
 	})
 	return c, claimed, err
+}
+
+// prepare resolves an executor's tenant data in a short tenant transaction.
+func (e *Engine) prepare(ctx context.Context, p Preparer, exec repository.LockedExecution, node model.Node) (any, func(), error) {
+	var prepared any
+	var release func()
+	err := db.InTenantTx(ctx, e.pool, exec.OrgID, func(tx *sqlx.Tx) error {
+		var err error
+		prepared, release, err = p.Prepare(ctx, tx, StepScope{OrgID: exec.OrgID, WorkspaceID: exec.WorkspaceID,
+			EnvironmentID: exec.EnvironmentID}, node)
+		return err
+	})
+	if err != nil {
+		if release != nil {
+			release()
+		}
+		var se *model.StepError
+		if errors.As(err, &se) {
+			return nil, nil, se
+		}
+		e.cfg.Log.ErrorContext(ctx, "workflow: prepare step", "node_type", node.Type, "err", err)
+		return nil, nil, retryable(model.ReasonNodeFailed, "The step could not be prepared.")
+	}
+	return prepared, release, nil
 }
 
 // run executes the node under its timeout while heartbeating the lease.

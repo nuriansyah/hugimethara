@@ -36,6 +36,7 @@ import {
   useWebhookSubscriptions,
   verifierLabel,
   VERIFIERS,
+  isTokenVerifier,
   type WebhookEndpoint,
   type WebhookSubscription,
 } from "../api";
@@ -437,8 +438,17 @@ function EndpointCreatedDialog({ endpoint, title, onClose }: { endpoint: Webhook
         {endpoint.secret && (
           <Alert>
             <AlertDescription className="flex flex-col gap-3">
-              <span>Copy the signing secret now — it will not be shown again.</span>
-              <CopyField id="created-secret" label="Signing secret" value={endpoint.secret} />
+              {isTokenVerifier(endpoint.verifier) ? (
+                <span>
+                  Copy the token now — it will not be shown again. Send it in an <code>X-Hugi-Token</code> header with a
+                  JSON body like <code>{`{"run_id": "…", "status": "success"}`}</code>; the event type becomes{" "}
+                  <code>{endpoint.verifier}.success</code> and repeated run/status pairs are dropped.
+                </span>
+              ) : (
+                <span>Copy the signing secret now — it will not be shown again.</span>
+              )}
+              <CopyField id="created-secret" label={isTokenVerifier(endpoint.verifier) ? "Token" : "Signing secret"}
+                value={endpoint.secret} />
             </AlertDescription>
           </Alert>
         )}
