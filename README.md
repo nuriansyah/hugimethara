@@ -5,7 +5,17 @@
 Hugimethara is a unified business operations & intelligence platform: integrations, API composition,
 native workflow automation, webhooks, data platform and BI, under one multi-tenant, policy-governed control plane.
 
-> Status: **Phase 1, slice S0 (foundation).** See [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).
+> Status: **Phase 1 complete (S0–S14)** with documented gaps. See
+> [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) for evidence and known limitations. Phase 2 (data
+> platform & BI) has not started.
+
+Phase 1 delivers multi-tenant organizations, workspaces and dynamic RBAC; local and OIDC sign-in; invitations,
+groups and service accounts; an envelope-encrypted secrets vault; connectors with egress-guarded connection tests
+(and the n8n/Make/Zapier `trigger_workflow` runtime); a service registry with OpenAPI import/diff and a guarded API
+explorer; the mapping engine and API compositions with response mapping; the native workflow engine (manual,
+schedule, event and webhook triggers; conditions, parallel, loops, delays, approvals, retries, cancel/re-run);
+inbound and outbound webhooks with retry, dead-letter and replay; a workspace operations dashboard; and a browsable
+API reference generated from the served OpenAPI contract.
 
 ## Quick start
 
@@ -18,7 +28,11 @@ make test                # backend unit tests
 make test-integration    # backend integration tests (needs HUGI_TEST_POSTGRES_URL + HUGI_TEST_REDIS_URL; see Makefile)
 make lint web-check      # golangci-lint, eslint, typecheck, next build
 make generate            # regenerate oapi-codegen server + TS client after OpenAPI changes
+k6 run tests/k6/api-baseline.js   # performance baselines (see docs/testing/performance-baseline.md)
 ```
+
+The running app serves its contract at `/v1/hugimethara/openapi.json` and renders it at **Developer → API
+reference**.
 
 ## Where to start
 

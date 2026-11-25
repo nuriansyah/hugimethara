@@ -1,17 +1,67 @@
 # Implementation Status
 
-_Last updated: 2026-11-21_
+_Last updated: 2026-11-23_
 
-## Current stage: Phase 1 — S13 external workflow tools (S14 hardening next)
+## Current stage: Phase 1 accepted — S14 phase review & hardening complete (Phase 2 next)
 
 | Phase | Status | Completion |
 |---|---|---|
 | Blueprint | Drafted; ADRs still **Proposed** (not formally accepted) | docs complete |
-| Phase 1 | In progress | S0–S13 implemented (S6 runtime beyond n8n/Make/Zapier, S9 E2E, db_query/notify/record nodes open); S14 remains |
+| Phase 1 | **Accepted** — every PRD §6.12 criterion has evidence (see [acceptance review](#phase-1-acceptance-review-prd-612)) | S0–S14 delivered; known gaps below are P1 backlog, not acceptance blockers |
 | Phase 2 | Not started | 0% |
 | Phase 3 | Not started | 0% |
 
 ## Milestone log
+
+### 2026-11-23 — S14 phase review & hardening
+- **Overview dashboard:** `GET /overview?workspace_id=&window=24h|7d|30d` (new `governance/overview` module) returns
+  workflow executions in the window (total, succeeded, failed, cancelled, running, success rate, p50/p95 step
+  duration, pending approvals, active workflows), a zero-filled hourly (24h) or daily (7d/30d) series, the top failing
+  workflows with their last error code, connector health from each instance's latest connection test
+  (healthy/unhealthy/unchecked plus the failing instances and their error codes), and webhook traffic (endpoints,
+  received, rejected, subscriptions, deliveries succeeded/pending/dead-lettered). Each section is returned only when
+  the caller can read that resource type in the workspace; a caller with none is refused. The home page shows it with
+  a workspace picker, window selector and links into the workflow, connector and webhook pages.
+- **API reference page:** the contract is embedded in the binary (`api/openapi` package, JSON converted from YAML
+  once) and served at `GET /v1/hugimethara/openapi.json` and `.yaml` outside the operation table (static, public,
+  cacheable for 5 min). `/developer/api-reference` renders every operation grouped by tag with search, auth markers,
+  request/response schemas expanded from `$ref`s, and JSON/YAML downloads. The operation handler now authenticates
+  before binding input, so an anonymous caller learns nothing about a route's parameters or validation rules.
+- **Full security suite:** `TestSecuritySuite` is driven by the exported operation table (`api.Operations()`) and
+  covers every route: every path parameter must map to a real victim-tenant resource or be waived with a reason (a
+  new route fails until classified); anonymous requests → 401; session mutations without CSRF → 403 `csrf_failed`;
+  collection reads never list another tenant's rows; cross-tenant object references → 400/403/404/409/422 without
+  leaking victim ids, names or ref keys; no GET response contains a vault secret, webhook secret, invitation token or
+  API key; security headers on every response; and the victim tenant is intact afterwards.
+- **k6 baselines:** `tests/k6/{api,workflow,webhook}-baseline.js` with failing thresholds (reads p95 < 150 ms,
+  overview p95 < 250 ms, execute p95 < 200 ms, workflow completion p95 < 3 s with none unfinished, ingress p95 <
+  100 ms / p99 < 250 ms, errors < 1 %). Recorded on a local stack (M1, 8 GiB, one api + one worker, Postgres 18.3,
+  Redis 7.0.12, NATS 2.15.3): reads p50 2.5 / p95 6.0 ms, overview p50 3.7 / p95 7.2 ms at 2,084 req/s; 120
+  workflow executions with accept p50 9.7 / p95 66.8 ms and completion p50 1.86 / p95 2.18 s, 0 unfinished; webhook
+  ingress p50 3.3 / p95 27.9 / p99 132 ms at 50 req/s, 0 errors. Details and caveats in
+  [docs/testing/performance-baseline.md](testing/performance-baseline.md).
+- **Hardening fix — composition response mapping:** the executor passed `map[string]StepResult` to the mapping
+  evaluator, so JSONPath rules such as `$.steps.order.body.id` resolved to null because `StepResult` is a struct, not
+  a map. Steps are now rendered as plain JSON objects (`status`, `body`, `duration_ms`, `skipped`, `error`) for
+  conditions, input references and response mapping alike. Covered by a unit test and the new
+  `TestOrderOverviewCompositionEndToEnd` integration test (two imported OpenAPI services, dependency + `when`
+  condition, published response mapping, stored execution, tenant isolation), which closes the S9 acceptance gap.
+- **Docs pass:** README status and Phase 1 feature summary; API plan marks delivered slices and the S14
+  overview/contract endpoints; testing strategy rewritten as built (the previous Playwright/ZAP claims were
+  aspirational); security model documents the route-table suite and its waivers; performance baseline added; phase
+  tracker and slice tracker updated.
+- **Verification:** `TestWorkspaceOverviewKPIs`, `TestSecuritySuite` and `TestOrderOverviewCompositionEndToEnd` pass
+  against real Postgres + RLS; the full backend suite with `-race` passes (132 unit tests; 176 test functions across
+  25 packages with `-tags integration`, 0 failures); web typecheck, lint and production build pass; all three k6 runs
+  pass their thresholds. **Docker Compose E2E verified** on a fresh project (`up --build -d`): migrations 1–16
+  applied, `/readyz` 200, web `/` 200, the web `/api` proxy served the OpenAPI contract, `/developer/api-reference`
+  200, and reduced-load runs of all three k6 scripts passed against the compose API with the two worker replicas
+  (`api` p95 6.6 ms / p99 11.1 ms; workflow completion p95 0.98 s with none unfinished; webhook p95 13.7 ms / p99
+  18.8 ms, 0 errors).
+- **Not verified / deviations:** the overview and API reference pages were exercised through the live API and pass
+  typecheck/lint/build but were not re-checked in a browser in this session; no Playwright or ZAP suite exists; the P1
+  backlog below is unchanged (S6 runtime beyond `trigger_workflow`, composition gateway route, `action.composition`,
+  `db_query`/`notify`/record nodes, Helm, etc.).
 
 ### 2026-11-21 — S13 external workflow tools
 - **Migration `00016_external_workflow_tools`:** built-in connector definitions `n8n`, `make`, `zapier` (category
@@ -354,7 +404,7 @@ _Last updated: 2026-11-21_
   - A user can belong to several orgs only via invitation (S4); S1 tests create the second membership as a fixture.
   - No MFA yet (P1), no password reset yet (needs email delivery: S6 SMTP connector).
   - `audit_events` not yet partitioned.
-  - Compose stack still unverified end to end (skipped at your request).
+  - Compose stack was still unverified end to end at this point (verified in S14 — see the acceptance review).
 
 ### 2026-11-18 — S0 Foundation
 - **Implemented**
@@ -426,7 +476,7 @@ _Last updated: 2026-11-21_
 
 | Slice | Status | Evidence |
 |---|---|---|
-| S0 Foundation | ◐ code complete; compose E2E pending | unit + integration + lint + web build pass (see log) |
+| S0 Foundation | ✅ | unit + integration + lint + web build pass; Docker Compose `up --build` E2E verified in S14 |
 | S1 Org bootstrap, sessions, audit | ✅ | integration suite green (local Postgres/Redis) |
 | S2 Workspaces & environments | ✅ (+ paid features) | integration + browser smoke |
 | S3 Dynamic RBAC | ✅ | 8 RBAC integration tests + unit tests; browser check |
@@ -435,9 +485,38 @@ _Last updated: 2026-11-21_
 | S6 Secrets & connectors | ◐ vault and connector management implemented; runtime incomplete | full integration suite and targeted egress tests pass; no invocation/runtime or protocol adapters |
 | S7 Service registry & API explorer | ✅ | OpenAPI import/diff and guarded explorer integration tests pass |
 | S8 Mapping engine & studio | ✅ | Mapping drafts, test cases, publish gates, immutable versions, JSONPath/transform/CEL evaluator, and Mapping Studio |
-| S9 API composition | ◐ | Tenant-scoped drafts/versions/executions, bounded DAG executor, OpenAPI routes, and editor are implemented; validate against the order-overview mock-service E2E |
+| S9 API composition | ✅ | `TestOrderOverviewCompositionEndToEnd` (two imported services, dependency + `when`, published response mapping, stored execution, tenant isolation) + DAG/limits unit tests; gateway route is P1 |
 | S10 Workflow engine core | ◐ engine, API and designer implemented; connector/composition nodes pending | 3 acceptance integration tests (conditional+parallel, crash recovery, inspectable failures); designer not browser-verified |
 | S11 Workflow engine complete | ◐ engine, triggers (incl. webhook since S12), approvals, cancel/re-run and UI done; connector-backed nodes (db_query, notify, records) wait for the S6 runtime | finance approval E2E + 4 more integration tests; browser-verified inbox, schedules, cancel, re-run |
 | S12 Webhook engine | ✅ inbound verifiers, dedupe, webhook trigger, outbound subscriptions with retry/DLQ/replay, UI | payment webhook → reconciliation E2E + forgery/replay rejection + outbound delivery integration tests; browser-verified against a live stack |
 | S13 External workflow tools | ✅ n8n/Make/Zapier `trigger_workflow` via `action.connector`, token status presets, UI | `TestExternalWorkflowToolsAreOptional` (tools unreachable → only their steps fail) + runtime/preset unit tests; UI not browser-verified |
-| S14 Phase review & hardening | ☐ | |
+| S14 Phase review & hardening | ✅ | overview KPIs + API reference + route-table security suite + k6 baselines (all thresholds pass) + docs pass + acceptance review below; composition response-mapping fix with E2E |
+
+## Phase 1 acceptance review (PRD §6.12)
+
+Every criterion from [phase-1.md §2](phases/phase-1.md#2-acceptance-criteria--slices) with its evidence. Test names
+are in `internal/transport/http/*_integration_test.go` unless another path is given.
+
+| PRD §6.12 criterion | Slice(s) | Evidence |
+|---|---|---|
+| Org can create multiple workspaces | S2 | `TestWorkspaceVisibilityForMembers`, `TestMerchantIsolation`, `TestPlansGateFeaturesAndQuotas` (quota at the plan limit); workspaces UI |
+| Users can be assigned to workspaces | S2, S4 | `TestInvitedUserJoinsWithWorkspaceRole`, `TestWorkspaceAdminIsScopedToTheirWorkspace`; workspace members UI with per-workspace roles |
+| Dynamic RBAC works | S3 | 8 RBAC integration tests (templates, custom roles, immediate revoke, escalation, last owner, scoping, simulation/decision log, tenant scope) + evaluation unit tests; Roles/Access UI |
+| OIDC login works | S5 | `TestOIDCJITLoginAndGroupSync`, `TestOIDCProviderSecurityAndLifecycle`, `TestOIDCLinkingRules`, `TestOIDCPublicDiscoveryIsScoped` against an in-process IdP; Keycloak browser E2E with group-mapped workspace access |
+| Connector registered/configured; connection tests | S6 | `TestConnectorLifecycleAndEnvironmentScopedConnectionTest` (write-only credential, environment-scoped test, blocked destination, health history, tenant isolation), `TestExternalWorkflowToolsAreOptional` (runtime, classified errors); connector UI; overview connector health |
+| OpenAPI import | S7 | `TestServiceOpenAPIImportDiffAndGuardedExplorerCall` (dry-run diff, import, endpoint catalog, guarded explorer call, egress denial, path traversal refused) |
+| Multiple APIs composed; response mapping | S8, S9 | `TestOrderOverviewCompositionEndToEnd` (two imported APIs, dependency + `when`, published response mapping, stored execution, tenant isolation), `TestMappingLifecyclePublishGateAndTenantIsolation` (JSONPath/transforms/CEL, publish gate), composition DAG/limits/breaker unit tests |
+| Native workflow without n8n; conditions & parallel | S10 | `TestWorkflowConditionalParallelExecution` (merge joins, untaken branch skipped, idempotent replay), `TestWorkflowRecoversFromWorkerCrash`; `tests/k6/workflow-baseline.js` executes a conditional/parallel graph end to end |
+| Workflow failures inspectable | S10, S11 | `TestWorkflowFailuresAreInspectableAndRetriesAreBounded` (reason codes, step input, upstream response, bounded retries), `TestExpiredTaskWithoutTimeoutBranchFails`; execution detail UI with step I/O; overview top failing workflows |
+| Webhooks received and delivered | S12 | `TestPaymentWebhookReconciliationAndForgeryRejected` (Stripe preset → workflow, forged/stale/unsigned rejected, dedupe, rotation, isolation), `TestStandardWebhooksEndpointGeneratesSecret`, `TestOutboundDeliveryRetryDeadLetterAndReplay` (signature verified by receiver, 30 s retry, 8-attempt dead letter, replay, ping, rotation, egress guard, 5-day auto-disable); browser-verified against a live stack |
+| Secrets encrypted | S6 | `TestCredentialValuesAreWriteOnlyAndTenantScoped`, `TestCredentialRequiresPermissionAndValidValue`, secretbox AAD unit test; the S14 security suite asserts no secret value in any GET response; S13 resolves connector credentials through the vault `Opener` in the step transaction |
+| Audit events recorded | S1 onward | In-transaction audit assertions throughout the integration suite (`auditActions`), RBAC decision log (`TestSimulationAndDecisionLog`), webhook/workflow audit entries; Governance → Audit UI |
+| Backend APIs documented | every slice, S14 | `api/openapi/openapi.yaml` is the source of truth; `TestOpenAPIContractMatchesTheOperationTable` guards drift; the server publishes the contract at `/v1/hugimethara/openapi.json` and `.yaml`; `/developer/api-reference` renders it |
+| Integration tests pass | every slice | full backend suite with `-race`: 132 unit tests and 176 test functions across 25 packages with `-tags integration`, 0 failures (real PostgreSQL + RLS, Redis, in-process NATS); CI runs unit + integration + lint + vuln scan + web checks + image build/scan |
+| Docker Compose deployment works | S0, S14 | full `up --build -d` on a fresh project: migrations 1–16 applied, api `/readyz` 200, web `/` 200, web `/api` proxy served the contract, API reference page 200, and reduced-load k6 api/workflow/webhook runs passed against the compose stack (two worker replicas, Postgres/Redis/NATS in containers) |
+
+**Accepted gaps (P1 backlog, not Phase 1 acceptance blockers):** the S6 runtime beyond `trigger_workflow`
+(protocol adapters, shared retry/rate-limit/breaker wrapper, declarative connectors), `action.composition` and the
+`db_query`/`notify`/record workflow nodes, the composition gateway route, single-node workflow test, event/SSE
+progress, Helm chart, Playwright/ZAP automation, and a scheduled chaos run. They are listed in
+[phase-1.md §3 P1/P2](phases/phase-1.md#3-prioritized-backlog) and the S6/S10/S11 tracker rows.

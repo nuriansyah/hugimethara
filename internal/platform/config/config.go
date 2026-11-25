@@ -53,6 +53,15 @@ type Config struct {
 	RedisURL string `env:"HUGI_REDIS_URL"`
 	NATSURL  string `env:"HUGI_NATS_URL"`
 
+	// ClickHouse is the Phase 2 analytical store (ADR-0008). When unset the
+	// data-platform endpoints answer 503 analytics_unavailable; the rest of the
+	// product is unaffected.
+	ClickHouseURL      string `env:"HUGI_CLICKHOUSE_URL"`
+	ClickHouseUser     string `env:"HUGI_CLICKHOUSE_USER" envDefault:"default"`
+	ClickHousePassword string `env:"HUGI_CLICKHOUSE_PASSWORD"`
+	ClickHouseDatabase string `env:"HUGI_CLICKHOUSE_DATABASE" envDefault:"hugimethara"`
+	ClickHouseMaxConns int    `env:"HUGI_CLICKHOUSE_MAX_CONNS" envDefault:"10"`
+
 	// OTLPEndpoint enables trace export when set (e.g. "otel-collector:4317").
 	OTLPEndpoint string  `env:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 	TraceSample  float64 `env:"HUGI_TRACE_SAMPLE_RATIO" envDefault:"1.0"`
@@ -131,6 +140,17 @@ func (c Config) validate(needs []Requirement) error {
 	}
 	if _, _, err := c.MasterKeyBytes(); err != nil {
 		errs = append(errs, err)
+	}
+	if c.ClickHouseURL != "" {
+		if u, err := url.Parse(c.ClickHouseURL); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			errs = append(errs, errors.New("HUGI_CLICKHOUSE_URL: must be an http(s) URL"))
+		}
+		if c.ClickHouseDatabase == "" {
+			errs = append(errs, errors.New("HUGI_CLICKHOUSE_DATABASE: required when ClickHouse is configured"))
+		}
+		if c.ClickHouseMaxConns < 1 {
+			errs = append(errs, errors.New("HUGI_CLICKHOUSE_MAX_CONNS: must be at least 1"))
+		}
 	}
 	for _, n := range needs {
 		switch n {

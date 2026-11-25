@@ -13,6 +13,10 @@ import (
 	"net/http"
 	"os"
 
+	analyticssvc "github.com/nuriansyah/hugimethara/internal/modules/analytics/services"
+	authzsvc "github.com/nuriansyah/hugimethara/internal/modules/authorization/services"
+	dashboardsvc "github.com/nuriansyah/hugimethara/internal/modules/dashboard/services"
+	dataplatformsvc "github.com/nuriansyah/hugimethara/internal/modules/data_platform/services"
 	connectorsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/connector/services"
 	secretssvc "github.com/nuriansyah/hugimethara/internal/modules/integration/secrets/services"
 	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
@@ -22,6 +26,7 @@ import (
 
 	"github.com/google/uuid"
 
+	clickhouse "github.com/nuriansyah/hugimethara/internal/infrastructure/analytics/clickhouse"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/messaging/bus"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/telemetry"
@@ -35,7 +40,7 @@ import (
 )
 
 func RunWorker() error {
-	cfg, err := config.Load("hugi-worker", config.NeedSystemDatabase, config.NeedNATS)
+	cfg, err := config.Load("hugi-worker", config.NeedDatabase, config.NeedSystemDatabase, config.NeedNATS)
 	log := logging.New(os.Stdout, cfg.Log.Level, cfg.Log.Format, cfg.ServiceName, cfg.Env)
 	if err != nil {
 		log.Error("invalid configuration", "err", err)
@@ -57,6 +62,12 @@ func RunWorker() error {
 		return err
 	}
 	defer func() { _ = sysPool.Close() }()
+	pool, err := db.Open(ctx, cfg.DatabaseURL, cfg.DBMaxConns)
+	if err != nil {
+		log.Error("tenant postgres unavailable", "err", err)
+		return err
+	}
+	defer func() { _ = pool.Close() }()
 
 	nb, err := bus.Connect(cfg.NATSURL, cfg.ServiceName, log)
 	if err != nil {
@@ -90,6 +101,30 @@ func RunWorker() error {
 		log.Error("secret opener", "err", err)
 		return err
 	}
+	ch, err := clickhouse.New(clickhouse.Config{URL: cfg.ClickHouseURL, User: cfg.ClickHouseUser,
+		Password: cfg.ClickHousePassword, Database: cfg.ClickHouseDatabase})
+	if err != nil {
+		log.Error("clickhouse client setup failed", "err", err)
+		return err
+	}
+	az := authzsvc.NewRBAC(pool, nil, log)
+	dataPlatformSvc, err := dataplatformsvc.NewService(pool, az, opener, ch)
+	if err != nil {
+		log.Error("data platform service setup failed", "err", err)
+		return err
+	}
+	analyticsSvc, err := analyticssvc.NewService(pool, az, ch, dataPlatformSvc)
+	if err != nil {
+		log.Error("analytics service setup failed", "err", err)
+		return err
+	}
+	dashboardSvc, err := dashboardsvc.NewService(pool, sysPool, az, analyticsSvc)
+	if err != nil {
+		log.Error("dashboard service setup failed", "err", err)
+		return err
+	}
+	ingestionWorker := dataplatformsvc.NewIngestionWorker(pool, sysPool, dataPlatformSvc, log)
+	reportWorker := dashboardsvc.NewReportWorker(dashboardSvc, log)
 	nodes := workflowsvc.NewRegistry(expressions).WithConnectors(expressions, connectorsvc.NewRuntime(opener))
 	hostname, _ := os.Hostname()
 	engine := workflowsvc.NewEngine(sysPool, nodes, workflowsvc.EngineConfig{
@@ -161,6 +196,8 @@ func RunWorker() error {
 		consumeEvents,
 		fanoutWebhooks,
 		webhooks.Run,
+		ingestionWorker.Run,
+		reportWorker.Run,
 		lifecycle.HTTPServer("probes", cfg.HTTPAddr, probes, cfg.ShutdownTTL, log),
 		lifecycle.MetricsServer(cfg.MetricsAddr, reg, cfg.ShutdownTTL, log),
 	)

@@ -5,13 +5,20 @@ import (
 	"context"
 	"os"
 
+	analyticssvc "github.com/nuriansyah/hugimethara/internal/modules/analytics/services"
+	dashboardsvc "github.com/nuriansyah/hugimethara/internal/modules/dashboard/services"
+	dataplatformsvc "github.com/nuriansyah/hugimethara/internal/modules/data_platform/services"
 	overviewsvc "github.com/nuriansyah/hugimethara/internal/modules/governance/overview/services"
 	webhooksvc "github.com/nuriansyah/hugimethara/internal/modules/webhook/services"
 	workflowsvc "github.com/nuriansyah/hugimethara/internal/modules/workflow/services"
+	analyticshandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/analytics"
+	dashboardhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/dashboard"
+	dataplatformhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/data_platform"
 	overviewhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/overview"
 	webhookhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/webhook"
 	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
 
+	clickhouse "github.com/nuriansyah/hugimethara/internal/infrastructure/analytics/clickhouse"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/messaging/bus"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/health"
 	"github.com/nuriansyah/hugimethara/internal/infrastructure/observability/telemetry"
@@ -114,6 +121,32 @@ func RunAPI() error {
 		log.Error("secret vault setup failed", "err", err)
 		return err
 	}
+	opener, err := secretssvc.NewOpener(masterKey, cfg.MasterKeyID)
+	if err != nil {
+		log.Error("secret opener setup failed", "err", err)
+		return err
+	}
+	ch, err := clickhouse.New(clickhouse.Config{URL: cfg.ClickHouseURL, User: cfg.ClickHouseUser,
+		Password: cfg.ClickHousePassword, Database: cfg.ClickHouseDatabase})
+	if err != nil {
+		log.Error("clickhouse client setup failed", "err", err)
+		return err
+	}
+	dataPlatformSvc, err := dataplatformsvc.NewService(pool, az, opener, ch)
+	if err != nil {
+		log.Error("data platform service setup failed", "err", err)
+		return err
+	}
+	analyticsSvc, err := analyticssvc.NewService(pool, az, ch, dataPlatformSvc)
+	if err != nil {
+		log.Error("analytics service setup failed", "err", err)
+		return err
+	}
+	dashboardSvc, err := dashboardsvc.NewService(pool, pool, az, analyticsSvc)
+	if err != nil {
+		log.Error("dashboard service setup failed", "err", err)
+		return err
+	}
 	connectorSvc, err := connectorsvc.NewService(pool, az)
 	if err != nil {
 		log.Error("connector service setup failed", "err", err)
@@ -154,6 +187,9 @@ func RunAPI() error {
 		Workflows:    workflowhandler.NewHTTP(workflowSvc),
 		Webhooks:     webhookhandler.NewHTTP(webhookSvc),
 		Overview:     overviewhandler.NewHTTP(overviewsvc.NewService(pool, az)),
+		DataPlatform: dataplatformhandler.NewHTTP(dataPlatformSvc),
+		Analytics:    analyticshandler.NewHTTP(analyticsSvc),
+		Dashboards:   dashboardhandler.NewHTTP(dashboardSvc),
 	})
 	if err != nil {
 		log.Error("router setup failed", "err", err)

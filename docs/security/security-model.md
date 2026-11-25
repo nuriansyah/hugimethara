@@ -17,6 +17,27 @@
 | OIDC | Token substitution, open redirect | PKCE, state+nonce, issuer/audience checks, exact redirect URI, email-domain allowlist |
 | Supply chain | Vulnerable deps / images | `govulncheck`, `npm audit`/osv-scanner, Trivy image scan, pinned base images, distroless non-root runtime |
 
+## Automated security suite (S14)
+
+`TestSecuritySuite` (`internal/transport/http/security_integration_test.go`) is driven by the exported operation
+table (`api.Operations()`), so every route is covered, including ones added after the suite was written:
+
+| Pass | Assertion |
+|---|---|
+| Path-parameter coverage | every `{param}` is mapped to a real resource of a victim tenant or waived with a reason; a new route fails the suite until it is classified |
+| Anonymous | every non-public operation answers 401 (mutations may also answer 403 for CSRF) before any input is parsed |
+| CSRF | every session-authenticated mutation without `X-CSRF-Token` answers 403 `csrf_failed` |
+| Collection isolation | every collection GET (also with the victim's `workspace_id`) never contains a victim id, name or ref key |
+| Object isolation | every route with a victim path parameter answers 400/403/404/409/422 to another tenant's owner and never echoes victim data other than the id the attacker supplied |
+| Secret exposure | every authenticated GET never returns a vault secret, webhook signing secret, invitation token or API key, and carries the security headers |
+| Victim intact | the victim's resources and session still work after all passes |
+
+Waived path parameters are public routes or resources whose tenancy is covered elsewhere (public OIDC start and
+invitation tokens, the global connector catalog, human tasks, webhook deliveries and service endpoints); the reason
+is next to the waiver. Slice tests add the domain-specific attacks the route table cannot express: webhook forgery
+and replay, SSRF/egress matrices, role-escalation attempts and secret absence from logs and step output. A ZAP
+baseline scan and an automated browser suite are not part of Phase 1.
+
 ## Authentication (S1)
 
 | Control | Implementation |

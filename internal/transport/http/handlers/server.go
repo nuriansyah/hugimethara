@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"net/netip"
 
+	analyticshandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/analytics"
+	dashboardhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/dashboard"
+	dataplatformhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/data_platform"
 	webhookhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/webhook"
 	workflowhandler "github.com/nuriansyah/hugimethara/internal/transport/http/handlers/workflow"
 
@@ -46,6 +49,9 @@ type Deps struct {
 	Workflows    *workflowhandler.HTTP
 	Webhooks     *webhookhandler.HTTP
 	Overview     *overviewhandler.HTTP
+	DataPlatform *dataplatformhandler.HTTP
+	Analytics    *analyticshandler.HTTP
+	Dashboards   *dashboardhandler.HTTP
 }
 
 func NewServer(d Deps) any {
@@ -53,14 +59,17 @@ func NewServer(d Deps) any {
 		system: system{env: d.Env, health: d.Health},
 		HTTP:   d.Identity, orgHTTP: orgHTTP{d.Organization}, auditHTTP: auditHTTP{d.Audit},
 		entHTTP: entHTTP{d.Entitlement}, accessHTTP: accessHTTP{d.Access},
-		secretHTTP:      secretHTTP{d.Secrets},
-		connectorHTTP:   connectorHTTP{d.Connectors},
-		serviceHTTP:     serviceHTTP{d.Services},
-		mappingHTTP:     mappingHTTP{d.Mappings},
-		compositionHTTP: compositionHTTP{d.Compositions},
-		workflowHTTP:    workflowHTTP{d.Workflows},
-		webhookHTTP:     webhookHTTP{d.Webhooks},
-		overviewHTTP:    overviewHTTP{d.Overview},
+		secretHTTP:       secretHTTP{d.Secrets},
+		connectorHTTP:    connectorHTTP{d.Connectors},
+		serviceHTTP:      serviceHTTP{d.Services},
+		mappingHTTP:      mappingHTTP{d.Mappings},
+		compositionHTTP:  compositionHTTP{d.Compositions},
+		workflowHTTP:     workflowHTTP{d.Workflows},
+		webhookHTTP:      webhookHTTP{d.Webhooks},
+		overviewHTTP:     overviewHTTP{d.Overview},
+		dataPlatformHTTP: dataPlatformHTTP{d.DataPlatform},
+		analyticsHTTP:    analyticsHTTP{d.Analytics},
+		dashboardHTTP:    dashboardHTTP{d.Dashboards},
 	}
 }
 
@@ -79,6 +88,9 @@ type server struct {
 	workflowHTTP
 	webhookHTTP
 	overviewHTTP
+	dataPlatformHTTP
+	analyticsHTTP
+	dashboardHTTP
 }
 
 type orgHTTP struct{ *orghandler.HTTP }
@@ -93,6 +105,9 @@ type compositionHTTP struct{ *compositionhandler.HTTP }
 type workflowHTTP struct{ *workflowhandler.HTTP }
 type webhookHTTP struct{ *webhookhandler.HTTP }
 type overviewHTTP struct{ *overviewhandler.HTTP }
+type dataPlatformHTTP struct{ *dataplatformhandler.HTTP }
+type analyticsHTTP struct{ *analyticshandler.HTTP }
+type dashboardHTTP struct{ *dashboardhandler.HTTP }
 
 type system struct {
 	env    string

@@ -468,6 +468,24 @@ components:
                 - email
                 - name
             type: object
+        ColumnPolicy:
+            properties:
+                classification:
+                    type: string
+                column_name:
+                    type: string
+                mask:
+                    type: string
+            type: object
+        ColumnPolicyBody:
+            properties:
+                classification:
+                    type: string
+                mask:
+                    type: string
+            required:
+                - classification
+            type: object
         ConnectorDefinition:
             properties:
                 category:
@@ -661,6 +679,215 @@ components:
                 - operations
                 - version
             type: object
+        CreateDashboard201JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                share_enabled:
+                    type: boolean
+                share_expires_at:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        CreateDataSource201JSONResponse:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                environment_id:
+                    type: string
+                id:
+                    type: string
+                kind:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                secret_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        CreateDataset201JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft_sql:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                owner:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        CreateMetric201JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                expression:
+                    type: string
+                filters:
+                    items:
+                        type: string
+                    type: array
+                format:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                semantic_model_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        CreatePipeline201JSONResponse:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                data_source_id:
+                    type: string
+                enabled:
+                    type: boolean
+                id:
+                    type: string
+                last_run_at:
+                    type: string
+                mode:
+                    type: string
+                name:
+                    type: string
+                next_run_at:
+                    type: string
+                org_id:
+                    type: string
+                schedule_cron:
+                    type: string
+                slug:
+                    type: string
+                source_object:
+                    type: string
+                target_table:
+                    type: string
+                updated_at:
+                    type: string
+                watermark_column:
+                    type: string
+                watermark_type:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        CreateScheduledReport201JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                dashboard_id:
+                    type: string
+                enabled:
+                    type: boolean
+                format:
+                    type: string
+                id:
+                    type: string
+                last_run_at:
+                    type: string
+                name:
+                    type: string
+                next_fire_at:
+                    type: string
+                org_id:
+                    type: string
+                recipients:
+                    items:
+                        type: string
+                    type: array
+                schedule_cron:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        CreateSemanticModel201JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                dataset_id:
+                    type: string
+                description:
+                    type: string
+                dimensions:
+                    items:
+                        $ref: '#/components/schemas/Dimension'
+                    type: array
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
         Credential:
             properties:
                 configured:
@@ -713,6 +940,288 @@ components:
                 value:
                     type: string
             type: object
+        Dashboard:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                share_enabled:
+                    type: boolean
+                share_expires_at:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        DashboardCreate:
+            properties:
+                definition:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                description:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - name
+                - workspace_id
+            type: object
+        DashboardDefinition:
+            properties:
+                filters:
+                    items:
+                        $ref: '#/components/schemas/DashboardFilter'
+                    type: array
+                schema_version:
+                    type: integer
+                widgets:
+                    items:
+                        $ref: '#/components/schemas/Widget'
+                    type: array
+            type: object
+        DashboardFilter:
+            properties:
+                column:
+                    type: string
+                default: {}
+                id:
+                    type: string
+                label:
+                    type: string
+                type:
+                    type: string
+            type: object
+        DashboardUpdate:
+            properties:
+                definition:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                description:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+            type: object
+        DashboardVersion:
+            properties:
+                checksum:
+                    type: string
+                dashboard_id:
+                    type: string
+                definition:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                id:
+                    type: string
+                published_at:
+                    type: string
+                published_by:
+                    type: string
+                version:
+                    type: integer
+            type: object
+        DataSource:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                environment_id:
+                    type: string
+                id:
+                    type: string
+                kind:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                secret_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        DataSourceCreate:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                environment_id:
+                    type: string
+                kind:
+                    type: string
+                name:
+                    type: string
+                secret_id:
+                    type: string
+                slug:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - environment_id
+                - kind
+                - name
+                - workspace_id
+            type: object
+        DataSourceKind:
+            properties:
+                available:
+                    type: boolean
+                category:
+                    type: string
+                key:
+                    type: string
+                name:
+                    type: string
+                reason:
+                    type: string
+            type: object
+        DataSourceSchema:
+            properties:
+                captured_at:
+                    type: string
+                checksum:
+                    type: string
+                data_source_id:
+                    type: string
+                id:
+                    type: string
+                schema:
+                    $ref: '#/components/schemas/Schema'
+            type: object
+        DataSourceUpdate:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                name:
+                    type: string
+                secret_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+            type: object
+        Dataset:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft_sql:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                owner:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        DatasetCreate:
+            properties:
+                description:
+                    type: string
+                name:
+                    type: string
+                owner:
+                    type: string
+                slug:
+                    type: string
+                sql:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - name
+                - workspace_id
+            type: object
+        DatasetLineage:
+            properties:
+                columns:
+                    items:
+                        type: string
+                    type: array
+                dataset_id:
+                    type: string
+                upstream_id:
+                    type: string
+                upstream_kind:
+                    type: string
+            type: object
+        DatasetPreviewBody:
+            properties:
+                sql:
+                    type: string
+            type: object
+        DatasetUpdate:
+            properties:
+                description:
+                    type: string
+                name:
+                    type: string
+                owner:
+                    type: string
+                slug:
+                    type: string
+                sql:
+                    type: string
+            type: object
+        DatasetVersion:
+            properties:
+                checksum:
+                    type: string
+                columns:
+                    items:
+                        $ref: '#/components/schemas/SchemaColumn'
+                    type: array
+                dataset_id:
+                    type: string
+                id:
+                    type: string
+                published_at:
+                    type: string
+                published_by:
+                    type: string
+                sql:
+                    type: string
+                version:
+                    type: integer
+            type: object
         Department:
             properties:
                 created_at:
@@ -758,6 +1267,28 @@ components:
                     type: string
             required:
                 - name
+            type: object
+        Dimension:
+            properties:
+                column:
+                    type: string
+                name:
+                    type: string
+                type:
+                    type: string
+            type: object
+        DiscoverDataSource200JSONResponse:
+            properties:
+                captured_at:
+                    type: string
+                checksum:
+                    type: string
+                drift:
+                    items:
+                        type: string
+                    type: array
+                schema:
+                    $ref: '#/components/schemas/Schema'
             type: object
         EffectivePermissions:
             properties:
@@ -944,6 +1475,32 @@ components:
             required:
                 - data
             type: object
+        ExecuteQuery200JSONResponse:
+            properties:
+                bytes_read:
+                    type: integer
+                columns:
+                    items:
+                        type: string
+                    type: array
+                duration_ms:
+                    type: integer
+                row_count:
+                    type: integer
+                rows:
+                    items:
+                        items: {}
+                        type: array
+                    type: array
+                run_id:
+                    type: string
+                truncated:
+                    type: boolean
+                types:
+                    items:
+                        type: string
+                    type: array
+            type: object
         FeatureDefinition:
             properties:
                 description:
@@ -992,6 +1549,243 @@ components:
                     type: array
             required:
                 - data
+            type: object
+        GetDashboard200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                share_enabled:
+                    type: boolean
+                share_expires_at:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        GetDashboardWidgetData200JSONResponse:
+            properties:
+                data: {}
+                title:
+                    type: string
+                type:
+                    type: string
+                widget_id:
+                    type: string
+            type: object
+        GetDataSource200JSONResponse:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                environment_id:
+                    type: string
+                id:
+                    type: string
+                kind:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                secret_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        GetDataset200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft_sql:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                owner:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        GetMetric200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                expression:
+                    type: string
+                filters:
+                    items:
+                        type: string
+                    type: array
+                format:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                semantic_model_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        GetPipeline200JSONResponse:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                data_source_id:
+                    type: string
+                enabled:
+                    type: boolean
+                id:
+                    type: string
+                last_run_at:
+                    type: string
+                mode:
+                    type: string
+                name:
+                    type: string
+                next_run_at:
+                    type: string
+                org_id:
+                    type: string
+                schedule_cron:
+                    type: string
+                slug:
+                    type: string
+                source_object:
+                    type: string
+                target_table:
+                    type: string
+                updated_at:
+                    type: string
+                watermark_column:
+                    type: string
+                watermark_type:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        GetQuery200JSONResponse:
+            properties:
+                bytes_read:
+                    type: integer
+                clickhouse_id:
+                    type: string
+                columns:
+                    items:
+                        type: string
+                    type: array
+                created_at:
+                    type: string
+                dataset_id:
+                    type: string
+                duration_ms:
+                    type: integer
+                error:
+                    type: string
+                exported:
+                    type: boolean
+                finished_at:
+                    type: string
+                id:
+                    type: string
+                metric_id:
+                    type: string
+                org_id:
+                    type: string
+                principal_id:
+                    type: string
+                principal_type:
+                    type: string
+                result_preview: {}
+                row_count:
+                    type: integer
+                sql:
+                    type: string
+                status:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        GetSemanticModel200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                dataset_id:
+                    type: string
+                description:
+                    type: string
+                dimensions:
+                    items:
+                        $ref: '#/components/schemas/Dimension'
+                    type: array
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        GetSharedDashboard200JSONResponse:
+            properties:
+                dashboard:
+                    $ref: '#/components/schemas/Dashboard'
+                version:
+                    $ref: '#/components/schemas/DashboardVersion'
             type: object
         Group:
             properties:
@@ -1291,6 +2085,78 @@ components:
                         type: string
                     type: array
             type: object
+        IngestionPipeline:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                data_source_id:
+                    type: string
+                enabled:
+                    type: boolean
+                id:
+                    type: string
+                last_run_at:
+                    type: string
+                mode:
+                    type: string
+                name:
+                    type: string
+                next_run_at:
+                    type: string
+                org_id:
+                    type: string
+                schedule_cron:
+                    type: string
+                slug:
+                    type: string
+                source_object:
+                    type: string
+                target_table:
+                    type: string
+                updated_at:
+                    type: string
+                watermark_column:
+                    type: string
+                watermark_type:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        IngestionRun:
+            properties:
+                created_at:
+                    type: string
+                error:
+                    additionalProperties: {}
+                    type: object
+                finished_at:
+                    type: string
+                id:
+                    type: string
+                mode:
+                    type: string
+                pipeline_id:
+                    type: string
+                rows_read:
+                    type: integer
+                rows_written:
+                    type: integer
+                schema_drift:
+                    items:
+                        type: string
+                    type: array
+                started_at:
+                    type: string
+                status:
+                    type: string
+                watermark_after:
+                    type: string
+                watermark_before:
+                    type: string
+            type: object
         Invitation:
             properties:
                 accepted_at:
@@ -1436,6 +2302,13 @@ components:
             required:
                 - data
             type: object
+        ListColumnPolicies200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/ColumnPolicy'
+                    type: array
+            type: object
         ListConnectorDefinitions200JSONResponse:
             properties:
                 data:
@@ -1471,6 +2344,62 @@ components:
                     type: array
             required:
                 - data
+            type: object
+        ListDashboardVersions200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/DashboardVersion'
+                    type: array
+            type: object
+        ListDashboards200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/Dashboard'
+                    type: array
+            type: object
+        ListDataSourceKinds200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/DataSourceKind'
+                    type: array
+            type: object
+        ListDataSourceSchemas200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/DataSourceSchema'
+                    type: array
+            type: object
+        ListDataSources200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/DataSource'
+                    type: array
+            type: object
+        ListDatasetLineage200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/DatasetLineage'
+                    type: array
+            type: object
+        ListDatasetVersions200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/DatasetVersion'
+                    type: array
+            type: object
+        ListDatasets200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/Dataset'
+                    type: array
             type: object
         ListDepartments200JSONResponse:
             properties:
@@ -1562,6 +2491,13 @@ components:
             required:
                 - data
             type: object
+        ListMetrics200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/Metric'
+                    type: array
+            type: object
         ListMySessions200JSONResponse:
             properties:
                 data:
@@ -1580,6 +2516,20 @@ components:
             required:
                 - data
             type: object
+        ListPipelineRuns200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/IngestionRun'
+                    type: array
+            type: object
+        ListPipelines200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/IngestionPipeline'
+                    type: array
+            type: object
         ListPlans200JSONResponse:
             properties:
                 data:
@@ -1593,6 +2543,13 @@ components:
             required:
                 - data
                 - features
+            type: object
+        ListQueries200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/QueryRun'
+                    type: array
             type: object
         ListResourceTypes200JSONResponse:
             properties:
@@ -1620,6 +2577,34 @@ components:
                     type: array
             required:
                 - data
+            type: object
+        ListRowPolicies200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/RowPolicy'
+                    type: array
+            type: object
+        ListScheduledReports200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/ScheduledReport'
+                    type: array
+            type: object
+        ListSemanticModelMetrics200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/Metric'
+                    type: array
+            type: object
+        ListSemanticModels200JSONResponse:
+            properties:
+                data:
+                    items:
+                        $ref: '#/components/schemas/SemanticModel'
+                    type: array
             type: object
         ListServiceAccounts200JSONResponse:
             properties:
@@ -1943,6 +2928,89 @@ components:
             x-enum-varnames:
                 - MemberMembershipStatusActive
                 - MemberMembershipStatusSuspended
+        Metric:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                expression:
+                    type: string
+                filters:
+                    items:
+                        type: string
+                    type: array
+                format:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                semantic_model_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        MetricCreate:
+            properties:
+                description:
+                    type: string
+                expression:
+                    type: string
+                filters:
+                    items:
+                        type: string
+                    type: array
+                format:
+                    type: string
+                name:
+                    type: string
+                semantic_model_id:
+                    type: string
+                slug:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - expression
+                - name
+                - semantic_model_id
+                - workspace_id
+            type: object
+        MetricQueryBody:
+            properties:
+                filters:
+                    items:
+                        type: string
+                    type: array
+                limit:
+                    type: integer
+            type: object
+        MetricUpdate:
+            properties:
+                description:
+                    type: string
+                expression:
+                    type: string
+                filters:
+                    items:
+                        type: string
+                    type: array
+                format:
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+            type: object
         NodeType:
             properties:
                 available:
@@ -2352,6 +3420,62 @@ components:
                 - top_failing
                 - total
             type: object
+        PipelineCreate:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                data_source_id:
+                    type: string
+                enabled:
+                    type: boolean
+                mode:
+                    type: string
+                name:
+                    type: string
+                schedule_cron:
+                    type: string
+                slug:
+                    type: string
+                source_object:
+                    type: string
+                target_table:
+                    type: string
+                watermark_column:
+                    type: string
+                watermark_type:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - data_source_id
+                - name
+                - source_object
+                - target_table
+                - workspace_id
+            type: object
+        PipelineUpdate:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                enabled:
+                    type: boolean
+                mode:
+                    type: string
+                name:
+                    type: string
+                schedule_cron:
+                    type: string
+                source_object:
+                    type: string
+                target_table:
+                    type: string
+                watermark_column:
+                    type: string
+                watermark_type:
+                    type: string
+            type: object
         Plan:
             properties:
                 currency:
@@ -2414,6 +3538,20 @@ components:
                 - title
                 - type
             type: object
+        PreviewDataset200JSONResponse:
+            properties:
+                columns:
+                    items:
+                        type: string
+                    type: array
+                row_count:
+                    type: integer
+                rows:
+                    items:
+                        items: {}
+                        type: array
+                    type: array
+            type: object
         PrincipalType:
             enum:
                 - group
@@ -2447,6 +3585,132 @@ components:
                 - status
                 - title
                 - type
+            type: object
+        PublishDashboard200JSONResponse:
+            properties:
+                checksum:
+                    type: string
+                dashboard_id:
+                    type: string
+                definition:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                id:
+                    type: string
+                published_at:
+                    type: string
+                published_by:
+                    type: string
+                version:
+                    type: integer
+            type: object
+        PublishDataset200JSONResponse:
+            properties:
+                checksum:
+                    type: string
+                columns:
+                    items:
+                        $ref: '#/components/schemas/SchemaColumn'
+                    type: array
+                dataset_id:
+                    type: string
+                id:
+                    type: string
+                published_at:
+                    type: string
+                published_by:
+                    type: string
+                sql:
+                    type: string
+                version:
+                    type: integer
+            type: object
+        PutColumnPolicy200JSONResponse:
+            properties:
+                classification:
+                    type: string
+                column_name:
+                    type: string
+                mask:
+                    type: string
+            type: object
+        PutRowPolicy200JSONResponse:
+            properties:
+                column_masks:
+                    additionalProperties:
+                        type: string
+                    type: object
+                role_key:
+                    type: string
+                row_filter:
+                    type: string
+            type: object
+        QueryBody:
+            properties:
+                dataset_id:
+                    type: string
+                export:
+                    type: boolean
+                limit:
+                    type: integer
+                sql:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - sql
+                - workspace_id
+            type: object
+        QueryMetric200JSONResponse:
+            properties:
+                metric_id:
+                    type: string
+                run_id:
+                    type: string
+                sql:
+                    type: string
+                value: {}
+            type: object
+        QueryRun:
+            properties:
+                bytes_read:
+                    type: integer
+                clickhouse_id:
+                    type: string
+                columns:
+                    items:
+                        type: string
+                    type: array
+                created_at:
+                    type: string
+                dataset_id:
+                    type: string
+                duration_ms:
+                    type: integer
+                error:
+                    type: string
+                exported:
+                    type: boolean
+                finished_at:
+                    type: string
+                id:
+                    type: string
+                metric_id:
+                    type: string
+                org_id:
+                    type: string
+                principal_id:
+                    type: string
+                principal_type:
+                    type: string
+                result_preview: {}
+                row_count:
+                    type: integer
+                sql:
+                    type: string
+                status:
+                    type: string
+                workspace_id:
+                    type: string
             type: object
         ResourceType:
             properties:
@@ -2602,6 +3866,216 @@ components:
             required:
                 - name
                 - permissions
+            type: object
+        RowPolicy:
+            properties:
+                column_masks:
+                    additionalProperties:
+                        type: string
+                    type: object
+                role_key:
+                    type: string
+                row_filter:
+                    type: string
+            type: object
+        RowPolicyBody:
+            properties:
+                column_masks:
+                    additionalProperties:
+                        type: string
+                    type: object
+                row_filter:
+                    type: string
+            type: object
+        RunPipeline200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                error:
+                    additionalProperties: {}
+                    type: object
+                finished_at:
+                    type: string
+                id:
+                    type: string
+                mode:
+                    type: string
+                pipeline_id:
+                    type: string
+                rows_read:
+                    type: integer
+                rows_written:
+                    type: integer
+                schema_drift:
+                    items:
+                        type: string
+                    type: array
+                started_at:
+                    type: string
+                status:
+                    type: string
+                watermark_after:
+                    type: string
+                watermark_before:
+                    type: string
+            type: object
+        ScheduledReport:
+            properties:
+                created_at:
+                    type: string
+                dashboard_id:
+                    type: string
+                enabled:
+                    type: boolean
+                format:
+                    type: string
+                id:
+                    type: string
+                last_run_at:
+                    type: string
+                name:
+                    type: string
+                next_fire_at:
+                    type: string
+                org_id:
+                    type: string
+                recipients:
+                    items:
+                        type: string
+                    type: array
+                schedule_cron:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        ScheduledReportCreate:
+            properties:
+                dashboard_id:
+                    type: string
+                enabled:
+                    type: boolean
+                format:
+                    type: string
+                name:
+                    type: string
+                recipients:
+                    items:
+                        type: string
+                    type: array
+                schedule_cron:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - dashboard_id
+                - name
+                - schedule_cron
+                - workspace_id
+            type: object
+        ScheduledReportUpdate:
+            properties:
+                enabled:
+                    type: boolean
+                format:
+                    type: string
+                name:
+                    type: string
+                recipients:
+                    items:
+                        type: string
+                    type: array
+                schedule_cron:
+                    type: string
+            type: object
+        Schema:
+            properties:
+                objects:
+                    items:
+                        $ref: '#/components/schemas/SchemaObject'
+                    type: array
+            type: object
+        SchemaColumn:
+            properties:
+                name:
+                    type: string
+                nullable:
+                    type: boolean
+                type:
+                    type: string
+            type: object
+        SchemaObject:
+            properties:
+                columns:
+                    items:
+                        $ref: '#/components/schemas/SchemaColumn'
+                    type: array
+                name:
+                    type: string
+                type:
+                    type: string
+            type: object
+        SemanticModel:
+            properties:
+                created_at:
+                    type: string
+                dataset_id:
+                    type: string
+                description:
+                    type: string
+                dimensions:
+                    items:
+                        $ref: '#/components/schemas/Dimension'
+                    type: array
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        SemanticModelCreate:
+            properties:
+                dataset_id:
+                    type: string
+                description:
+                    type: string
+                dimensions:
+                    items:
+                        $ref: '#/components/schemas/Dimension'
+                    type: array
+                name:
+                    type: string
+                slug:
+                    type: string
+                workspace_id:
+                    type: string
+            required:
+                - dataset_id
+                - name
+                - workspace_id
+            type: object
+        SemanticModelUpdate:
+            properties:
+                description:
+                    type: string
+                dimensions:
+                    items:
+                        $ref: '#/components/schemas/Dimension'
+                    type: array
+                name:
+                    type: string
+                slug:
+                    type: string
             type: object
         Service:
             properties:
@@ -2884,6 +4358,22 @@ components:
                 - id
                 - idle_expires_at
             type: object
+        ShareDashboard200JSONResponse:
+            properties:
+                enabled:
+                    type: boolean
+                expires_at:
+                    type: string
+                token:
+                    type: string
+            type: object
+        ShareDashboardBody:
+            properties:
+                enabled:
+                    type: boolean
+                expires_at:
+                    type: string
+            type: object
         SignupRequest:
             properties:
                 display_name:
@@ -2937,12 +4427,232 @@ components:
                 - Production
                 - Staging
                 - Test
+        TestDataSource200JSONResponse:
+            properties:
+                error_code:
+                    type: string
+                latency_ms:
+                    type: integer
+                message:
+                    type: string
+                ok:
+                    type: boolean
+            type: object
+        UpdateDashboard200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft:
+                    $ref: '#/components/schemas/DashboardDefinition'
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                share_enabled:
+                    type: boolean
+                share_expires_at:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        UpdateDataSource200JSONResponse:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                environment_id:
+                    type: string
+                id:
+                    type: string
+                kind:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                secret_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        UpdateDataset200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                draft_sql:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                owner:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        UpdateMetric200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                description:
+                    type: string
+                expression:
+                    type: string
+                filters:
+                    items:
+                        type: string
+                    type: array
+                format:
+                    type: string
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                semantic_model_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
         UpdateOrganizationRequest:
             properties:
                 name:
                     type: string
                 settings:
                     $ref: '#/components/schemas/OrganizationSettings'
+            type: object
+        UpdatePipeline200JSONResponse:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                created_at:
+                    type: string
+                data_source_id:
+                    type: string
+                enabled:
+                    type: boolean
+                id:
+                    type: string
+                last_run_at:
+                    type: string
+                mode:
+                    type: string
+                name:
+                    type: string
+                next_run_at:
+                    type: string
+                org_id:
+                    type: string
+                schedule_cron:
+                    type: string
+                slug:
+                    type: string
+                source_object:
+                    type: string
+                target_table:
+                    type: string
+                updated_at:
+                    type: string
+                watermark_column:
+                    type: string
+                watermark_type:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        UpdateScheduledReport200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                dashboard_id:
+                    type: string
+                enabled:
+                    type: boolean
+                format:
+                    type: string
+                id:
+                    type: string
+                last_run_at:
+                    type: string
+                name:
+                    type: string
+                next_fire_at:
+                    type: string
+                org_id:
+                    type: string
+                recipients:
+                    items:
+                        type: string
+                    type: array
+                schedule_cron:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
+            type: object
+        UpdateSemanticModel200JSONResponse:
+            properties:
+                created_at:
+                    type: string
+                dataset_id:
+                    type: string
+                description:
+                    type: string
+                dimensions:
+                    items:
+                        $ref: '#/components/schemas/Dimension'
+                    type: array
+                id:
+                    type: string
+                name:
+                    type: string
+                org_id:
+                    type: string
+                slug:
+                    type: string
+                status:
+                    type: string
+                updated_at:
+                    type: string
+                workspace_id:
+                    type: string
             type: object
         User:
             properties:
@@ -3377,6 +5087,35 @@ components:
                     type: string
                 timestamp_header:
                     type: string
+            type: object
+        Widget:
+            properties:
+                config:
+                    additionalProperties: {}
+                    type: object
+                dataset_id:
+                    type: string
+                height:
+                    type: integer
+                id:
+                    type: string
+                metric_id:
+                    type: string
+                sql:
+                    type: string
+                title:
+                    type: string
+                type:
+                    type: string
+                width:
+                    type: integer
+            type: object
+        WidgetDataBody:
+            properties:
+                filters:
+                    additionalProperties:
+                        type: string
+                    type: object
             type: object
         Workflow:
             properties:
@@ -5462,6 +7201,730 @@ paths:
             summary: Update credential metadata or rotate its value
             tags:
                 - secrets
+    /v1/hugimethara/dashboards:
+        get:
+            operationId: listDashboards
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDashboards200JSONResponse'
+                    description: OK
+            summary: list dashboards
+            tags:
+                - dashboards
+        post:
+            operationId: createDashboard
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/DashboardCreate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateDashboard201JSONResponse'
+                    description: Created
+            summary: create dashboard
+            tags:
+                - dashboards
+    /v1/hugimethara/dashboards/{dashboard_id}:
+        delete:
+            operationId: deleteDashboard
+            parameters:
+                - description: dashboard_id
+                  in: path
+                  name: dashboard_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete dashboard
+            tags:
+                - dashboards
+        get:
+            operationId: getDashboard
+            parameters:
+                - description: dashboard_id
+                  in: path
+                  name: dashboard_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDashboard200JSONResponse'
+                    description: OK
+            summary: get dashboard
+            tags:
+                - dashboards
+        patch:
+            operationId: updateDashboard
+            parameters:
+                - description: dashboard_id
+                  in: path
+                  name: dashboard_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/DashboardUpdate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDashboard200JSONResponse'
+                    description: OK
+            summary: update dashboard
+            tags:
+                - dashboards
+    /v1/hugimethara/dashboards/{dashboard_id}/publish:
+        post:
+            operationId: publishDashboard
+            parameters:
+                - description: dashboard_id
+                  in: path
+                  name: dashboard_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PublishDashboard200JSONResponse'
+                    description: OK
+            summary: publish dashboard
+            tags:
+                - dashboards
+    /v1/hugimethara/dashboards/{dashboard_id}/share:
+        post:
+            operationId: shareDashboard
+            parameters:
+                - description: dashboard_id
+                  in: path
+                  name: dashboard_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/ShareDashboardBody'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ShareDashboard200JSONResponse'
+                    description: OK
+            summary: share dashboard
+            tags:
+                - dashboards
+    /v1/hugimethara/dashboards/{dashboard_id}/versions:
+        get:
+            operationId: listDashboardVersions
+            parameters:
+                - description: dashboard_id
+                  in: path
+                  name: dashboard_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDashboardVersions200JSONResponse'
+                    description: OK
+            summary: list dashboard versions
+            tags:
+                - dashboards
+    /v1/hugimethara/dashboards/{dashboard_id}/widgets/{widget_id}/data:
+        post:
+            operationId: getDashboardWidgetData
+            parameters:
+                - description: dashboard_id
+                  in: path
+                  name: dashboard_id
+                  required: true
+                  schema:
+                    type: string
+                - description: widget_id
+                  in: path
+                  name: widget_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/WidgetDataBody'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDashboardWidgetData200JSONResponse'
+                    description: OK
+            summary: get dashboard widget data
+            tags:
+                - dashboards
+    /v1/hugimethara/data-source-kinds:
+        get:
+            operationId: listDataSourceKinds
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDataSourceKinds200JSONResponse'
+                    description: OK
+            summary: list data source kinds
+            tags:
+                - data-platform
+    /v1/hugimethara/data-sources:
+        get:
+            operationId: listDataSources
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDataSources200JSONResponse'
+                    description: OK
+            summary: list data sources
+            tags:
+                - data-platform
+        post:
+            operationId: createDataSource
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/DataSourceCreate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateDataSource201JSONResponse'
+                    description: Created
+            summary: create data source
+            tags:
+                - data-platform
+    /v1/hugimethara/data-sources/{data_source_id}:
+        delete:
+            operationId: deleteDataSource
+            parameters:
+                - description: data_source_id
+                  in: path
+                  name: data_source_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete data source
+            tags:
+                - data-platform
+        get:
+            operationId: getDataSource
+            parameters:
+                - description: data_source_id
+                  in: path
+                  name: data_source_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDataSource200JSONResponse'
+                    description: OK
+            summary: get data source
+            tags:
+                - data-platform
+        patch:
+            operationId: updateDataSource
+            parameters:
+                - description: data_source_id
+                  in: path
+                  name: data_source_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/DataSourceUpdate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDataSource200JSONResponse'
+                    description: OK
+            summary: update data source
+            tags:
+                - data-platform
+    /v1/hugimethara/data-sources/{data_source_id}/discover:
+        post:
+            operationId: discoverDataSource
+            parameters:
+                - description: data_source_id
+                  in: path
+                  name: data_source_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DiscoverDataSource200JSONResponse'
+                    description: OK
+            summary: discover data source
+            tags:
+                - data-platform
+    /v1/hugimethara/data-sources/{data_source_id}/schemas:
+        get:
+            operationId: listDataSourceSchemas
+            parameters:
+                - description: data_source_id
+                  in: path
+                  name: data_source_id
+                  required: true
+                  schema:
+                    type: string
+                - description: limit
+                  in: query
+                  name: limit
+                  schema:
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDataSourceSchemas200JSONResponse'
+                    description: OK
+            summary: list data source schemas
+            tags:
+                - data-platform
+    /v1/hugimethara/data-sources/{data_source_id}/test:
+        post:
+            operationId: testDataSource
+            parameters:
+                - description: data_source_id
+                  in: path
+                  name: data_source_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TestDataSource200JSONResponse'
+                    description: OK
+            summary: test data source
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets:
+        get:
+            operationId: listDatasets
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDatasets200JSONResponse'
+                    description: OK
+            summary: list datasets
+            tags:
+                - data-platform
+        post:
+            operationId: createDataset
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/DatasetCreate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateDataset201JSONResponse'
+                    description: Created
+            summary: create dataset
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}:
+        delete:
+            operationId: deleteDataset
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete dataset
+            tags:
+                - data-platform
+        get:
+            operationId: getDataset
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetDataset200JSONResponse'
+                    description: OK
+            summary: get dataset
+            tags:
+                - data-platform
+        patch:
+            operationId: updateDataset
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/DatasetUpdate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateDataset200JSONResponse'
+                    description: OK
+            summary: update dataset
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/column-policies:
+        get:
+            operationId: listColumnPolicies
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListColumnPolicies200JSONResponse'
+                    description: OK
+            summary: list column policies
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/column-policies/{column}:
+        delete:
+            operationId: deleteColumnPolicy
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+                - description: column
+                  in: path
+                  name: column
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete column policy
+            tags:
+                - data-platform
+        put:
+            operationId: putColumnPolicy
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+                - description: column
+                  in: path
+                  name: column
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/ColumnPolicyBody'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PutColumnPolicy200JSONResponse'
+                    description: OK
+            summary: put column policy
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/lineage:
+        get:
+            operationId: listDatasetLineage
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDatasetLineage200JSONResponse'
+                    description: OK
+            summary: list dataset lineage
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/preview:
+        post:
+            operationId: previewDataset
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/DatasetPreviewBody'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PreviewDataset200JSONResponse'
+                    description: OK
+            summary: preview dataset
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/publish:
+        post:
+            operationId: publishDataset
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PublishDataset200JSONResponse'
+                    description: OK
+            summary: publish dataset
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/row-policies:
+        get:
+            operationId: listRowPolicies
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListRowPolicies200JSONResponse'
+                    description: OK
+            summary: list row policies
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/row-policies/{role_key}:
+        delete:
+            operationId: deleteRowPolicy
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+                - description: role_key
+                  in: path
+                  name: role_key
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete row policy
+            tags:
+                - data-platform
+        put:
+            operationId: putRowPolicy
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+                - description: role_key
+                  in: path
+                  name: role_key
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/RowPolicyBody'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PutRowPolicy200JSONResponse'
+                    description: OK
+            summary: put row policy
+            tags:
+                - data-platform
+    /v1/hugimethara/datasets/{dataset_id}/versions:
+        get:
+            operationId: listDatasetVersions
+            parameters:
+                - description: dataset_id
+                  in: path
+                  name: dataset_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListDatasetVersions200JSONResponse'
+                    description: OK
+            summary: list dataset versions
+            tags:
+                - data-platform
     /v1/hugimethara/departments:
         get:
             operationId: listDepartments
@@ -7315,6 +9778,136 @@ paths:
             summary: Revoke one of the caller's sessions
             tags:
                 - auth
+    /v1/hugimethara/metrics:
+        get:
+            operationId: listMetrics
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListMetrics200JSONResponse'
+                    description: OK
+            summary: list metrics
+            tags:
+                - analytics
+        post:
+            operationId: createMetric
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/MetricCreate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateMetric201JSONResponse'
+                    description: Created
+            summary: create metric
+            tags:
+                - analytics
+    /v1/hugimethara/metrics/{metric_id}:
+        delete:
+            operationId: deleteMetric
+            parameters:
+                - description: metric_id
+                  in: path
+                  name: metric_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete metric
+            tags:
+                - analytics
+        get:
+            operationId: getMetric
+            parameters:
+                - description: metric_id
+                  in: path
+                  name: metric_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetMetric200JSONResponse'
+                    description: OK
+            summary: get metric
+            tags:
+                - analytics
+        patch:
+            operationId: updateMetric
+            parameters:
+                - description: metric_id
+                  in: path
+                  name: metric_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/MetricUpdate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateMetric200JSONResponse'
+                    description: OK
+            summary: update metric
+            tags:
+                - analytics
+    /v1/hugimethara/metrics/{metric_id}/query:
+        post:
+            operationId: queryMetric
+            parameters:
+                - description: metric_id
+                  in: path
+                  name: metric_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/MetricQueryBody'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/QueryMetric200JSONResponse'
+                    description: OK
+            summary: query metric
+            tags:
+                - analytics
     /v1/hugimethara/node-types:
         get:
             operationId: listNodeTypes
@@ -7492,6 +10085,153 @@ paths:
             summary: Workspace overview (operational KPIs)
             tags:
                 - overview
+    /v1/hugimethara/pipelines:
+        get:
+            operationId: listPipelines
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListPipelines200JSONResponse'
+                    description: OK
+            summary: list pipelines
+            tags:
+                - data-platform
+        post:
+            operationId: createPipeline
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/PipelineCreate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreatePipeline201JSONResponse'
+                    description: Created
+            summary: create pipeline
+            tags:
+                - data-platform
+    /v1/hugimethara/pipelines/{pipeline_id}:
+        delete:
+            operationId: deletePipeline
+            parameters:
+                - description: pipeline_id
+                  in: path
+                  name: pipeline_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete pipeline
+            tags:
+                - data-platform
+        get:
+            operationId: getPipeline
+            parameters:
+                - description: pipeline_id
+                  in: path
+                  name: pipeline_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetPipeline200JSONResponse'
+                    description: OK
+            summary: get pipeline
+            tags:
+                - data-platform
+        patch:
+            operationId: updatePipeline
+            parameters:
+                - description: pipeline_id
+                  in: path
+                  name: pipeline_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/PipelineUpdate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdatePipeline200JSONResponse'
+                    description: OK
+            summary: update pipeline
+            tags:
+                - data-platform
+    /v1/hugimethara/pipelines/{pipeline_id}/run:
+        post:
+            operationId: runPipeline
+            parameters:
+                - description: pipeline_id
+                  in: path
+                  name: pipeline_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RunPipeline200JSONResponse'
+                    description: OK
+            summary: run pipeline
+            tags:
+                - data-platform
+    /v1/hugimethara/pipelines/{pipeline_id}/runs:
+        get:
+            operationId: listPipelineRuns
+            parameters:
+                - description: pipeline_id
+                  in: path
+                  name: pipeline_id
+                  required: true
+                  schema:
+                    type: string
+                - description: limit
+                  in: query
+                  name: limit
+                  schema:
+                    type: integer
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListPipelineRuns200JSONResponse'
+                    description: OK
+            summary: list pipeline runs
+            tags:
+                - data-platform
     /v1/hugimethara/plans:
         get:
             operationId: listPlans
@@ -7508,6 +10248,102 @@ paths:
             summary: Plan catalog for comparison
             tags:
                 - billing
+    /v1/hugimethara/queries:
+        get:
+            operationId: listQueries
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListQueries200JSONResponse'
+                    description: OK
+            summary: list queries
+            tags:
+                - analytics
+        post:
+            operationId: executeQuery
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/QueryBody'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ExecuteQuery200JSONResponse'
+                    description: OK
+            summary: execute query
+            tags:
+                - analytics
+    /v1/hugimethara/queries/{query_id}:
+        get:
+            operationId: getQuery
+            parameters:
+                - description: query_id
+                  in: path
+                  name: query_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetQuery200JSONResponse'
+                    description: OK
+            summary: get query
+            tags:
+                - analytics
+    /v1/hugimethara/queries/{query_id}/cancel:
+        post:
+            operationId: cancelQuery
+            parameters:
+                - description: query_id
+                  in: path
+                  name: query_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: cancel query
+            tags:
+                - analytics
+    /v1/hugimethara/queries/{query_id}/export:
+        get:
+            operationId: exportQuery
+            parameters:
+                - description: query_id
+                  in: path
+                  name: query_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                    description: CSV export
+            summary: export query
+            tags:
+                - analytics
     /v1/hugimethara/resource-types:
         get:
             operationId: listResourceTypes
@@ -7843,6 +10679,211 @@ paths:
             summary: Replace a role's name, description and permissions
             tags:
                 - access
+    /v1/hugimethara/scheduled-reports:
+        get:
+            operationId: listScheduledReports
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListScheduledReports200JSONResponse'
+                    description: OK
+            summary: list scheduled reports
+            tags:
+                - dashboards
+        post:
+            operationId: createScheduledReport
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/ScheduledReportCreate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateScheduledReport201JSONResponse'
+                    description: Created
+            summary: create scheduled report
+            tags:
+                - dashboards
+    /v1/hugimethara/scheduled-reports/{report_id}:
+        delete:
+            operationId: deleteScheduledReport
+            parameters:
+                - description: report_id
+                  in: path
+                  name: report_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete scheduled report
+            tags:
+                - dashboards
+        patch:
+            operationId: updateScheduledReport
+            parameters:
+                - description: report_id
+                  in: path
+                  name: report_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/ScheduledReportUpdate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateScheduledReport200JSONResponse'
+                    description: OK
+            summary: update scheduled report
+            tags:
+                - dashboards
+    /v1/hugimethara/semantic-models:
+        get:
+            operationId: listSemanticModels
+            parameters:
+                - description: workspace_id
+                  in: query
+                  name: workspace_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSemanticModels200JSONResponse'
+                    description: OK
+            summary: list semantic models
+            tags:
+                - analytics
+        post:
+            operationId: createSemanticModel
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/SemanticModelCreate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CreateSemanticModel201JSONResponse'
+                    description: Created
+            summary: create semantic model
+            tags:
+                - analytics
+    /v1/hugimethara/semantic-models/{model_id}:
+        delete:
+            operationId: deleteSemanticModel
+            parameters:
+                - description: model_id
+                  in: path
+                  name: model_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+            summary: delete semantic model
+            tags:
+                - analytics
+        get:
+            operationId: getSemanticModel
+            parameters:
+                - description: model_id
+                  in: path
+                  name: model_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetSemanticModel200JSONResponse'
+                    description: OK
+            summary: get semantic model
+            tags:
+                - analytics
+        patch:
+            operationId: updateSemanticModel
+            parameters:
+                - description: model_id
+                  in: path
+                  name: model_id
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    '*/*':
+                        schema:
+                            $ref: '#/components/schemas/SemanticModelUpdate'
+                description: Request body
+                required: true
+                x-originalParamName: request
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UpdateSemanticModel200JSONResponse'
+                    description: OK
+            summary: update semantic model
+            tags:
+                - analytics
+    /v1/hugimethara/semantic-models/{model_id}/metrics:
+        get:
+            operationId: listSemanticModelMetrics
+            parameters:
+                - description: model_id
+                  in: path
+                  name: model_id
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListSemanticModelMetrics200JSONResponse'
+                    description: OK
+            summary: list semantic model metrics
+            tags:
+                - analytics
     /v1/hugimethara/service-accounts:
         get:
             operationId: listServiceAccounts
@@ -8617,6 +11658,26 @@ paths:
             summary: Import an OpenAPI document and preview changes
             tags:
                 - services
+    /v1/hugimethara/shared-dashboards/{token}:
+        get:
+            operationId: getSharedDashboard
+            parameters:
+                - description: token
+                  in: path
+                  name: token
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetSharedDashboard200JSONResponse'
+                    description: OK
+            summary: get shared dashboard
+            tags:
+                - dashboards
     /v1/hugimethara/system/info:
         get:
             operationId: getSystemInfo

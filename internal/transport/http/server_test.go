@@ -116,11 +116,12 @@ func TestPublicOperationsAreExplicit(t *testing.T) {
 		"CreateOrganization": true, "Login": true, "Logout": true,
 		"GetInvitationPreview": true, "AcceptInvitation": true, // S4: invitation links (token-gated, rate-limited)
 		"ListOidcProviders": true, "StartOidcLogin": true, "CompleteOidcLogin": true, // S5: SSO before a session exists
+		"GetSharedDashboard": true, // S20: share links are token-gated and return only the published version
 	}, public, "adding a public operation is a security decision: update this test deliberately")
 	// S10 added 14 workflow operations, S11 six more, S12 nineteen webhook operations. The webhook
 	// ingress (/hooks/{public_id}) is deliberately outside this table: its credential is the signature.
 	// S14 added getOverview; the OpenAPI document (/v1/hugimethara/openapi.*) is static and also outside.
-	require.Len(t, routes, 167)
+	require.Len(t, routes, 229)
 }
 
 func TestCrossSiteStateChangeRejected(t *testing.T) {

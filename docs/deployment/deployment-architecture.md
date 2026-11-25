@@ -19,6 +19,12 @@
 
 One Go image (distroless, non-root) contains all binaries; command selects the role.
 
+**Verified (S14):** `docker compose -f deployments/compose/docker-compose.yml up --build -d` on a fresh project
+applies migrations 1–16, brings up Postgres, Redis, NATS, api, two worker replicas and web; `/readyz` and the web
+shell answer 200, the web `/api` proxy serves the OpenAPI contract, the API reference page renders, and reduced-load
+k6 api/workflow/webhook runs pass against the compose stack. Host ports are overridable (`HUGI_POSTGRES_PORT`,
+`HUGI_API_PORT`, `HUGI_WEB_PORT`); Redis and NATS use fixed host ports in the development file.
+
 **Object storage:** not in the S0 stack because no code uses it yet. MinIO stopped publishing community container
 images in 2025, so the S3-compatible dev server is chosen when the first slice needs it (S7: OpenAPI spec storage).
 Candidates: SeaweedFS, Garage, RustFS. Application code targets the S3 API only.

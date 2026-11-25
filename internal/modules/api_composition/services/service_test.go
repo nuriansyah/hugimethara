@@ -13,6 +13,7 @@ import (
 	compositionmodel "github.com/nuriansyah/hugimethara/internal/modules/api_composition/model"
 	compositiondto "github.com/nuriansyah/hugimethara/internal/modules/api_composition/model/dto"
 	"github.com/nuriansyah/hugimethara/internal/modules/api_composition/repository"
+	mappingsvc "github.com/nuriansyah/hugimethara/internal/modules/integration/mapping/services"
 	serviceregmodel "github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/model"
 	serviceregdto "github.com/nuriansyah/hugimethara/internal/modules/integration/service_registry/model/dto"
 )
@@ -62,7 +63,7 @@ func TestRunEvaluatesDependenciesConditionsAndInputReferences(t *testing.T) {
 	require.Equal(t, "o-8", invoker.inputs[orderEndpointID].PathValues["id"])
 	require.Equal(t, "c-42", invoker.inputs[customerEndpointID].PathValues["id"])
 	result := out.(map[string]any)
-	require.Equal(t, "paid", result["steps"].(map[string]compositionmodel.StepResult)["order"].Body.(map[string]any)["status"])
+	require.Equal(t, "paid", result["steps"].(map[string]any)["order"].(map[string]any)["body"].(map[string]any)["status"])
 }
 
 func TestRunAppliesOnErrorDefaultAndStopsOnFailure(t *testing.T) {
@@ -80,7 +81,7 @@ func TestRunAppliesOnErrorDefaultAndStopsOnFailure(t *testing.T) {
 	out, steps, err := svc.run(context.Background(), uuid.New(), version, compositiondto.ExecuteInput{EnvironmentID: uuid.New()})
 	require.NoError(t, err)
 	require.Equal(t, map[string]any{"available": false}, steps["optional"].Body)
-	require.NotContains(t, out.(map[string]any)["steps"].(map[string]compositionmodel.StepResult)["optional"].Error, "private")
+	require.NotContains(t, out.(map[string]any)["steps"].(map[string]any)["optional"].(map[string]any)["error"], "private")
 
 	version.Definition = []byte(`{
 		"steps":[{"id":"required","call":{"service_id":"` + serviceID + `","endpoint_id":"` + endpointID + `"}}]
@@ -166,4 +167,18 @@ func TestCircuitBreakerResetsAfterQuietPeriod(t *testing.T) {
 
 	require.True(t, svc.breakerAllow("service", now.Add(31*time.Second)))
 	require.Empty(t, svc.breaker)
+}
+
+func TestResponseMappingAddressesStepBodies(t *testing.T) {
+	results := map[string]compositionmodel.StepResult{
+		"order":    {Status: 200, Body: map[string]any{"id": "o-42", "status": "paid"}},
+		"customer": {Status: 200, Body: map[string]any{"name": "Ada"}},
+	}
+	out, err := mappingsvc.Apply(map[string]any{"rules": []any{
+		map[string]any{"target": "order_id", "source": "$.steps.order.body.id"},
+		map[string]any{"target": "order_status", "source": "$.steps.order.body.status"},
+		map[string]any{"target": "customer", "source": "$.steps.customer.body.name"},
+	}}, map[string]any{"request": map[string]any{"order_id": "o-42"}, "steps": stepValues(results)})
+	require.NoError(t, err)
+	require.Equal(t, map[string]any{"order_id": "o-42", "order_status": "paid", "customer": "Ada"}, out)
 }

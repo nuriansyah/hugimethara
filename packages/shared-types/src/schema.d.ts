@@ -532,6 +532,391 @@ export interface paths {
         patch: operations["updateCredential"];
         trace?: never;
     };
+    "/v1/hugimethara/dashboards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list dashboards */
+        get: operations["listDashboards"];
+        put?: never;
+        /** create dashboard */
+        post: operations["createDashboard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/dashboards/{dashboard_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get dashboard */
+        get: operations["getDashboard"];
+        put?: never;
+        post?: never;
+        /** delete dashboard */
+        delete: operations["deleteDashboard"];
+        options?: never;
+        head?: never;
+        /** update dashboard */
+        patch: operations["updateDashboard"];
+        trace?: never;
+    };
+    "/v1/hugimethara/dashboards/{dashboard_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** publish dashboard */
+        post: operations["publishDashboard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/dashboards/{dashboard_id}/share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** share dashboard */
+        post: operations["shareDashboard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/dashboards/{dashboard_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list dashboard versions */
+        get: operations["listDashboardVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/dashboards/{dashboard_id}/widgets/{widget_id}/data": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** get dashboard widget data */
+        post: operations["getDashboardWidgetData"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/data-source-kinds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list data source kinds */
+        get: operations["listDataSourceKinds"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/data-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list data sources */
+        get: operations["listDataSources"];
+        put?: never;
+        /** create data source */
+        post: operations["createDataSource"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/data-sources/{data_source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get data source */
+        get: operations["getDataSource"];
+        put?: never;
+        post?: never;
+        /** delete data source */
+        delete: operations["deleteDataSource"];
+        options?: never;
+        head?: never;
+        /** update data source */
+        patch: operations["updateDataSource"];
+        trace?: never;
+    };
+    "/v1/hugimethara/data-sources/{data_source_id}/discover": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** discover data source */
+        post: operations["discoverDataSource"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/data-sources/{data_source_id}/schemas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list data source schemas */
+        get: operations["listDataSourceSchemas"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/data-sources/{data_source_id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** test data source */
+        post: operations["testDataSource"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list datasets */
+        get: operations["listDatasets"];
+        put?: never;
+        /** create dataset */
+        post: operations["createDataset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get dataset */
+        get: operations["getDataset"];
+        put?: never;
+        post?: never;
+        /** delete dataset */
+        delete: operations["deleteDataset"];
+        options?: never;
+        head?: never;
+        /** update dataset */
+        patch: operations["updateDataset"];
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/column-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list column policies */
+        get: operations["listColumnPolicies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/column-policies/{column}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** put column policy */
+        put: operations["putColumnPolicy"];
+        post?: never;
+        /** delete column policy */
+        delete: operations["deleteColumnPolicy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/lineage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list dataset lineage */
+        get: operations["listDatasetLineage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** preview dataset */
+        post: operations["previewDataset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** publish dataset */
+        post: operations["publishDataset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/row-policies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list row policies */
+        get: operations["listRowPolicies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/row-policies/{role_key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** put row policy */
+        put: operations["putRowPolicy"];
+        post?: never;
+        /** delete row policy */
+        delete: operations["deleteRowPolicy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/datasets/{dataset_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list dataset versions */
+        get: operations["listDatasetVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/departments": {
         parameters: {
             query?: never;
@@ -1063,6 +1448,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list metrics */
+        get: operations["listMetrics"];
+        put?: never;
+        /** create metric */
+        post: operations["createMetric"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/metrics/{metric_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get metric */
+        get: operations["getMetric"];
+        put?: never;
+        post?: never;
+        /** delete metric */
+        delete: operations["deleteMetric"];
+        options?: never;
+        head?: never;
+        /** update metric */
+        patch: operations["updateMetric"];
+        trace?: never;
+    };
+    "/v1/hugimethara/metrics/{metric_id}/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** query metric */
+        post: operations["queryMetric"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/node-types": {
         parameters: {
             query?: never;
@@ -1135,6 +1574,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/hugimethara/pipelines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list pipelines */
+        get: operations["listPipelines"];
+        put?: never;
+        /** create pipeline */
+        post: operations["createPipeline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/pipelines/{pipeline_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get pipeline */
+        get: operations["getPipeline"];
+        put?: never;
+        post?: never;
+        /** delete pipeline */
+        delete: operations["deletePipeline"];
+        options?: never;
+        head?: never;
+        /** update pipeline */
+        patch: operations["updatePipeline"];
+        trace?: never;
+    };
+    "/v1/hugimethara/pipelines/{pipeline_id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** run pipeline */
+        post: operations["runPipeline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/pipelines/{pipeline_id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list pipeline runs */
+        get: operations["listPipelineRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/hugimethara/plans": {
         parameters: {
             query?: never;
@@ -1144,6 +1654,75 @@ export interface paths {
         };
         /** Plan catalog for comparison */
         get: operations["listPlans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/queries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list queries */
+        get: operations["listQueries"];
+        put?: never;
+        /** execute query */
+        post: operations["executeQuery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/queries/{query_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get query */
+        get: operations["getQuery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/queries/{query_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** cancel query */
+        post: operations["cancelQuery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/queries/{query_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** export query */
+        get: operations["exportQuery"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1236,6 +1815,96 @@ export interface paths {
         post?: never;
         /** Delete an unused custom role */
         delete: operations["deleteRole"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/scheduled-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list scheduled reports */
+        get: operations["listScheduledReports"];
+        put?: never;
+        /** create scheduled report */
+        post: operations["createScheduledReport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/scheduled-reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** delete scheduled report */
+        delete: operations["deleteScheduledReport"];
+        options?: never;
+        head?: never;
+        /** update scheduled report */
+        patch: operations["updateScheduledReport"];
+        trace?: never;
+    };
+    "/v1/hugimethara/semantic-models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list semantic models */
+        get: operations["listSemanticModels"];
+        put?: never;
+        /** create semantic model */
+        post: operations["createSemanticModel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/semantic-models/{model_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get semantic model */
+        get: operations["getSemanticModel"];
+        put?: never;
+        post?: never;
+        /** delete semantic model */
+        delete: operations["deleteSemanticModel"];
+        options?: never;
+        head?: never;
+        /** update semantic model */
+        patch: operations["updateSemanticModel"];
+        trace?: never;
+    };
+    "/v1/hugimethara/semantic-models/{model_id}/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** list semantic model metrics */
+        get: operations["listSemanticModelMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1413,6 +2082,23 @@ export interface paths {
         put?: never;
         /** Import an OpenAPI document and preview changes */
         post: operations["importOpenAPI"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/hugimethara/shared-dashboards/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** get shared dashboard */
+        get: operations["getSharedDashboard"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2235,6 +2921,15 @@ export interface components {
             groups?: string;
             name: string;
         };
+        ColumnPolicy: {
+            classification?: string;
+            column_name?: string;
+            mask?: string;
+        };
+        ColumnPolicyBody: {
+            classification: string;
+            mask?: string;
+        };
         ConnectorDefinition: {
             category: string;
             icon: string;
@@ -2313,6 +3008,114 @@ export interface components {
             }[];
             version: string;
         };
+        CreateDashboard201JSONResponse: {
+            created_at?: string;
+            description?: string;
+            draft?: components["schemas"]["DashboardDefinition"];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            share_enabled?: boolean;
+            share_expires_at?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        CreateDataSource201JSONResponse: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            environment_id?: string;
+            id?: string;
+            kind?: string;
+            name?: string;
+            org_id?: string;
+            secret_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        CreateDataset201JSONResponse: {
+            created_at?: string;
+            description?: string;
+            draft_sql?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            owner?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        CreateMetric201JSONResponse: {
+            created_at?: string;
+            description?: string;
+            expression?: string;
+            filters?: string[];
+            format?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            semantic_model_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        CreatePipeline201JSONResponse: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            data_source_id?: string;
+            enabled?: boolean;
+            id?: string;
+            last_run_at?: string;
+            mode?: string;
+            name?: string;
+            next_run_at?: string;
+            org_id?: string;
+            schedule_cron?: string;
+            slug?: string;
+            source_object?: string;
+            target_table?: string;
+            updated_at?: string;
+            watermark_column?: string;
+            watermark_type?: string;
+            workspace_id?: string;
+        };
+        CreateScheduledReport201JSONResponse: {
+            created_at?: string;
+            dashboard_id?: string;
+            enabled?: boolean;
+            format?: string;
+            id?: string;
+            last_run_at?: string;
+            name?: string;
+            next_fire_at?: string;
+            org_id?: string;
+            recipients?: string[];
+            schedule_cron?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        CreateSemanticModel201JSONResponse: {
+            created_at?: string;
+            dataset_id?: string;
+            description?: string;
+            dimensions?: components["schemas"]["Dimension"][];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
         Credential: {
             configured: boolean;
             created_at: string;
@@ -2334,6 +3137,151 @@ export interface components {
             name?: string;
             value?: string;
         };
+        Dashboard: {
+            created_at?: string;
+            description?: string;
+            draft?: components["schemas"]["DashboardDefinition"];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            share_enabled?: boolean;
+            share_expires_at?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        DashboardCreate: {
+            definition?: components["schemas"]["DashboardDefinition"];
+            description?: string;
+            name: string;
+            slug?: string;
+            workspace_id: string;
+        };
+        DashboardDefinition: {
+            filters?: components["schemas"]["DashboardFilter"][];
+            schema_version?: number;
+            widgets?: components["schemas"]["Widget"][];
+        };
+        DashboardFilter: {
+            column?: string;
+            default?: unknown;
+            id?: string;
+            label?: string;
+            type?: string;
+        };
+        DashboardUpdate: {
+            definition?: components["schemas"]["DashboardDefinition"];
+            description?: string;
+            name?: string;
+            slug?: string;
+        };
+        DashboardVersion: {
+            checksum?: string;
+            dashboard_id?: string;
+            definition?: components["schemas"]["DashboardDefinition"];
+            id?: string;
+            published_at?: string;
+            published_by?: string;
+            version?: number;
+        };
+        DataSource: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            environment_id?: string;
+            id?: string;
+            kind?: string;
+            name?: string;
+            org_id?: string;
+            secret_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        DataSourceCreate: {
+            config?: {
+                [key: string]: unknown;
+            };
+            environment_id: string;
+            kind: string;
+            name: string;
+            secret_id?: string;
+            slug?: string;
+            workspace_id: string;
+        };
+        DataSourceKind: {
+            available?: boolean;
+            category?: string;
+            key?: string;
+            name?: string;
+            reason?: string;
+        };
+        DataSourceSchema: {
+            captured_at?: string;
+            checksum?: string;
+            data_source_id?: string;
+            id?: string;
+            schema?: components["schemas"]["Schema"];
+        };
+        DataSourceUpdate: {
+            config?: {
+                [key: string]: unknown;
+            };
+            name?: string;
+            secret_id?: string;
+            slug?: string;
+            status?: string;
+        };
+        Dataset: {
+            created_at?: string;
+            description?: string;
+            draft_sql?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            owner?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        DatasetCreate: {
+            description?: string;
+            name: string;
+            owner?: string;
+            slug?: string;
+            sql?: string;
+            workspace_id: string;
+        };
+        DatasetLineage: {
+            columns?: string[];
+            dataset_id?: string;
+            upstream_id?: string;
+            upstream_kind?: string;
+        };
+        DatasetPreviewBody: {
+            sql?: string;
+        };
+        DatasetUpdate: {
+            description?: string;
+            name?: string;
+            owner?: string;
+            slug?: string;
+            sql?: string;
+        };
+        DatasetVersion: {
+            checksum?: string;
+            columns?: components["schemas"]["SchemaColumn"][];
+            dataset_id?: string;
+            id?: string;
+            published_at?: string;
+            published_by?: string;
+            sql?: string;
+            version?: number;
+        };
         Department: {
             created_at: string;
             description: string;
@@ -2351,6 +3299,17 @@ export interface components {
         DepartmentUpdate: {
             description?: string;
             name: string;
+        };
+        Dimension: {
+            column?: string;
+            name?: string;
+            type?: string;
+        };
+        DiscoverDataSource200JSONResponse: {
+            captured_at?: string;
+            checksum?: string;
+            drift?: string[];
+            schema?: components["schemas"]["Schema"];
         };
         EffectivePermissions: {
             organization: string[];
@@ -2420,6 +3379,16 @@ export interface components {
         EventTypes: {
             data: components["schemas"]["EventType"][];
         };
+        ExecuteQuery200JSONResponse: {
+            bytes_read?: number;
+            columns?: string[];
+            duration_ms?: number;
+            row_count?: number;
+            rows?: unknown[][];
+            run_id?: string;
+            truncated?: boolean;
+            types?: string[];
+        };
         FeatureDefinition: {
             description: string;
             key: string;
@@ -2436,6 +3405,130 @@ export interface components {
         };
         GetConnectorHealth200JSONResponse: {
             data: components["schemas"]["ConnectorTestResult"][];
+        };
+        GetDashboard200JSONResponse: {
+            created_at?: string;
+            description?: string;
+            draft?: components["schemas"]["DashboardDefinition"];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            share_enabled?: boolean;
+            share_expires_at?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        GetDashboardWidgetData200JSONResponse: {
+            data?: unknown;
+            title?: string;
+            type?: string;
+            widget_id?: string;
+        };
+        GetDataSource200JSONResponse: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            environment_id?: string;
+            id?: string;
+            kind?: string;
+            name?: string;
+            org_id?: string;
+            secret_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        GetDataset200JSONResponse: {
+            created_at?: string;
+            description?: string;
+            draft_sql?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            owner?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        GetMetric200JSONResponse: {
+            created_at?: string;
+            description?: string;
+            expression?: string;
+            filters?: string[];
+            format?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            semantic_model_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        GetPipeline200JSONResponse: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            data_source_id?: string;
+            enabled?: boolean;
+            id?: string;
+            last_run_at?: string;
+            mode?: string;
+            name?: string;
+            next_run_at?: string;
+            org_id?: string;
+            schedule_cron?: string;
+            slug?: string;
+            source_object?: string;
+            target_table?: string;
+            updated_at?: string;
+            watermark_column?: string;
+            watermark_type?: string;
+            workspace_id?: string;
+        };
+        GetQuery200JSONResponse: {
+            bytes_read?: number;
+            clickhouse_id?: string;
+            columns?: string[];
+            created_at?: string;
+            dataset_id?: string;
+            duration_ms?: number;
+            error?: string;
+            exported?: boolean;
+            finished_at?: string;
+            id?: string;
+            metric_id?: string;
+            org_id?: string;
+            principal_id?: string;
+            principal_type?: string;
+            result_preview?: unknown;
+            row_count?: number;
+            sql?: string;
+            status?: string;
+            workspace_id?: string;
+        };
+        GetSemanticModel200JSONResponse: {
+            created_at?: string;
+            dataset_id?: string;
+            description?: string;
+            dimensions?: components["schemas"]["Dimension"][];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        GetSharedDashboard200JSONResponse: {
+            dashboard?: components["schemas"]["Dashboard"];
+            version?: components["schemas"]["DashboardVersion"];
         };
         Group: {
             created_at: string;
@@ -2546,6 +3639,45 @@ export interface components {
             preset?: components["schemas"]["IdentityProviderPreset"];
             scopes?: string[];
         };
+        IngestionPipeline: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            data_source_id?: string;
+            enabled?: boolean;
+            id?: string;
+            last_run_at?: string;
+            mode?: string;
+            name?: string;
+            next_run_at?: string;
+            org_id?: string;
+            schedule_cron?: string;
+            slug?: string;
+            source_object?: string;
+            target_table?: string;
+            updated_at?: string;
+            watermark_column?: string;
+            watermark_type?: string;
+            workspace_id?: string;
+        };
+        IngestionRun: {
+            created_at?: string;
+            error?: {
+                [key: string]: unknown;
+            };
+            finished_at?: string;
+            id?: string;
+            mode?: string;
+            pipeline_id?: string;
+            rows_read?: number;
+            rows_written?: number;
+            schema_drift?: string[];
+            started_at?: string;
+            status?: string;
+            watermark_after?: string;
+            watermark_before?: string;
+        };
         Invitation: {
             accepted_at?: string;
             created_at: string;
@@ -2602,6 +3734,9 @@ export interface components {
         ListApiKeys200JSONResponse: {
             data: components["schemas"]["ApiKey"][];
         };
+        ListColumnPolicies200JSONResponse: {
+            data?: components["schemas"]["ColumnPolicy"][];
+        };
         ListConnectorDefinitions200JSONResponse: {
             data: components["schemas"]["ConnectorDefinition"][];
         };
@@ -2613,6 +3748,30 @@ export interface components {
         };
         ListCredentials200JSONResponse: {
             data: components["schemas"]["Credential"][];
+        };
+        ListDashboardVersions200JSONResponse: {
+            data?: components["schemas"]["DashboardVersion"][];
+        };
+        ListDashboards200JSONResponse: {
+            data?: components["schemas"]["Dashboard"][];
+        };
+        ListDataSourceKinds200JSONResponse: {
+            data?: components["schemas"]["DataSourceKind"][];
+        };
+        ListDataSourceSchemas200JSONResponse: {
+            data?: components["schemas"]["DataSourceSchema"][];
+        };
+        ListDataSources200JSONResponse: {
+            data?: components["schemas"]["DataSource"][];
+        };
+        ListDatasetLineage200JSONResponse: {
+            data?: components["schemas"]["DatasetLineage"][];
+        };
+        ListDatasetVersions200JSONResponse: {
+            data?: components["schemas"]["DatasetVersion"][];
+        };
+        ListDatasets200JSONResponse: {
+            data?: components["schemas"]["Dataset"][];
         };
         ListDepartments200JSONResponse: {
             data: components["schemas"]["Department"][];
@@ -2644,15 +3803,27 @@ export interface components {
         ListMappings200JSONResponse: {
             data: components["schemas"]["Mapping"][];
         };
+        ListMetrics200JSONResponse: {
+            data?: components["schemas"]["Metric"][];
+        };
         ListMySessions200JSONResponse: {
             data: components["schemas"]["SessionInfo"][];
         };
         ListOidcProviders200JSONResponse: {
             data: components["schemas"]["OidcProviderOption"][];
         };
+        ListPipelineRuns200JSONResponse: {
+            data?: components["schemas"]["IngestionRun"][];
+        };
+        ListPipelines200JSONResponse: {
+            data?: components["schemas"]["IngestionPipeline"][];
+        };
         ListPlans200JSONResponse: {
             data: components["schemas"]["Plan"][];
             features: components["schemas"]["FeatureDefinition"][];
+        };
+        ListQueries200JSONResponse: {
+            data?: components["schemas"]["QueryRun"][];
         };
         ListResourceTypes200JSONResponse: {
             data: components["schemas"]["ResourceType"][];
@@ -2662,6 +3833,18 @@ export interface components {
         };
         ListRoles200JSONResponse: {
             data: components["schemas"]["Role"][];
+        };
+        ListRowPolicies200JSONResponse: {
+            data?: components["schemas"]["RowPolicy"][];
+        };
+        ListScheduledReports200JSONResponse: {
+            data?: components["schemas"]["ScheduledReport"][];
+        };
+        ListSemanticModelMetrics200JSONResponse: {
+            data?: components["schemas"]["Metric"][];
+        };
+        ListSemanticModels200JSONResponse: {
+            data?: components["schemas"]["SemanticModel"][];
         };
         ListServiceAccounts200JSONResponse: {
             data: components["schemas"]["ServiceAccount"][];
@@ -2807,6 +3990,43 @@ export interface components {
         };
         /** @enum {string} */
         MemberMembershipStatus: "active" | "suspended";
+        Metric: {
+            created_at?: string;
+            description?: string;
+            expression?: string;
+            filters?: string[];
+            format?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            semantic_model_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        MetricCreate: {
+            description?: string;
+            expression: string;
+            filters?: string[];
+            format?: string;
+            name: string;
+            semantic_model_id: string;
+            slug?: string;
+            workspace_id: string;
+        };
+        MetricQueryBody: {
+            filters?: string[];
+            limit?: number;
+        };
+        MetricUpdate: {
+            description?: string;
+            expression?: string;
+            filters?: string[];
+            format?: string;
+            name?: string;
+            slug?: string;
+        };
         NodeType: {
             available: boolean;
             description: string;
@@ -2950,6 +4170,35 @@ export interface components {
             top_failing: components["schemas"]["OverviewFailingWorkflow"][];
             total: number;
         };
+        PipelineCreate: {
+            config?: {
+                [key: string]: unknown;
+            };
+            data_source_id: string;
+            enabled?: boolean;
+            mode?: string;
+            name: string;
+            schedule_cron?: string;
+            slug?: string;
+            source_object: string;
+            target_table: string;
+            watermark_column?: string;
+            watermark_type?: string;
+            workspace_id: string;
+        };
+        PipelineUpdate: {
+            config?: {
+                [key: string]: unknown;
+            };
+            enabled?: boolean;
+            mode?: string;
+            name?: string;
+            schedule_cron?: string;
+            source_object?: string;
+            target_table?: string;
+            watermark_column?: string;
+            watermark_type?: string;
+        };
         Plan: {
             currency: string;
             description: string;
@@ -2976,6 +4225,11 @@ export interface components {
             title: string;
             type: string;
         };
+        PreviewDataset200JSONResponse: {
+            columns?: string[];
+            row_count?: number;
+            rows?: unknown[][];
+        };
         /** @enum {string} */
         PrincipalType: "group" | "service_account" | "user";
         Problem: {
@@ -2986,6 +4240,71 @@ export interface components {
             status: number;
             title: string;
             type: string;
+        };
+        PublishDashboard200JSONResponse: {
+            checksum?: string;
+            dashboard_id?: string;
+            definition?: components["schemas"]["DashboardDefinition"];
+            id?: string;
+            published_at?: string;
+            published_by?: string;
+            version?: number;
+        };
+        PublishDataset200JSONResponse: {
+            checksum?: string;
+            columns?: components["schemas"]["SchemaColumn"][];
+            dataset_id?: string;
+            id?: string;
+            published_at?: string;
+            published_by?: string;
+            sql?: string;
+            version?: number;
+        };
+        PutColumnPolicy200JSONResponse: {
+            classification?: string;
+            column_name?: string;
+            mask?: string;
+        };
+        PutRowPolicy200JSONResponse: {
+            column_masks?: {
+                [key: string]: string;
+            };
+            role_key?: string;
+            row_filter?: string;
+        };
+        QueryBody: {
+            dataset_id?: string;
+            export?: boolean;
+            limit?: number;
+            sql: string;
+            workspace_id: string;
+        };
+        QueryMetric200JSONResponse: {
+            metric_id?: string;
+            run_id?: string;
+            sql?: string;
+            value?: unknown;
+        };
+        QueryRun: {
+            bytes_read?: number;
+            clickhouse_id?: string;
+            columns?: string[];
+            created_at?: string;
+            dataset_id?: string;
+            duration_ms?: number;
+            error?: string;
+            exported?: boolean;
+            finished_at?: string;
+            id?: string;
+            metric_id?: string;
+            org_id?: string;
+            principal_id?: string;
+            principal_type?: string;
+            result_preview?: unknown;
+            row_count?: number;
+            sql?: string;
+            status?: string;
+            workspace_id?: string;
         };
         ResourceType: {
             actions: string[];
@@ -3047,6 +4366,107 @@ export interface components {
             description?: string;
             name: string;
             permissions: string[];
+        };
+        RowPolicy: {
+            column_masks?: {
+                [key: string]: string;
+            };
+            role_key?: string;
+            row_filter?: string;
+        };
+        RowPolicyBody: {
+            column_masks?: {
+                [key: string]: string;
+            };
+            row_filter?: string;
+        };
+        RunPipeline200JSONResponse: {
+            created_at?: string;
+            error?: {
+                [key: string]: unknown;
+            };
+            finished_at?: string;
+            id?: string;
+            mode?: string;
+            pipeline_id?: string;
+            rows_read?: number;
+            rows_written?: number;
+            schema_drift?: string[];
+            started_at?: string;
+            status?: string;
+            watermark_after?: string;
+            watermark_before?: string;
+        };
+        ScheduledReport: {
+            created_at?: string;
+            dashboard_id?: string;
+            enabled?: boolean;
+            format?: string;
+            id?: string;
+            last_run_at?: string;
+            name?: string;
+            next_fire_at?: string;
+            org_id?: string;
+            recipients?: string[];
+            schedule_cron?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        ScheduledReportCreate: {
+            dashboard_id: string;
+            enabled?: boolean;
+            format?: string;
+            name: string;
+            recipients?: string[];
+            schedule_cron: string;
+            workspace_id: string;
+        };
+        ScheduledReportUpdate: {
+            enabled?: boolean;
+            format?: string;
+            name?: string;
+            recipients?: string[];
+            schedule_cron?: string;
+        };
+        Schema: {
+            objects?: components["schemas"]["SchemaObject"][];
+        };
+        SchemaColumn: {
+            name?: string;
+            nullable?: boolean;
+            type?: string;
+        };
+        SchemaObject: {
+            columns?: components["schemas"]["SchemaColumn"][];
+            name?: string;
+            type?: string;
+        };
+        SemanticModel: {
+            created_at?: string;
+            dataset_id?: string;
+            description?: string;
+            dimensions?: components["schemas"]["Dimension"][];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        SemanticModelCreate: {
+            dataset_id: string;
+            description?: string;
+            dimensions?: components["schemas"]["Dimension"][];
+            name: string;
+            slug?: string;
+            workspace_id: string;
+        };
+        SemanticModelUpdate: {
+            description?: string;
+            dimensions?: components["schemas"]["Dimension"][];
+            name?: string;
+            slug?: string;
         };
         Service: {
             created_at: string;
@@ -3163,6 +4583,15 @@ export interface components {
             id: string;
             idle_expires_at: string;
         };
+        ShareDashboard200JSONResponse: {
+            enabled?: boolean;
+            expires_at?: string;
+            token?: string;
+        };
+        ShareDashboardBody: {
+            enabled?: boolean;
+            expires_at?: string;
+        };
         SignupRequest: {
             display_name: string;
             email: string;
@@ -3180,9 +4609,123 @@ export interface components {
         };
         /** @enum {string} */
         SystemInfoEnvironment: "development" | "production" | "staging" | "test";
+        TestDataSource200JSONResponse: {
+            error_code?: string;
+            latency_ms?: number;
+            message?: string;
+            ok?: boolean;
+        };
+        UpdateDashboard200JSONResponse: {
+            created_at?: string;
+            description?: string;
+            draft?: components["schemas"]["DashboardDefinition"];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            share_enabled?: boolean;
+            share_expires_at?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        UpdateDataSource200JSONResponse: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            environment_id?: string;
+            id?: string;
+            kind?: string;
+            name?: string;
+            org_id?: string;
+            secret_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        UpdateDataset200JSONResponse: {
+            created_at?: string;
+            description?: string;
+            draft_sql?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            owner?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        UpdateMetric200JSONResponse: {
+            created_at?: string;
+            description?: string;
+            expression?: string;
+            filters?: string[];
+            format?: string;
+            id?: string;
+            name?: string;
+            org_id?: string;
+            semantic_model_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
         UpdateOrganizationRequest: {
             name?: string;
             settings?: components["schemas"]["OrganizationSettings"];
+        };
+        UpdatePipeline200JSONResponse: {
+            config?: {
+                [key: string]: unknown;
+            };
+            created_at?: string;
+            data_source_id?: string;
+            enabled?: boolean;
+            id?: string;
+            last_run_at?: string;
+            mode?: string;
+            name?: string;
+            next_run_at?: string;
+            org_id?: string;
+            schedule_cron?: string;
+            slug?: string;
+            source_object?: string;
+            target_table?: string;
+            updated_at?: string;
+            watermark_column?: string;
+            watermark_type?: string;
+            workspace_id?: string;
+        };
+        UpdateScheduledReport200JSONResponse: {
+            created_at?: string;
+            dashboard_id?: string;
+            enabled?: boolean;
+            format?: string;
+            id?: string;
+            last_run_at?: string;
+            name?: string;
+            next_fire_at?: string;
+            org_id?: string;
+            recipients?: string[];
+            schedule_cron?: string;
+            updated_at?: string;
+            workspace_id?: string;
+        };
+        UpdateSemanticModel200JSONResponse: {
+            created_at?: string;
+            dataset_id?: string;
+            description?: string;
+            dimensions?: components["schemas"]["Dimension"][];
+            id?: string;
+            name?: string;
+            org_id?: string;
+            slug?: string;
+            status?: string;
+            updated_at?: string;
+            workspace_id?: string;
         };
         User: {
             display_name: string;
@@ -3348,6 +4891,24 @@ export interface components {
             prefix?: string;
             signature_header?: string;
             timestamp_header?: string;
+        };
+        Widget: {
+            config?: {
+                [key: string]: unknown;
+            };
+            dataset_id?: string;
+            height?: number;
+            id?: string;
+            metric_id?: string;
+            sql?: string;
+            title?: string;
+            type?: string;
+            width?: number;
+        };
+        WidgetDataBody: {
+            filters?: {
+                [key: string]: string;
+            };
         };
         Workflow: {
             created_at: string;
@@ -5431,6 +6992,811 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listDashboards: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDashboards200JSONResponse"];
+                };
+            };
+        };
+    };
+    createDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["DashboardCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateDashboard201JSONResponse"];
+                };
+            };
+        };
+    };
+    getDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dashboard_id */
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetDashboard200JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dashboard_id */
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dashboard_id */
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["DashboardUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateDashboard200JSONResponse"];
+                };
+            };
+        };
+    };
+    publishDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dashboard_id */
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishDashboard200JSONResponse"];
+                };
+            };
+        };
+    };
+    shareDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dashboard_id */
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["ShareDashboardBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareDashboard200JSONResponse"];
+                };
+            };
+        };
+    };
+    listDashboardVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dashboard_id */
+                dashboard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDashboardVersions200JSONResponse"];
+                };
+            };
+        };
+    };
+    getDashboardWidgetData: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dashboard_id */
+                dashboard_id: string;
+                /** @description widget_id */
+                widget_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["WidgetDataBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetDashboardWidgetData200JSONResponse"];
+                };
+            };
+        };
+    };
+    listDataSourceKinds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDataSourceKinds200JSONResponse"];
+                };
+            };
+        };
+    };
+    listDataSources: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDataSources200JSONResponse"];
+                };
+            };
+        };
+    };
+    createDataSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["DataSourceCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateDataSource201JSONResponse"];
+                };
+            };
+        };
+    };
+    getDataSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description data_source_id */
+                data_source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetDataSource200JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteDataSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description data_source_id */
+                data_source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateDataSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description data_source_id */
+                data_source_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["DataSourceUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateDataSource200JSONResponse"];
+                };
+            };
+        };
+    };
+    discoverDataSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description data_source_id */
+                data_source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscoverDataSource200JSONResponse"];
+                };
+            };
+        };
+    };
+    listDataSourceSchemas: {
+        parameters: {
+            query?: {
+                /** @description limit */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description data_source_id */
+                data_source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDataSourceSchemas200JSONResponse"];
+                };
+            };
+        };
+    };
+    testDataSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description data_source_id */
+                data_source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestDataSource200JSONResponse"];
+                };
+            };
+        };
+    };
+    listDatasets: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDatasets200JSONResponse"];
+                };
+            };
+        };
+    };
+    createDataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["DatasetCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateDataset201JSONResponse"];
+                };
+            };
+        };
+    };
+    getDataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetDataset200JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteDataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateDataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["DatasetUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateDataset200JSONResponse"];
+                };
+            };
+        };
+    };
+    listColumnPolicies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListColumnPolicies200JSONResponse"];
+                };
+            };
+        };
+    };
+    putColumnPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+                /** @description column */
+                column: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["ColumnPolicyBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PutColumnPolicy200JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteColumnPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+                /** @description column */
+                column: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listDatasetLineage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDatasetLineage200JSONResponse"];
+                };
+            };
+        };
+    };
+    previewDataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["DatasetPreviewBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewDataset200JSONResponse"];
+                };
+            };
+        };
+    };
+    publishDataset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishDataset200JSONResponse"];
+                };
+            };
+        };
+    };
+    listRowPolicies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListRowPolicies200JSONResponse"];
+                };
+            };
+        };
+    };
+    putRowPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+                /** @description role_key */
+                role_key: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["RowPolicyBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PutRowPolicy200JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteRowPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+                /** @description role_key */
+                role_key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    listDatasetVersions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description dataset_id */
+                dataset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListDatasetVersions200JSONResponse"];
                 };
             };
         };
@@ -7710,6 +10076,154 @@ export interface operations {
             };
         };
     };
+    listMetrics: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListMetrics200JSONResponse"];
+                };
+            };
+        };
+    };
+    createMetric: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["MetricCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateMetric201JSONResponse"];
+                };
+            };
+        };
+    };
+    getMetric: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description metric_id */
+                metric_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetMetric200JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteMetric: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description metric_id */
+                metric_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateMetric: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description metric_id */
+                metric_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["MetricUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateMetric200JSONResponse"];
+                };
+            };
+        };
+    };
+    queryMetric: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description metric_id */
+                metric_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["MetricQueryBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueryMetric200JSONResponse"];
+                };
+            };
+        };
+    };
     listNodeTypes: {
         parameters: {
             query?: never;
@@ -7933,6 +10447,175 @@ export interface operations {
             };
         };
     };
+    listPipelines: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListPipelines200JSONResponse"];
+                };
+            };
+        };
+    };
+    createPipeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["PipelineCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatePipeline201JSONResponse"];
+                };
+            };
+        };
+    };
+    getPipeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description pipeline_id */
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetPipeline200JSONResponse"];
+                };
+            };
+        };
+    };
+    deletePipeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description pipeline_id */
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updatePipeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description pipeline_id */
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["PipelineUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdatePipeline200JSONResponse"];
+                };
+            };
+        };
+    };
+    runPipeline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description pipeline_id */
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunPipeline200JSONResponse"];
+                };
+            };
+        };
+    };
+    listPipelineRuns: {
+        parameters: {
+            query?: {
+                /** @description limit */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                /** @description pipeline_id */
+                pipeline_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListPipelineRuns200JSONResponse"];
+                };
+            };
+        };
+    };
     listPlans: {
         parameters: {
             query?: never;
@@ -7949,6 +10632,121 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ListPlans200JSONResponse"];
+                };
+            };
+        };
+    };
+    listQueries: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListQueries200JSONResponse"];
+                };
+            };
+        };
+    };
+    executeQuery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["QueryBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecuteQuery200JSONResponse"];
+                };
+            };
+        };
+    };
+    getQuery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description query_id */
+                query_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetQuery200JSONResponse"];
+                };
+            };
+        };
+    };
+    cancelQuery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description query_id */
+                query_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    exportQuery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description query_id */
+                query_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CSV export */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
                 };
             };
         };
@@ -8345,6 +11143,246 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listScheduledReports: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListScheduledReports200JSONResponse"];
+                };
+            };
+        };
+    };
+    createScheduledReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["ScheduledReportCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateScheduledReport201JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteScheduledReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description report_id */
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateScheduledReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description report_id */
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["ScheduledReportUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateScheduledReport200JSONResponse"];
+                };
+            };
+        };
+    };
+    listSemanticModels: {
+        parameters: {
+            query: {
+                /** @description workspace_id */
+                workspace_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListSemanticModels200JSONResponse"];
+                };
+            };
+        };
+    };
+    createSemanticModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["SemanticModelCreate"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateSemanticModel201JSONResponse"];
+                };
+            };
+        };
+    };
+    getSemanticModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description model_id */
+                model_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetSemanticModel200JSONResponse"];
+                };
+            };
+        };
+    };
+    deleteSemanticModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description model_id */
+                model_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    updateSemanticModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description model_id */
+                model_id: string;
+            };
+            cookie?: never;
+        };
+        /** @description Request body */
+        requestBody: {
+            content: {
+                "*/*": components["schemas"]["SemanticModelUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UpdateSemanticModel200JSONResponse"];
+                };
+            };
+        };
+    };
+    listSemanticModelMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description model_id */
+                model_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListSemanticModelMetrics200JSONResponse"];
                 };
             };
         };
@@ -9268,6 +12306,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSharedDashboard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description token */
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetSharedDashboard200JSONResponse"];
                 };
             };
         };

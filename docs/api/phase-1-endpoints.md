@@ -2,6 +2,9 @@
 
 All paths relative to `/v1/hugimethara`. "Perm" is the permission evaluated (resource type : action).
 Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md)).
+✅ marks slices delivered in Phase 1. The authoritative contract is [api/openapi/openapi.yaml](../../api/openapi/openapi.yaml);
+the server publishes it at `/v1/hugimethara/openapi.json` and `/v1/hugimethara/openapi.yaml` and the web app renders it
+at **Developer → API reference** (S14).
 
 | Method | Path | Perm | Slice |
 |---|---|---|---|
@@ -14,10 +17,10 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | GET | /me · /me/sessions; DELETE /me/sessions/{id} · /me/permissions | session | ✅ S1/S3 |
 | **Organization** ||||
 | GET/PATCH | /organizations/current | organization:read / :update | ✅ S1 |
-| CRUD | /departments | department:* | S2 |
-| CRUD | /environments | environment:* | S2 |
-| CRUD | /workspaces | workspace:create/read/update/archive | S2 |
-| GET/POST/DELETE | /workspaces/{id}/members | workspace:manage_members | S2 |
+| CRUD | /departments | department:* | ✅ S2 |
+| CRUD | /environments | environment:* | ✅ S2 |
+| CRUD | /workspaces | workspace:create/read/update/archive | ✅ S2 |
+| GET/POST/DELETE | /workspaces/{id}/members | workspace:manage_members | ✅ S2 |
 | **Identity** ||||
 | GET/PATCH/DELETE | /users, /users/{id} (membership status; remove from org) | user:read / :update / :remove | ✅ S4 |
 | POST/GET/DELETE | /invitations; GET /invitation-tokens/{token} · POST /invitation-tokens/{token}/accept (public) | user:invite | ✅ S4 |
@@ -34,36 +37,36 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | **Audit** ||||
 | GET | /audit-events (filters: actor, resource, action, time) | audit_event:read | ✅ S1 (API + UI) |
 | **Secrets & connectors** ||||
-| GET | /connector-definitions, /connector-definitions/{id}/versions | connector:read | S6 |
+| GET | /connector-definitions, /connector-definitions/{id}/versions | connector:read | ◐ S6 |
 | POST | /connector-definitions (declarative, org-private) | connector:define | S6 (P1) |
-| CRUD | /connectors (instances; credentials write-only) | connector:* | S6 |
-| POST | /connectors/{id}/test | connector:test | S6 |
-| POST | /connectors/{id}/operations/{op}/invoke (dry-run/test) | connector:invoke | S6 |
-| GET | /connectors/{id}/health | connector:read | S6 |
+| CRUD | /connectors (instances; credentials write-only) | connector:* | ◐ S6 |
+| POST | /connectors/{id}/test | connector:test | ◐ S6 |
+| POST | /connectors/{id}/operations/{op}/invoke (dry-run/test) | connector:invoke | S6 (P1, not built) |
+| GET | /connectors/{id}/health | connector:read | ◐ S6 |
 | CRUD | /credentials (standalone secrets: write-only values) | secret:* | ◐ S6 vault |
 | **Service registry** ||||
-| CRUD | /services, /services/{id}/environments | service:* | S7 |
-| POST | /services/{id}/import-openapi (upload or url; `?dry_run=true` returns diff) | service:update | S7 |
-| GET | /services/{id}/endpoints, /service-endpoints/{id} | service:read | S7 |
-| POST | /service-endpoints/{id}/try (API explorer call) | service:invoke | S7 |
+| CRUD | /services, /services/{id}/environments | service:* | ✅ S7 |
+| POST | /services/{id}/import-openapi (upload or url; `?dry_run=true` returns diff) | service:update | ✅ S7 |
+| GET | /services/{id}/endpoints, /service-endpoints/{id} | service:read | ✅ S7 |
+| POST | /service-endpoints/{id}/try (API explorer call) | service:invoke | ✅ S7 |
 | **Mapping** ||||
-| CRUD | /mappings; POST /mappings/{id}/publish; GET /mappings/{id}/versions | mapping:* | S8 |
-| POST | /mappings/{id}/test (ad-hoc input or stored tests) | mapping:read | S8 |
-| CRUD | /mappings/{id}/tests | mapping:update | S8 |
+| CRUD | /mappings; POST /mappings/{id}/publish; GET /mappings/{id}/versions | mapping:* | ✅ S8 |
+| POST | /mappings/{id}/test (ad-hoc input or stored tests) | mapping:read | ✅ S8 |
+| CRUD | /mappings/{id}/tests | mapping:update | ✅ S8 |
 | **API composition** ||||
-| CRUD | /api-compositions; POST /{id}/validate · /{id}/publish; GET /{id}/versions | api_composition:* | S9 |
-| POST | /api-compositions/{id}/execute; GET /api-composition-executions?workspace_id=&composition_id=; GET /api-composition-executions/{execution_id} | api_composition:execute/read | S9 |
+| CRUD | /api-compositions; POST /{id}/validate · /{id}/publish; GET /{id}/versions | api_composition:* | ✅ S9 |
+| POST | /api-compositions/{id}/execute; GET /api-composition-executions?workspace_id=&composition_id=; GET /api-composition-executions/{execution_id} | api_composition:execute/read | ✅ S9 |
 | * | /gw/{org}/{workspace}/{path} (exposed compositions, separate listener) | api_composition:execute | S9 (P1) |
 | **Workflow** ||||
-| CRUD | /workflows; POST /{id}/validate · /{id}/publish; GET /{id}/versions | workflow:* | S10 |
-| PUT | /workflows/{id}/deployments/{environment_id} (version, enabled) | workflow:deploy | S10 |
-| POST | /workflows/{id}/execute (manual; Idempotency-Key) | workflow:execute | S10 |
-| POST | /workflows/{id}/nodes/{node_id}/test (single-node test with sample input) | workflow:update | S10 |
-| GET | /workflow-executions?workflow_id=&status=; GET /workflow-executions/{id} (+ steps) | workflow:read | S10 |
+| CRUD | /workflows; POST /{id}/validate · /{id}/publish; GET /{id}/versions | workflow:* | ✅ S10 |
+| PUT | /workflows/{id}/deployments/{environment_id} (version, enabled) | workflow:deploy | ✅ S10 |
+| POST | /workflows/{id}/execute (manual; Idempotency-Key) | workflow:execute | ✅ S10 |
+| POST | /workflows/{id}/nodes/{node_id}/test (single-node test with sample input) | workflow:update | S10 (not built) |
+| GET | /workflow-executions?workflow_id=&status=; GET /workflow-executions/{id} (+ steps) | workflow:read | ✅ S10 |
 | POST | /workflow-executions/{id}/cancel · /retry (re-run from failed step) | workflow:execute | S11 ✅ |
 | GET | /approval-tasks?assigned_to=me\|any&workspace_id=&execution_id=&status=; GET /approval-tasks/{id}; POST /approval-tasks/{id}/decide | (assignee rule; `any` needs workflow:read) | S11 ✅ |
 | GET | /workflow-schedules?workspace_id= | workflow:read | S11 ✅ |
-| GET | /node-types (catalog + config schemas) | workflow:read | S10 |
+| GET | /node-types (catalog + config schemas) | workflow:read | ✅ S10 |
 | **Webhook** ||||
 | CRUD | /webhooks?workspace_id= (inbound endpoints; generated secret shown once on create/rotate); POST /webhooks/{id}/rotate-secret | webhook:* | S12 ✅ |
 | POST | /hooks/{public_id} (ingress, root path, outside session/CSRF/origin middleware; signature is the credential; 202 accepted · 200 duplicate · 401 signature codes · 404 · 413 · 429) | signature | S12 ✅ |
@@ -71,3 +74,6 @@ Slice = the vertical slice that delivers it ([phase-1.md](../phases/phase-1.md))
 | CRUD | /webhook-subscriptions?workspace_id= (outbound); POST /{id}/rotate-secret · /{id}/ping | webhook:* | S12 ✅ |
 | GET | /webhook-deliveries?workspace_id=\|subscription_id=&status=; GET /webhook-deliveries/{id} (+ attempt log); POST /webhook-deliveries/{id}/replay | webhook:read / :replay | S12 ✅ |
 | GET | /event-types (subscribable platform event catalog) | authenticated | S12 ✅ |
+| **Overview & contract (S14)** ||||
+| GET | /overview?workspace_id=&window=24h\|7d\|30d (executions, failures, duration percentiles, connector health, webhook traffic; each section only with its read permission) | workflow/connector/webhook:read | ✅ S14 |
+| GET | /openapi.json · /openapi.yaml (public contract; static, cacheable) | public | ✅ S14 |

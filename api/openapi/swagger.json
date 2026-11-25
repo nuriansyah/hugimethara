@@ -2123,6 +2123,1036 @@
                 }
             }
         },
+        "/v1/hugimethara/dashboards": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "list dashboards",
+                "operationId": "listDashboards",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDashboards200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "create dashboard",
+                "operationId": "createDashboard",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DashboardCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateDashboard201JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/dashboards/{dashboard_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "get dashboard",
+                "operationId": "getDashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard_id",
+                        "name": "dashboard_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetDashboard200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "delete dashboard",
+                "operationId": "deleteDashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard_id",
+                        "name": "dashboard_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "update dashboard",
+                "operationId": "updateDashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard_id",
+                        "name": "dashboard_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DashboardUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateDashboard200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/dashboards/{dashboard_id}/publish": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "publish dashboard",
+                "operationId": "publishDashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard_id",
+                        "name": "dashboard_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PublishDashboard200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/dashboards/{dashboard_id}/share": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "share dashboard",
+                "operationId": "shareDashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard_id",
+                        "name": "dashboard_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ShareDashboardBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ShareDashboard200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/dashboards/{dashboard_id}/versions": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "list dashboard versions",
+                "operationId": "listDashboardVersions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard_id",
+                        "name": "dashboard_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDashboardVersions200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/dashboards/{dashboard_id}/widgets/{widget_id}/data": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "get dashboard widget data",
+                "operationId": "getDashboardWidgetData",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dashboard_id",
+                        "name": "dashboard_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "widget_id",
+                        "name": "widget_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.WidgetDataBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetDashboardWidgetData200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/data-source-kinds": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list data source kinds",
+                "operationId": "listDataSourceKinds",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDataSourceKinds200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/data-sources": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list data sources",
+                "operationId": "listDataSources",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDataSources200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "create data source",
+                "operationId": "createDataSource",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DataSourceCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateDataSource201JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/data-sources/{data_source_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "get data source",
+                "operationId": "getDataSource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "data_source_id",
+                        "name": "data_source_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetDataSource200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "delete data source",
+                "operationId": "deleteDataSource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "data_source_id",
+                        "name": "data_source_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "update data source",
+                "operationId": "updateDataSource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "data_source_id",
+                        "name": "data_source_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DataSourceUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateDataSource200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/data-sources/{data_source_id}/discover": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "discover data source",
+                "operationId": "discoverDataSource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "data_source_id",
+                        "name": "data_source_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DiscoverDataSource200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/data-sources/{data_source_id}/schemas": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list data source schemas",
+                "operationId": "listDataSourceSchemas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "data_source_id",
+                        "name": "data_source_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDataSourceSchemas200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/data-sources/{data_source_id}/test": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "test data source",
+                "operationId": "testDataSource",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "data_source_id",
+                        "name": "data_source_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TestDataSource200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list datasets",
+                "operationId": "listDatasets",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDatasets200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "create dataset",
+                "operationId": "createDataset",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DatasetCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateDataset201JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "get dataset",
+                "operationId": "getDataset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetDataset200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "delete dataset",
+                "operationId": "deleteDataset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "update dataset",
+                "operationId": "updateDataset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DatasetUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateDataset200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/column-policies": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list column policies",
+                "operationId": "listColumnPolicies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListColumnPolicies200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/column-policies/{column}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "put column policy",
+                "operationId": "putColumnPolicy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "column",
+                        "name": "column",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ColumnPolicyBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PutColumnPolicy200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "delete column policy",
+                "operationId": "deleteColumnPolicy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "column",
+                        "name": "column",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/lineage": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list dataset lineage",
+                "operationId": "listDatasetLineage",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDatasetLineage200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/preview": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "preview dataset",
+                "operationId": "previewDataset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DatasetPreviewBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PreviewDataset200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/publish": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "publish dataset",
+                "operationId": "publishDataset",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PublishDataset200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/row-policies": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list row policies",
+                "operationId": "listRowPolicies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListRowPolicies200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/row-policies/{role_key}": {
+            "put": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "put row policy",
+                "operationId": "putRowPolicy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "role_key",
+                        "name": "role_key",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RowPolicyBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PutRowPolicy200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "delete row policy",
+                "operationId": "deleteRowPolicy",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "role_key",
+                        "name": "role_key",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/datasets/{dataset_id}/versions": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list dataset versions",
+                "operationId": "listDatasetVersions",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "dataset_id",
+                        "name": "dataset_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListDatasetVersions200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/departments": {
             "get": {
                 "security": [
@@ -4685,6 +5715,191 @@
                 }
             }
         },
+        "/v1/hugimethara/metrics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "list metrics",
+                "operationId": "listMetrics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListMetrics200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "create metric",
+                "operationId": "createMetric",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MetricCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateMetric201JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/metrics/{metric_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "get metric",
+                "operationId": "getMetric",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "metric_id",
+                        "name": "metric_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetMetric200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "delete metric",
+                "operationId": "deleteMetric",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "metric_id",
+                        "name": "metric_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "update metric",
+                "operationId": "updateMetric",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "metric_id",
+                        "name": "metric_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MetricUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateMetric200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/metrics/{metric_id}/query": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "query metric",
+                "operationId": "queryMetric",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "metric_id",
+                        "name": "metric_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.MetricQueryBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.QueryMetric200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/node-types": {
             "get": {
                 "security": [
@@ -4931,6 +6146,217 @@
                 }
             }
         },
+        "/v1/hugimethara/pipelines": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list pipelines",
+                "operationId": "listPipelines",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListPipelines200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "create pipeline",
+                "operationId": "createPipeline",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PipelineCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreatePipeline201JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/pipelines/{pipeline_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "get pipeline",
+                "operationId": "getPipeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pipeline_id",
+                        "name": "pipeline_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetPipeline200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "delete pipeline",
+                "operationId": "deletePipeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pipeline_id",
+                        "name": "pipeline_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "update pipeline",
+                "operationId": "updatePipeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pipeline_id",
+                        "name": "pipeline_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PipelineUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatePipeline200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/pipelines/{pipeline_id}/run": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "run pipeline",
+                "operationId": "runPipeline",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pipeline_id",
+                        "name": "pipeline_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RunPipeline200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/pipelines/{pipeline_id}/runs": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "data-platform"
+                ],
+                "summary": "list pipeline runs",
+                "operationId": "listPipelineRuns",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "pipeline_id",
+                        "name": "pipeline_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListPipelineRuns200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/hugimethara/plans": {
             "get": {
                 "security": [
@@ -4954,6 +6380,148 @@
                         "description": "Plans with their entitlements.",
                         "schema": {
                             "$ref": "#/definitions/dto.ListPlans200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/queries": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "list queries",
+                "operationId": "listQueries",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListQueries200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "execute query",
+                "operationId": "executeQuery",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.QueryBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ExecuteQuery200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/queries/{query_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "get query",
+                "operationId": "getQuery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "query_id",
+                        "name": "query_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetQuery200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/queries/{query_id}/cancel": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "cancel query",
+                "operationId": "cancelQuery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "query_id",
+                        "name": "query_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/queries/{query_id}/export": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "export query",
+                "operationId": "exportQuery",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "query_id",
+                        "name": "query_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CSV export",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -5426,6 +6994,302 @@
                         "description": "Error (RFC 9457 problem details).",
                         "schema": {
                             "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/scheduled-reports": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "list scheduled reports",
+                "operationId": "listScheduledReports",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListScheduledReports200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "create scheduled report",
+                "operationId": "createScheduledReport",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ScheduledReportCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateScheduledReport201JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/scheduled-reports/{report_id}": {
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "delete scheduled report",
+                "operationId": "deleteScheduledReport",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "report_id",
+                        "name": "report_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "update scheduled report",
+                "operationId": "updateScheduledReport",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "report_id",
+                        "name": "report_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ScheduledReportUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateScheduledReport200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/semantic-models": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "list semantic models",
+                "operationId": "listSemanticModels",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "workspace_id",
+                        "name": "workspace_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListSemanticModels200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "create semantic model",
+                "operationId": "createSemanticModel",
+                "parameters": [
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SemanticModelCreate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateSemanticModel201JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/semantic-models/{model_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "get semantic model",
+                "operationId": "getSemanticModel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "model_id",
+                        "name": "model_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetSemanticModel200JSONResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "delete semantic model",
+                "operationId": "deleteSemanticModel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "model_id",
+                        "name": "model_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "update semantic model",
+                "operationId": "updateSemanticModel",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "model_id",
+                        "name": "model_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Request body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SemanticModelUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateSemanticModel200JSONResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/semantic-models/{model_id}/metrics": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "list semantic model metrics",
+                "operationId": "listSemanticModelMetrics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "model_id",
+                        "name": "model_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ListSemanticModelMetrics200JSONResponse"
                         }
                     }
                 }
@@ -6482,6 +8346,35 @@
                         "description": "Error (RFC 9457 problem details).",
                         "schema": {
                             "$ref": "#/definitions/dto.Problem"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/hugimethara/shared-dashboards/{token}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "get shared dashboard",
+                "operationId": "getSharedDashboard",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "token",
+                        "name": "token",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetSharedDashboard200JSONResponse"
                         }
                     }
                 }
@@ -9922,6 +11815,34 @@
                 }
             }
         },
+        "dto.ColumnPolicy": {
+            "type": "object",
+            "properties": {
+                "classification": {
+                    "type": "string"
+                },
+                "column_name": {
+                    "type": "string"
+                },
+                "mask": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ColumnPolicyBody": {
+            "type": "object",
+            "required": [
+                "classification"
+            ],
+            "properties": {
+                "classification": {
+                    "type": "string"
+                },
+                "mask": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ConnectorDefinition": {
             "type": "object",
             "required": [
@@ -10193,6 +12114,322 @@
                 }
             }
         },
+        "dto.CreateDashboard201JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "share_enabled": {
+                    "type": "boolean"
+                },
+                "share_expires_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateDataSource201JSONResponse": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "secret_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateDataset201JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft_sql": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateMetric201JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "format": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "semantic_model_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreatePipeline201JSONResponse": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "data_source_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_run_at": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_run_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "source_object": {
+                    "type": "string"
+                },
+                "target_table": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "watermark_column": {
+                    "type": "string"
+                },
+                "watermark_type": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateScheduledReport201JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_run_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_fire_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateSemanticModel201JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dimension"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Credential": {
             "type": "object",
             "required": [
@@ -10268,6 +12505,433 @@
                 }
             }
         },
+        "dto.Dashboard": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "share_enabled": {
+                    "type": "boolean"
+                },
+                "share_expires_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DashboardCreate": {
+            "type": "object",
+            "required": [
+                "name",
+                "workspace_id"
+            ],
+            "properties": {
+                "definition": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DashboardDefinition": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DashboardFilter"
+                    }
+                },
+                "schema_version": {
+                    "type": "integer"
+                },
+                "widgets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Widget"
+                    }
+                }
+            }
+        },
+        "dto.DashboardFilter": {
+            "type": "object",
+            "properties": {
+                "column": {
+                    "type": "string"
+                },
+                "default": {},
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DashboardUpdate": {
+            "type": "object",
+            "properties": {
+                "definition": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DashboardVersion": {
+            "type": "object",
+            "properties": {
+                "checksum": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "definition": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "published_by": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.DataSource": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "secret_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DataSourceCreate": {
+            "type": "object",
+            "required": [
+                "environment_id",
+                "kind",
+                "name",
+                "workspace_id"
+            ],
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secret_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DataSourceKind": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DataSourceSchema": {
+            "type": "object",
+            "properties": {
+                "captured_at": {
+                    "type": "string"
+                },
+                "checksum": {
+                    "type": "string"
+                },
+                "data_source_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "schema": {
+                    "$ref": "#/definitions/dto.Schema"
+                }
+            }
+        },
+        "dto.DataSourceUpdate": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "name": {
+                    "type": "string"
+                },
+                "secret_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Dataset": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft_sql": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DatasetCreate": {
+            "type": "object",
+            "required": [
+                "name",
+                "workspace_id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DatasetLineage": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "upstream_id": {
+                    "type": "string"
+                },
+                "upstream_kind": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DatasetPreviewBody": {
+            "type": "object",
+            "properties": {
+                "sql": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DatasetUpdate": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "sql": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DatasetVersion": {
+            "type": "object",
+            "properties": {
+                "checksum": {
+                    "type": "string"
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SchemaColumn"
+                    }
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "published_by": {
+                    "type": "string"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.Department": {
             "type": "object",
             "required": [
@@ -10332,6 +12996,40 @@
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.Dimension": {
+            "type": "object",
+            "properties": {
+                "column": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.DiscoverDataSource200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "captured_at": {
+                    "type": "string"
+                },
+                "checksum": {
+                    "type": "string"
+                },
+                "drift": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schema": {
+                    "$ref": "#/definitions/dto.Schema"
                 }
             }
         },
@@ -10603,6 +13301,45 @@
                 }
             }
         },
+        "dto.ExecuteQuery200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "bytes_read": {
+                    "type": "integer"
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "row_count": {
+                    "type": "integer"
+                },
+                "rows": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {}
+                    }
+                },
+                "run_id": {
+                    "type": "string"
+                },
+                "truncated": {
+                    "type": "boolean"
+                },
+                "types": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.FeatureDefinition": {
             "type": "object",
             "required": [
@@ -10671,6 +13408,364 @@
                     "items": {
                         "$ref": "#/definitions/dto.ConnectorTestResult"
                     }
+                }
+            }
+        },
+        "dto.GetDashboard200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "share_enabled": {
+                    "type": "boolean"
+                },
+                "share_expires_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetDashboardWidgetData200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "widget_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetDataSource200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "secret_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetDataset200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft_sql": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetMetric200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "format": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "semantic_model_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetPipeline200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "data_source_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_run_at": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_run_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "source_object": {
+                    "type": "string"
+                },
+                "target_table": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "watermark_column": {
+                    "type": "string"
+                },
+                "watermark_type": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetQuery200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "bytes_read": {
+                    "type": "integer"
+                },
+                "clickhouse_id": {
+                    "type": "string"
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "exported": {
+                    "type": "boolean"
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metric_id": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "principal_id": {
+                    "type": "string"
+                },
+                "principal_type": {
+                    "type": "string"
+                },
+                "result_preview": {},
+                "row_count": {
+                    "type": "integer"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetSemanticModel200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dimension"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GetSharedDashboard200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "dashboard": {
+                    "$ref": "#/definitions/dto.Dashboard"
+                },
+                "version": {
+                    "$ref": "#/definitions/dto.DashboardVersion"
                 }
             }
         },
@@ -11102,6 +14197,114 @@
                 }
             }
         },
+        "dto.IngestionPipeline": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "data_source_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_run_at": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_run_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "source_object": {
+                    "type": "string"
+                },
+                "target_table": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "watermark_column": {
+                    "type": "string"
+                },
+                "watermark_type": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.IngestionRun": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "pipeline_id": {
+                    "type": "string"
+                },
+                "rows_read": {
+                    "type": "integer"
+                },
+                "rows_written": {
+                    "type": "integer"
+                },
+                "schema_drift": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "watermark_after": {
+                    "type": "string"
+                },
+                "watermark_before": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Invitation": {
             "type": "object",
             "required": [
@@ -11315,6 +14518,17 @@
                 }
             }
         },
+        "dto.ListColumnPolicies200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ColumnPolicy"
+                    }
+                }
+            }
+        },
         "dto.ListConnectorDefinitions200JSONResponse": {
             "type": "object",
             "required": [
@@ -11367,6 +14581,94 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.Credential"
+                    }
+                }
+            }
+        },
+        "dto.ListDashboardVersions200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DashboardVersion"
+                    }
+                }
+            }
+        },
+        "dto.ListDashboards200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dashboard"
+                    }
+                }
+            }
+        },
+        "dto.ListDataSourceKinds200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DataSourceKind"
+                    }
+                }
+            }
+        },
+        "dto.ListDataSourceSchemas200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DataSourceSchema"
+                    }
+                }
+            }
+        },
+        "dto.ListDataSources200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DataSource"
+                    }
+                }
+            }
+        },
+        "dto.ListDatasetLineage200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DatasetLineage"
+                    }
+                }
+            }
+        },
+        "dto.ListDatasetVersions200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DatasetVersion"
+                    }
+                }
+            }
+        },
+        "dto.ListDatasets200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dataset"
                     }
                 }
             }
@@ -11511,6 +14813,17 @@
                 }
             }
         },
+        "dto.ListMetrics200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Metric"
+                    }
+                }
+            }
+        },
         "dto.ListMySessions200JSONResponse": {
             "type": "object",
             "required": [
@@ -11539,6 +14852,28 @@
                 }
             }
         },
+        "dto.ListPipelineRuns200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.IngestionRun"
+                    }
+                }
+            }
+        },
+        "dto.ListPipelines200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.IngestionPipeline"
+                    }
+                }
+            }
+        },
         "dto.ListPlans200JSONResponse": {
             "type": "object",
             "required": [
@@ -11556,6 +14891,17 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.FeatureDefinition"
+                    }
+                }
+            }
+        },
+        "dto.ListQueries200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.QueryRun"
                     }
                 }
             }
@@ -11598,6 +14944,50 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.Role"
+                    }
+                }
+            }
+        },
+        "dto.ListRowPolicies200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.RowPolicy"
+                    }
+                }
+            }
+        },
+        "dto.ListScheduledReports200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ScheduledReport"
+                    }
+                }
+            }
+        },
+        "dto.ListSemanticModelMetrics200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Metric"
+                    }
+                }
+            }
+        },
+        "dto.ListSemanticModels200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SemanticModel"
                     }
                 }
             }
@@ -12065,6 +15455,131 @@
                 "MemberMembershipStatusActive",
                 "MemberMembershipStatusSuspended"
             ]
+        },
+        "dto.Metric": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "format": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "semantic_model_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MetricCreate": {
+            "type": "object",
+            "required": [
+                "expression",
+                "name",
+                "semantic_model_id",
+                "workspace_id"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "format": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "semantic_model_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.MetricQueryBody": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.MetricUpdate": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "format": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
         },
         "dto.NodeType": {
             "type": "object",
@@ -12648,6 +16163,88 @@
                 }
             }
         },
+        "dto.PipelineCreate": {
+            "type": "object",
+            "required": [
+                "data_source_id",
+                "name",
+                "source_object",
+                "target_table",
+                "workspace_id"
+            ],
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "data_source_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "source_object": {
+                    "type": "string"
+                },
+                "target_table": {
+                    "type": "string"
+                },
+                "watermark_column": {
+                    "type": "string"
+                },
+                "watermark_type": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PipelineUpdate": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "source_object": {
+                    "type": "string"
+                },
+                "target_table": {
+                    "type": "string"
+                },
+                "watermark_column": {
+                    "type": "string"
+                },
+                "watermark_type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.Plan": {
             "type": "object",
             "required": [
@@ -12738,6 +16335,27 @@
                 }
             }
         },
+        "dto.PreviewDataset200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "row_count": {
+                    "type": "integer"
+                },
+                "rows": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {}
+                    }
+                }
+            }
+        },
         "dto.PrincipalType": {
             "type": "string",
             "enum": [
@@ -12782,6 +16400,197 @@
                     "type": "string"
                 },
                 "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PublishDashboard200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "checksum": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "definition": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "published_by": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PublishDataset200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "checksum": {
+                    "type": "string"
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SchemaColumn"
+                    }
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "published_at": {
+                    "type": "string"
+                },
+                "published_by": {
+                    "type": "string"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PutColumnPolicy200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "classification": {
+                    "type": "string"
+                },
+                "column_name": {
+                    "type": "string"
+                },
+                "mask": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.PutRowPolicy200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "column_masks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "role_key": {
+                    "type": "string"
+                },
+                "row_filter": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.QueryBody": {
+            "type": "object",
+            "required": [
+                "sql",
+                "workspace_id"
+            ],
+            "properties": {
+                "dataset_id": {
+                    "type": "string"
+                },
+                "export": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.QueryMetric200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "metric_id": {
+                    "type": "string"
+                },
+                "run_id": {
+                    "type": "string"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "value": {}
+            }
+        },
+        "dto.QueryRun": {
+            "type": "object",
+            "properties": {
+                "bytes_read": {
+                    "type": "integer"
+                },
+                "clickhouse_id": {
+                    "type": "string"
+                },
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "duration_ms": {
+                    "type": "integer"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "exported": {
+                    "type": "boolean"
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metric_id": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "principal_id": {
+                    "type": "string"
+                },
+                "principal_type": {
+                    "type": "string"
+                },
+                "result_preview": {},
+                "row_count": {
+                    "type": "integer"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "workspace_id": {
                     "type": "string"
                 }
             }
@@ -13010,6 +16819,324 @@
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "dto.RowPolicy": {
+            "type": "object",
+            "properties": {
+                "column_masks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "role_key": {
+                    "type": "string"
+                },
+                "row_filter": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RowPolicyBody": {
+            "type": "object",
+            "properties": {
+                "column_masks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "row_filter": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RunPipeline200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "finished_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "pipeline_id": {
+                    "type": "string"
+                },
+                "rows_read": {
+                    "type": "integer"
+                },
+                "rows_written": {
+                    "type": "integer"
+                },
+                "schema_drift": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "started_at": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "watermark_after": {
+                    "type": "string"
+                },
+                "watermark_before": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ScheduledReport": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_run_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_fire_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ScheduledReportCreate": {
+            "type": "object",
+            "required": [
+                "dashboard_id",
+                "name",
+                "schedule_cron",
+                "workspace_id"
+            ],
+            "properties": {
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ScheduledReportUpdate": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schedule_cron": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Schema": {
+            "type": "object",
+            "properties": {
+                "objects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SchemaObject"
+                    }
+                }
+            }
+        },
+        "dto.SchemaColumn": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "nullable": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SchemaObject": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.SchemaColumn"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SemanticModel": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dimension"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SemanticModelCreate": {
+            "type": "object",
+            "required": [
+                "dataset_id",
+                "name",
+                "workspace_id"
+            ],
+            "properties": {
+                "dataset_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dimension"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SemanticModelUpdate": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dimension"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
                 }
             }
         },
@@ -13413,6 +17540,31 @@
                 }
             }
         },
+        "dto.ShareDashboard200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "expires_at": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ShareDashboardBody": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                },
+                "expires_at": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.SignupRequest": {
             "type": "object",
             "required": [
@@ -13486,6 +17638,191 @@
                 "Test"
             ]
         },
+        "dto.TestDataSource200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "error_code": {
+                    "type": "string"
+                },
+                "latency_ms": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "ok": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.UpdateDashboard200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft": {
+                    "$ref": "#/definitions/dto.DashboardDefinition"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "share_enabled": {
+                    "type": "boolean"
+                },
+                "share_expires_at": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateDataSource200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "environment_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "secret_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateDataset200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "draft_sql": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "owner": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateMetric200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "filters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "format": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "semantic_model_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UpdateOrganizationRequest": {
             "type": "object",
             "properties": {
@@ -13494,6 +17831,154 @@
                 },
                 "settings": {
                     "$ref": "#/definitions/dto.OrganizationSettings"
+                }
+            }
+        },
+        "dto.UpdatePipeline200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "data_source_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_run_at": {
+                    "type": "string"
+                },
+                "mode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_run_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "source_object": {
+                    "type": "string"
+                },
+                "target_table": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "watermark_column": {
+                    "type": "string"
+                },
+                "watermark_type": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateScheduledReport200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dashboard_id": {
+                    "type": "string"
+                },
+                "enabled": {
+                    "type": "boolean"
+                },
+                "format": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "last_run_at": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "next_fire_at": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "recipients": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "schedule_cron": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateSemanticModel200JSONResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Dimension"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "org_id": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "workspace_id": {
+                    "type": "string"
                 }
             }
         },
@@ -14111,6 +18596,50 @@
                 },
                 "timestamp_header": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.Widget": {
+            "type": "object",
+            "properties": {
+                "config": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "dataset_id": {
+                    "type": "string"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "metric_id": {
+                    "type": "string"
+                },
+                "sql": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.WidgetDataBody": {
+            "type": "object",
+            "properties": {
+                "filters": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         },

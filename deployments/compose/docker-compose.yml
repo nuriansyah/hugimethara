@@ -9,6 +9,10 @@ x-backend-env: &backend-env
   HUGI_LOG_FORMAT: json
   HUGI_NATS_URL: nats://nats:4222
   HUGI_REDIS_URL: redis://redis:6379/0
+  HUGI_CLICKHOUSE_URL: http://clickhouse:8123
+  HUGI_CLICKHOUSE_USER: default
+  HUGI_CLICKHOUSE_PASSWORD: ${HUGI_CLICKHOUSE_PASSWORD:-hugi-clickhouse-dev}
+  HUGI_CLICKHOUSE_DATABASE: hugimethara
   # The API seals webhook signing secrets and the worker opens them to sign
   # deliveries, so both must share the key (empty = development key).
   HUGI_MASTER_KEY: ${HUGI_MASTER_KEY:-}
@@ -51,6 +55,22 @@ services:
       interval: 3s
       retries: 20
 
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.3-alpine
+    environment:
+      CLICKHOUSE_DB: hugimethara
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ${HUGI_CLICKHOUSE_PASSWORD:-hugi-clickhouse-dev}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - chdata:/var/lib/clickhouse
+    ports: ["127.0.0.1:${HUGI_CLICKHOUSE_HTTP_PORT:-8123}:8123", "127.0.0.1:${HUGI_CLICKHOUSE_NATIVE_PORT:-9000}:9000"]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
   migrate:
     build: { context: ../.. }
     image: hugimethara/backend:dev
@@ -75,18 +95,21 @@ services:
       migrate: { condition: service_completed_successfully }
       redis: { condition: service_healthy }
       nats: { condition: service_healthy }
+      clickhouse: { condition: service_healthy }
 
   worker:
     image: hugimethara/backend:dev
     command: ["hugi-worker"]
     environment:
       <<: *backend-env
+      HUGI_DATABASE_URL: postgres://hugi_app:${HUGI_APP_PASSWORD:-hugi-app-dev}@postgres:5432/hugimethara?sslmode=disable
       HUGI_SYSTEM_DATABASE_URL: postgres://hugi_system:${HUGI_SYSTEM_PASSWORD:-hugi-system-dev}@postgres:5432/hugimethara?sslmode=disable
     deploy:
       replicas: 2   # exercise concurrent relays from day one
     depends_on:
       migrate: { condition: service_completed_successfully }
       nats: { condition: service_healthy }
+      clickhouse: { condition: service_healthy }
 
   web:
     build:
@@ -129,3 +152,4 @@ services:
 volumes:
   pgdata:
   natsdata:
+  chdata:

@@ -632,7 +632,7 @@ func (s *CompositionService) run(ctx context.Context, orgID uuid.UUID, version r
 			return nil, results, errors.New("composition step output exceeds the 5 MiB aggregate limit")
 		}
 	}
-	source := map[string]any{"request": request, "steps": results}
+	source := map[string]any{"request": request, "steps": stepValues(results)}
 	if def.Response.MappingID != "" {
 		mapped, err := s.applyResponseMapping(runCtx, orgID, def.Response.MappingID, def.Response.MappingVersion, source)
 		if err != nil {
@@ -650,11 +650,7 @@ func (s *CompositionService) executeStep(ctx context.Context, orgID, environment
 			return compositionmodel.StepResult{Skipped: true}, nil
 		}
 	}
-	stepData := make(map[string]any, len(prior))
-	for id, result := range prior {
-		stepData[id] = map[string]any{"status": result.Status, "body": result.Body,
-			"duration_ms": result.DurationMs, "skipped": result.Skipped, "error": result.Error}
-	}
+	stepData := stepValues(prior)
 	if current.When != "" {
 		ok, err := evalCondition(current.When, map[string]any{"steps": stepData, "request": request})
 		if err != nil {
@@ -726,6 +722,18 @@ func (s *CompositionService) executeStep(ctx context.Context, orgID, environment
 	}
 	return compositionmodel.StepResult{Status: result.Status, Body: result.Body,
 		DurationMs: int(time.Since(start).Milliseconds()), Attempts: attempts}, errors.New("endpoint request failed")
+}
+
+// stepValues renders step results as plain JSON values. Conditions, input
+// references and the response mapping address them as $.steps.<id>.*, so the
+// values must be maps — not StepResult structs — for JSONPath to traverse.
+func stepValues(results map[string]compositionmodel.StepResult) map[string]any {
+	out := make(map[string]any, len(results))
+	for id, result := range results {
+		out[id] = map[string]any{"status": result.Status, "body": result.Body,
+			"duration_ms": result.DurationMs, "skipped": result.Skipped, "error": result.Error}
+	}
+	return out
 }
 
 func (s *CompositionService) applyResponseMapping(ctx context.Context, orgID uuid.UUID, mappingID string, version int, source any) (any, error) {

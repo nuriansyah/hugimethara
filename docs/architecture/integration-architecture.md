@@ -101,6 +101,13 @@ A composition version is a DAG:
 - Exposure: `POST /api-compositions/{id}/execute` (Phase 1 P0) and published gateway route
   `/{org}/{workspace}/{path}` on a separate listener with API-key/session auth (P1).
 
+Implementation (S9, verified end to end in S14): the executor renders each step result as a plain JSON object
+(`status`, `body`, `duration_ms`, `skipped`, `error`) so `when` conditions, input references and the response mapping
+can all address `$.steps.<id>.body.*` with the same JSONPath subset. The `TestOrderOverviewCompositionEndToEnd`
+integration test imports two OpenAPI services, runs `order → customer` with a `when` condition through the
+egress-guarded explorer client, applies a published response mapping and checks the stored execution. The gateway
+route is P1.
+
 ## 4. Mapping & Transformation
 
 Mapping IR (stored as versioned JSON, edited visually or as JSON):

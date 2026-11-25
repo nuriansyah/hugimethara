@@ -41,8 +41,18 @@ function Stat({ label, value, hint, tone }: { label: string; value: string | num
 /** Executions per bucket as stacked bars (succeeded / failed), no chart library. */
 function ExecutionBars({ series, bucket }: { series: NonNullable<Overview["workflows"]>["series"]; bucket: "hour" | "day" }) {
   const max = Math.max(1, ...series.map((p) => p.succeeded + p.failed));
+  // Hour buckets span two calendar days in the 24h window, so they carry the date too.
   const label = (iso: string) =>
-    new Date(iso).toLocaleString(undefined, bucket === "hour" ? { hour: "2-digit", minute: "2-digit" } : { month: "short", day: "numeric" });
+    new Date(iso).toLocaleString(undefined, bucket === "hour"
+      ? { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }
+      : { month: "short", day: "numeric" });
+  if (series.every((p) => p.succeeded + p.failed === 0)) {
+    return (
+      <p className="rounded-md border border-dashed py-6 text-center text-sm text-muted-foreground">
+        No executions in this period. Run a workflow to see activity here.
+      </p>
+    );
+  }
   return (
     <figure className="flex flex-col gap-2">
       <div className="flex h-32 items-end gap-px" role="img"
